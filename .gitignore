@@ -1,0 +1,16 @@
+# Rider
+.idea/
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET temporary files
+project.lock.json
+project.fragment.lock.json

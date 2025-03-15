@@ -27,7 +27,7 @@ public struct Color(float r, float g, float b)
         return c * scalar; // Reuse the existing overload
     }
 
-    public static bool are_close(float a, float b, float epsilon = 1f - 5)
+    public static bool are_close(float a, float b, float epsilon = 1e-5f)
     {
         return Math.Abs(a - b) <= epsilon;
     }

@@ -25,7 +25,7 @@ public class HdrImage
         // Verify that the coordinates are valid
         if (x < 0 || x >= Width || y < 0 || y >= Height)
         {
-            throw new ArgumentOutOfRangeException(nameof(x), "The pixel coordinates are out of bounds.");
+            throw new Exception("The pixel coordinates are out of bounds.");
         }
 
         // Return the color of the pixel
@@ -38,7 +38,7 @@ public class HdrImage
         // Verify that the coordinates are valid
         if (x < 0 || x >= Width || y < 0 || y >= Height)
         {
-            throw new ArgumentOutOfRangeException(nameof(y), "The pixel coordinates are out of bounds.");
+            throw new Exception("The pixel coordinates are out of bounds.");
         }
 
         // Set the new color for the pixel

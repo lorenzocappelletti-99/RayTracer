@@ -49,7 +49,7 @@ static class Program
         Console.WriteLine($"Pixel (0,0) color: ({pixelColor.R}, {pixelColor.G}, {pixelColor.B})");
         
         // test to set pixel out of bounds
-        //image.SetPixel(4, 4, newColor);
+        image.SetPixel(2, 4, newColor);
         
         // test to get pixel out of bounds
         //var pix = image.GetPixel(4, 4);

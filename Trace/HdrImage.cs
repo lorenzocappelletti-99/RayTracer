@@ -22,26 +22,38 @@ public class HdrImage
     
     public Color GetPixel(int x, int y)
     {
-        // Verify that the coordinates are valid
-        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        // Check if x is out of bounds
+        if (x < 0 || x >= Width)
         {
-            throw new Exception("The pixel coordinates are out of bounds.");
+            throw new ArgumentOutOfRangeException(nameof(x), "The x coordinate is out of bounds.");
+        }
+
+        // Check if y is out of bounds
+        if (y < 0 || y >= Height)
+        {
+            throw new ArgumentOutOfRangeException(nameof(y), "The y coordinate is out of bounds.");
         }
 
         // Return the color of the pixel
         return Pixels[y * Width + x];
     }
-    
-    // Sets the color of a specific pixel by coordinates
+
     public void SetPixel(int x, int y, Color newColor)
     {
-        // Verify that the coordinates are valid
-        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        // Check if x is out of bounds
+        if (x < 0 || x >= Width)
         {
-            throw new Exception("The pixel coordinates are out of bounds.");
+            throw new ArgumentOutOfRangeException(nameof(x), "The x coordinate is out of bounds.");
+        }
+
+        // Check if y is out of bounds
+        if (y < 0 || y >= Height)
+        {
+            throw new ArgumentOutOfRangeException(nameof(y), "The y coordinate is out of bounds.");
         }
 
         // Set the new color for the pixel
         Pixels[y * Width + x] = newColor;
     }
+
 }

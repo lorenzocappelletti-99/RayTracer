@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trace", "Trace\Trace.csproj", "{6A12EE76-6BA8-4A69-83DC-BBB56F885ED0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myraytracer", "MyrayTracer\Myraytracer.csproj", "{A3A93E7B-E660-4F97-B646-FC69CEB125A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trace.Tests", "Trace.Tests\Trace.Tests.csproj", "{55AE7DC7-6ECC-4715-99C9-5240B4F73092}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A12EE76-6BA8-4A69-83DC-BBB56F885ED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A12EE76-6BA8-4A69-83DC-BBB56F885ED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A12EE76-6BA8-4A69-83DC-BBB56F885ED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A12EE76-6BA8-4A69-83DC-BBB56F885ED0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3A93E7B-E660-4F97-B646-FC69CEB125A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3A93E7B-E660-4F97-B646-FC69CEB125A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3A93E7B-E660-4F97-B646-FC69CEB125A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3A93E7B-E660-4F97-B646-FC69CEB125A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55AE7DC7-6ECC-4715-99C9-5240B4F73092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55AE7DC7-6ECC-4715-99C9-5240B4F73092}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55AE7DC7-6ECC-4715-99C9-5240B4F73092}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55AE7DC7-6ECC-4715-99C9-5240B4F73092}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

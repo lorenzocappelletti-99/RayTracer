@@ -95,10 +95,10 @@ namespace Trace.Tests
         [Fact]
         public void TestAdd()
         {
-            Color a = new Color(1.0f, 2.0f, 3.0f);
-            Color b = new Color(5.0f, 6.0f, 7.0f);
+            Color c1 = new Color(1.0f, 2.0f, 3.0f);
+            Color c2 = new Color(5.0f, 6.0f, 7.0f);
             // C# convention: *first* the expected value, *then* the test value
-            Assert.True(Color.are_close_colors(new Color(6.0f, 8.0f, 10.0f), a + b));
+            Assert.True(Color.are_close_colors(new Color(6.0f, 8.0f, 10.0f), c1 + c2));
             // ...
         }
     }

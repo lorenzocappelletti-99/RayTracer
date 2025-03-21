@@ -1,4 +1,4 @@
-﻿namespace Trace;
+namespace Trace;
 
 public struct Color(float r, float g, float b)
 {

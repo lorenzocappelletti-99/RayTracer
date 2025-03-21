@@ -16,14 +16,15 @@ public class HdrImage
         Pixels = new Color[Width * Height];
 
         // Initialize all pixels to black
-        for (int i = 0; i < Pixels.Length; i++)
+        for (var i = 0; i < Pixels.Length; i++)
         {
             Pixels[i] = new Color();
         }
     }
 
-    private bool valid_coordinates(int x, int y)
+    public bool valid_coordinates(int x, int y)
     {
+        /*
         // Check if x is out of bounds
         if (x < 0 || x >= Width)
         {
@@ -33,8 +34,9 @@ public class HdrImage
         if (y < 0 || y >= Height)
         {
             throw new ArgumentOutOfRangeException(nameof(y), "The y coordinate is out of bounds.");
-        }        
-        return x < Width && y < Height;
+        } 
+        */
+        return x >= 0  && x < Width && y >= 0 && y < Height;
     }
     public int pixel_offset(int x, int y)
     {

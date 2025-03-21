@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="xunit.assert" Version="2.4.2" />
+  </ItemGroup>
+
 </Project>

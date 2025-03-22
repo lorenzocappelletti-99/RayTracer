@@ -85,22 +85,22 @@ stream.write(struct.pack("<f", value))
 
     public void WritePfm(HdrImage img, bool endianness = false)//(, int endianness=Endianness.LITTLE_ENDIAN)
     {
-        string filePath = @"C:\Users\pietr\OneDrive\Desktop\fisica\magistrale\SEM_2\FotoReal\Myraytracer\Myraytracer\output.pfm";
-
-        using FileStream fileStream = File.OpenWrite(filePath);
-        using BinaryWriter writer = new BinaryWriter(fileStream, Encoding.ASCII);
+        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "output.pfm");  //stampa nella directory in cui è eseguito il programma
+        
+        using var fileStream = File.OpenWrite(filePath);
+        using var writer = new BinaryWriter(fileStream, Encoding.ASCII);
 
         // Header
         writer.Write(Encoding.ASCII.GetBytes("PF\n")); // "PF" indica un'immagine RGB
         writer.Write(Encoding.ASCII.GetBytes($"{img.Width} {img.Height}\n"));
 
         var floatEndiannes = -1.0f;
-        if (endianness == true){ floatEndiannes = 1.0f; }
+        if (endianness){ floatEndiannes = 1.0f; }
         writer.Write(Encoding.ASCII.GetBytes($"{floatEndiannes}\n"));
 
-        for (int y = 0; y < img.Height; y++)
+        for (var y = 0; y < img.Height; y++)
         {
-            for (int x = 0; x < img.Width; x++)
+            for (var x = 0; x < img.Width; x++)
             {
                 var color = this.GetPixel(x, y);
                 WriteFloat(fileStream, color.R);

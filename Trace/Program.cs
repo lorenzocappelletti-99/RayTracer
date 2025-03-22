@@ -1,4 +1,5 @@
-﻿namespace Trace;
+﻿/*
+namespace Trace;
 
 static class Program
 {
@@ -56,3 +57,4 @@ static class Program
 
     }
 }
+*/

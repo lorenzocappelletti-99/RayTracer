@@ -1,4 +1,7 @@
+using System.Text;
+
 namespace Trace.Tests;
+
 
 public class HdrImageTests
 {
@@ -30,6 +33,54 @@ public class HdrImageTests
         Assert.True(img.pixel_offset(3, 2) == 17, "Pixel offset doesn't work properly.");
         Assert.True(img.pixel_offset(6, 3) == 7 * 4 -1, "Pixel offset doesn't work properly.");
 
+    }
+    
+    [Fact]
+    public void TestReadPfm()
+    {
+        // 1. Crea il file PFM in memoria
+        var header = Encoding.ASCII.GetBytes("PF\n2 2\n-1.0\n");
+
+        // Dati binari per un'immagine 2x2
+        var pixelData = new byte[]
+        {
+            // Prima riga (bottom)
+            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
+            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
+
+            // Seconda riga (top)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
+            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
+            0x3F, 0x80, 0x00, 0x00, // 1.0 (B)
+            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
+            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
+            0x00, 0x00, 0x00, 0x00  // 0.0 (B)
+        };
+
+        // Combina header e dati binari
+        var pfmData = new byte[header.Length + pixelData.Length];
+        Buffer.BlockCopy(header, 0, pfmData, 0, header.Length);
+        Buffer.BlockCopy(pixelData, 0, pfmData, header.Length, pixelData.Length);
+
+        // 2. Crea uno stream dai dati binari
+        using var stream = new MemoryStream(pfmData);
+
+        // 3. Chiama la funzione ReadPfm
+        var image = HdrImage.ReadPfm(stream);
+
+        // 4. Verifica le dimensioni dell'immagine
+        Assert.Equal(2, image.Width);
+        Assert.Equal(2, image.Height);
+
+        // 5. Verifica i pixel
+        Assert.Equal(new Color(1.0f, 0.0f, 0.0f), image.GetPixel(0, 0)); // Top-left (rosso)
+        Assert.Equal(new Color(0.0f, 1.0f, 0.0f), image.GetPixel(1, 0)); // Top-right (verde)
+        Assert.Equal(new Color(0.0f, 0.0f, 1.0f), image.GetPixel(0, 1)); // Bottom-left (blu)
+        Assert.Equal(new Color(1.0f, 1.0f, 0.0f), image.GetPixel(1, 1)); // Bottom-right (giallo)
     }
     
     /* $ xxd reference_be.pfm

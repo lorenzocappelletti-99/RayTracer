@@ -38,4 +38,9 @@ public struct Color(float r, float g, float b)
                are_close(c1.B, c2.B) &&
                are_close(c1.G, c2.G);
     }
+    
+    public override string ToString()
+    {
+        return $"(R: {R}, G: {G}, B: {B})";
+    }
 }

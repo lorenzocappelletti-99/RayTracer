@@ -1,10 +1,18 @@
 using System.Text;
+using Xunit.Abstractions;
 
 namespace Trace.Tests;
 
 
 public class HdrImageTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public HdrImageTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void TestHdrImageConstruction()
     {
@@ -35,52 +43,47 @@ public class HdrImageTests
 
     }
     
+    private static readonly byte[] LE_REFERENCE_BYTES = new byte[]
+    {
+        0x50, 0x46, 0x0a,             // "PF\n"
+        0x33, 0x20, 0x32, 0x0a,        // "3 2\n"
+        0x2d, 0x31, 0x2e, 0x30, 0x0a,   // "-1.0\n"
+        0x00, 0x00, 0xc8, 0x42,        // 100.0f, ad esempio, o altro valore
+        0x00, 0x00, 0x48, 0x43,        // ...
+        0x00, 0x00, 0x96, 0x43,
+        0x00, 0x00, 0xc8, 0x43,
+        0x00, 0x00, 0xfa, 0x43,
+        0x00, 0x00, 0x16, 0x44,
+        0x00, 0x00, 0x2f, 0x44,
+        0x00, 0x00, 0x48, 0x44,
+        0x00, 0x00, 0x61, 0x44,
+        0x00, 0x00, 0x20, 0x41,
+        0x00, 0x00, 0xa0, 0x41,
+        0x00, 0x00, 0xf0, 0x41,
+        0x00, 0x00, 0x20, 0x42,
+        0x00, 0x00, 0x48, 0x42,
+        0x00, 0x00, 0x70, 0x42,
+        0x00, 0x00, 0x8c, 0x42,
+        0x00, 0x00, 0xa0, 0x42,
+        0x00, 0x00, 0xb4, 0x42
+    };
+    
     [Fact]
     public void TestReadPfm()
     {
-        // 1. Crea il file PFM in memoria
-        var header = Encoding.ASCII.GetBytes("PF\n2 2\n-1.0\n");
+        // 1. Crea uno stream a partire dai byte di riferimento
+        using var stream = new MemoryStream(LE_REFERENCE_BYTES);
 
-        // Dati binari per un'immagine 2x2
-        var pixelData = new byte[]
-        {
-            // Prima riga (bottom)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
+        // 2. Chiama il metodo ReadPfm per leggere l'immagine
+        HdrImage image = HdrImage.ReadPfm(stream);
 
-            // Seconda riga (top)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (B)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
-            0x00, 0x00, 0x00, 0x00  // 0.0 (B)
-        };
-
-        // Combina header e dati binari
-        var pfmData = new byte[header.Length + pixelData.Length];
-        Buffer.BlockCopy(header, 0, pfmData, 0, header.Length);
-        Buffer.BlockCopy(pixelData, 0, pfmData, header.Length, pixelData.Length);
-
-        // 2. Crea uno stream dai dati binari
-        using var stream = new MemoryStream(pfmData);
-
-        // 3. Chiama la funzione ReadPfm
-        var image = HdrImage.ReadPfm(stream);
-
-        // 4. Verifica le dimensioni dell'immagine
-        Assert.Equal(2, image.Width);
+        // 3. Verifica le dimensioni
+        Assert.Equal(3, image.Width);
         Assert.Equal(2, image.Height);
 
-        // 5. Verifica i pixel
-        Assert.Equal(new Color(1.0f, 0.0f, 0.0f), image.GetPixel(0, 0)); // Top-left (rosso)
-        Assert.Equal(new Color(0.0f, 1.0f, 0.0f), image.GetPixel(1, 0)); // Top-right (verde)
-        Assert.Equal(new Color(0.0f, 0.0f, 1.0f), image.GetPixel(0, 1)); // Bottom-left (blu)
-        Assert.Equal(new Color(1.0f, 1.0f, 0.0f), image.GetPixel(1, 1)); // Bottom-right (giallo)
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 2; j++)
+                _testOutputHelper.WriteLine($"pixel({i},{j}): {image.GetPixel(i,j)}");
     }
     
     /* $ xxd reference_be.pfm

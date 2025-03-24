@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace Trace.Tests;
 
 public class ColorTests

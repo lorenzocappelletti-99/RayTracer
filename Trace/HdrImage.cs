@@ -59,13 +59,6 @@ public class HdrImage
     }
     
     
-    /*
- * def _write_float(stream, value):
-# Meaning of "<f":
-# "<": little endian
-# "f": single-precision floating point value (32 bit)
-stream.write(struct.pack("<f", value))
- */
     private static void WriteFloat(Stream outputStream, float value, bool littleEndian = false)
     {
         var bytes = BitConverter.GetBytes(value);
@@ -109,27 +102,7 @@ stream.write(struct.pack("<f", value))
         }
     }
 
-
-    /*
-    def write_pfm(self, 
-    ):
-    endianness_str = "-1.0" if endianness == Endianness.LITTLE_ENDIAN else "1.0"
-
-    # The PFM header, as a Python string (UTF-8)
-    header = f"PF\n{self.width} {self.height}\n{endianness_str}\n"
-
-    # Convert the header into a sequence of bytes
-    stream.write(header.encode("ascii"))
-
-    # Write the image (bottom-to-up, left-to-right)
-    for y in reversed(range(self.height)):
-        for x in range(self.width):
-            color = self.get_pixel(x, y)
-            _write_float(stream, color.r, endianness)
-            _write_float(stream, color.g, endianness)
-            _write_float(stream, color.b, endianness)
-     */
-     //// New constructor ///
+    /// New constructor ///
     public HdrImage(string filePath)
     {
         using var fileStream = File.OpenRead(filePath);  // The 'using' ensures the stream is disposed correctly

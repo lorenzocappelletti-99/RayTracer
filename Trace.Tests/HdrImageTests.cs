@@ -1,10 +1,13 @@
 using System.Text;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Trace.Tests;
 
 
-public class HdrImageTests
+public class HdrImageTests(ITestOutputHelper testOutputHelper)
 {
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     [Fact]
     public void TestHdrImageConstruction()
     {
@@ -38,7 +41,7 @@ public class HdrImageTests
     [Fact]
     public void TestWritePfm()
     {
-        var memoryStream = new MemoryStream();
+        //var memoryStream = new MemoryStream();
 
         var img = new HdrImage(3, 2);
         
@@ -60,61 +63,82 @@ public class HdrImageTests
         ];
 
         using var buf = new MemoryStream();
-        img.WritePfm(buf, false); // Write PFM data to MemoryStream
+        img.WritePfm(buf); // Write PFM data to MemoryStream
         var resultBytes = buf.ToArray(); // Get written data
-   
-        // Check if output matches referenceBytes
-        var isEqual = referenceBytes.SequenceEqual(resultBytes);
         
         Assert.True(resultBytes.SequenceEqual(referenceBytes));
     }
     
+    
     [Fact]
-    public void TestReadPfm()
+    public void TestReadPfm_LE()
     {
-        // 1. Crea il file PFM in memoria
-        var header = Encoding.ASCII.GetBytes("PF\n2 2\n-1.0\n");
-
-        // Dati binari per un'immagine 2x2
-        var pixelData = new byte[]
+        // 1. Ottieni il percorso della directory del progetto
+        var projectDir = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName;
+        if (projectDir == null) throw new Exception("Project directory not found");
+    
+        // 2. Costruisci il percorso completo del file
+        var pfmFilePath = Path.Combine(projectDir, "reference_le.pfm");
+    
+        // 3. Verifica che il file esista
+        if (!File.Exists(pfmFilePath))
         {
-            // Prima riga (bottom)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (B)
+            throw new FileNotFoundException($"PFM file not found at: {pfmFilePath}");
+        }
 
-            // Seconda riga (top)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (R)
-            0x00, 0x00, 0x00, 0x00, // 0.0 (G)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (B)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (R)
-            0x3F, 0x80, 0x00, 0x00, // 1.0 (G)
-            0x00, 0x00, 0x00, 0x00  // 0.0 (B)
-        };
+        // 4. Leggi e verifica l'immagine
+        using var stream = File.OpenRead(pfmFilePath);
+        HdrImage image = HdrImage.ReadPfm(stream);
 
-        // Combina header e dati binari
-        var pfmData = new byte[header.Length + pixelData.Length];
-        Buffer.BlockCopy(header, 0, pfmData, 0, header.Length);
-        Buffer.BlockCopy(pixelData, 0, pfmData, header.Length, pixelData.Length);
-
-        // 2. Crea uno stream dai dati binari
-        using var stream = new MemoryStream(pfmData);
-
-        // 3. Chiama la funzione ReadPfm
-        var image = HdrImage.ReadPfm(stream);
-
-        // 4. Verifica le dimensioni dell'immagine
-        Assert.Equal(2, image.Width);
+        // 3. Verifica le dimensioni
+        Assert.Equal(3, image.Width);
         Assert.Equal(2, image.Height);
 
-        // 5. Verifica i pixel
-        Assert.Equal(new Color(1.0f, 0.0f, 0.0f), image.GetPixel(0, 0)); // Top-left (rosso)
-        Assert.Equal(new Color(0.0f, 1.0f, 0.0f), image.GetPixel(1, 0)); // Top-right (verde)
-        Assert.Equal(new Color(0.0f, 0.0f, 1.0f), image.GetPixel(0, 1)); // Bottom-left (blu)
-        Assert.Equal(new Color(1.0f, 1.0f, 0.0f), image.GetPixel(1, 1)); // Bottom-right (giallo)
+        /*
+        for (int j = 0; j<2; j++)
+            for (int i = 0; i < 3; i++)
+                _testOutputHelper.WriteLine($"pixel({i},{j}): {image.GetPixel(i,j)}");
+        */
+        
+        Assert.True(Color.are_close_colors(image.GetPixel(0, 0), new Color(1.0e1f, 2.0e1f, 3.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(1, 0), new Color(4.0e1f, 5.0e1f, 6.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(2, 0), new Color(7.0e1f, 8.0e1f, 9.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(0, 1), new Color(1.0e2f, 2.0e2f, 3.0e2f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(1, 1), new Color(4.0e2f, 5.0e2f, 6.0e2f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(2, 1), new Color(7.0e2f, 8.0e2f, 9.0e2f)));
+    }
+    
+    [Fact]
+    public void TestReadPfm_BE()
+    {
+        // 1. get path project directory
+        var projectDir = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName;
+        if (projectDir == null) throw new Exception("Project directory not found");
+    
+        // 2. build complete path
+        var pfmFilePath = Path.Combine(projectDir, "reference_be.pfm");
+    
+        // 3. check file existence
+        if (!File.Exists(pfmFilePath))
+        {
+            throw new FileNotFoundException($"PFM file not found at: {pfmFilePath}");
+        }
+
+        // 4. read and verify image
+        using var stream = File.OpenRead(pfmFilePath);
+        HdrImage image = HdrImage.ReadPfm(stream);
+
+        // 5. check dimensions
+        Assert.Equal(3, image.Width);
+        Assert.Equal(2, image.Height);
+    
+        // 6. check pixels (aggiusta questi valori in base al contenuto reale del tuo file BE)
+        Assert.True(Color.are_close_colors(image.GetPixel(0, 0), new Color(1.0e1f, 2.0e1f, 3.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(1, 0), new Color(4.0e1f, 5.0e1f, 6.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(2, 0), new Color(7.0e1f, 8.0e1f, 9.0e1f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(0, 1), new Color(1.0e2f, 2.0e2f, 3.0e2f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(1, 1), new Color(4.0e2f, 5.0e2f, 6.0e2f)));
+        Assert.True(Color.are_close_colors(image.GetPixel(2, 1), new Color(7.0e2f, 8.0e2f, 9.0e2f)));
     }
     
     /* $ xxd reference_be.pfm

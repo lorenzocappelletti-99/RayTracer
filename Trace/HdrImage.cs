@@ -23,6 +23,19 @@ public class HdrImage
             Pixels[i] = new Color();
         }
     }
+    
+    /// <summary>
+    /// Constructs an HdrImage type by reading it from a PFM, RGB file
+    /// </summary>
+    /// <param name="filePath"></param>
+    public HdrImage(string filePath)
+    {
+        using var fileStream = File.OpenRead(filePath);  
+        var tempImage = ReadPfm(fileStream);
+        this.Width = tempImage.Width;
+        this.Height = tempImage.Height;
+        this.Pixels = tempImage.Pixels;
+    }
 
     public bool valid_coordinates(int x, int y)
     {
@@ -47,23 +60,21 @@ public class HdrImage
     public Color GetPixel(int x, int y)
     {
         Assert.True(valid_coordinates(x, y));
-        // Return the color of the pixel
         return Pixels[pixel_offset(x, y)];
     }
 
     public void SetPixel(int x, int y, Color newColor)
     {
         Assert.True(valid_coordinates(x, y));
-        // Set the new color for the pixel
         Pixels[pixel_offset(x,y)] = newColor;
     }
     
     
-    private static void WriteFloat(Stream outputStream, float value, bool littleEndian = false)
+    private static void WriteFloat(Stream outputStream, float value, bool littleEndian = true)
     {
         var bytes = BitConverter.GetBytes(value);
 
-        // Se la macchina è little-endian ma vogliamo big-endian, invertiamo i byte
+        // If machine is little-endian and big-endian is needed, invert bytes
         if (BitConverter.IsLittleEndian != littleEndian)
         {
             Array.Reverse(bytes);
@@ -77,7 +88,12 @@ public class HdrImage
         
     }
 
-    public void WritePfm(Stream outputStream, bool endianness = false)
+    /// <summary>
+    /// Endianness must be bool. The method will convert it to float when printing on file. true -> Little endianness. 
+    /// </summary>
+    /// <param name="outputStream"></param>
+    /// <param name="endianness"></param>
+    public void WritePfm(Stream outputStream, bool endianness = true)
     {
         using var writer = new BinaryWriter(outputStream, Encoding.ASCII, leaveOpen: true);
 
@@ -85,12 +101,20 @@ public class HdrImage
         writer.Write(Encoding.ASCII.GetBytes("PF\n")); // "PF" means an RGB image
         writer.Write(Encoding.ASCII.GetBytes($"{Width} {Height}\n"));
 
-        var floatEndianness = -1.0f;
-        if (endianness) { floatEndianness = 1.0f; }
-        writer.Write(Encoding.ASCII.GetBytes($"{floatEndianness}\n"));
+        float floatEndianness;
+        if (endianness == true)
+        {
+            floatEndianness = -1.0f;
+        }
+        else
+        {
+            floatEndianness = 1.0f; }
+        writer.Write(Encoding.ASCII.GetBytes($"{floatEndianness:0.0}\n"));
+        // watch out! here the .0 after the +-1 is written. Crucial detail.
+        
 
-        // Pixels are written (bottom-to-up, left-to-right). Columns first, then lines
-        for (var y = 0; y < Height; y++)
+        // Pixels are written (bottom-to-up, left-to-right). Columns first, then lines.
+        for (var y = Height - 1; y >= 0; y--)
         {
             for (var x = 0; x < Width; x++)
             {
@@ -100,16 +124,6 @@ public class HdrImage
                 WriteFloat(outputStream, color.B, endianness);
             }
         }
-    }
-
-    /// New constructor ///
-    public HdrImage(string filePath)
-    {
-        using var fileStream = File.OpenRead(filePath);  // The 'using' ensures the stream is disposed correctly
-        HdrImage tempImage = ReadPfm(fileStream);
-        this.Width = tempImage.Width;
-        this.Height = tempImage.Height;
-        this.Pixels = tempImage.Pixels;
     }
 
     public static HdrImage ReadPfm(Stream inputStream)

@@ -1,6 +1,9 @@
 using Xunit;
 using System.Text;
 using System.Globalization;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Trace;
 
@@ -147,8 +150,8 @@ public class HdrImage
             throw new InvalidDataException("Invalid PFM format: incorrect image dimensions.");
 
         // 3. Read endianness (-1.0 = little-endian, 1.0 = big-endian)
-        byte[] line3Bytes = ReadLineBytes(inputStream);
-        string line3 = Encoding.ASCII.GetString(line3Bytes).Trim();
+        var line3Bytes = ReadLineBytes(inputStream);
+        var line3 = Encoding.ASCII.GetString(line3Bytes).Trim();
         if (!float.TryParse(line3, NumberStyles.Float, CultureInfo.InvariantCulture, out float endianValue))
             throw new InvalidDataException("Invalid PFM format: malformed endianness value.");
         bool isLittleEndian = endianValue < 0;
@@ -196,6 +199,51 @@ public class HdrImage
         if (bytes.Length != 4) throw new EndOfStreamException("Unexpected end of stream while reading float.");
         if (BitConverter.IsLittleEndian != isLittleEndian) Array.Reverse(bytes);
         return BitConverter.ToSingle(bytes, 0);
+    }
+    
+    
+    /*
+def write_ldr_image(self, stream, format, gamma=1.0):
+        from PIL import Image
+        img = Image.new("RGB", (self.width, self.height))
+
+        for y in range(self.height):
+            for x in range(self.width):
+                cur_color = self.get_pixel(x, y)
+                img.putpixel(xy=(x, y), value=(
+                        int(255 * math.pow(cur_color.r, 1 / gamma)),
+                        int(255 * math.pow(cur_color.g, 1 / gamma)),
+                        int(255 * math.pow(cur_color.b, 1 / gamma)),
+                ))
+
+        img.save(stream, format=format)
+     */    
+    
+    public void write_ldr_image(Stream outputStream, float gamma = 1.0f)
+    {
+            
+    }
+    
+    public static void ConvertPfmToOtherFormat(Stream pfmPath, string outputStream, string outputFormat)
+    {
+        // Read the PFM file
+        //var img = ReadPfm(pfmPath);
+        var img = Image.Load(pfmPath);
+
+        // Save the image in the desired format
+        using var stream = new FileStream(outputStream, FileMode.Create);
+        switch (outputFormat.ToLower())
+        {
+            case "png":
+                img.Save(stream, SixLabors.ImageSharp.Formats.Png.PngFormat.Instance);
+                break;
+            case "jpeg":
+            case "jpg":
+                img.Save(stream, SixLabors.ImageSharp.Formats.Jpeg.JpegFormat.Instance);
+                break;
+            default:
+                throw new ArgumentException("Unsupported output format");
+        }
     }
 }
 

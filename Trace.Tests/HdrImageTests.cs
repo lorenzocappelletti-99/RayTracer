@@ -72,7 +72,11 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
         using var buf = new MemoryStream();
         img.WritePfm(buf);
         var resultBytes = buf.ToArray();
-        Assert.True(resultBytes.SequenceEqual(referenceBytes));
+
+        for (var i = 0; i < referenceBytes.Length; i++)
+        {
+            Assert.True(referenceBytes[i] == resultBytes[i]);
+        }
     }
     
     

@@ -70,15 +70,12 @@ public class HdrImage
     }
     
     
-    private static void WriteFloat(Stream outputStream, float value, bool littleEndian = true)
+    private static void WriteFloat(Stream outputStream, float value, bool isLittleEndian = true)
     {
         var bytes = BitConverter.GetBytes(value);
 
         // If machine is little-endian and big-endian is needed, invert bytes
-        if (BitConverter.IsLittleEndian != littleEndian)
-        {
-            Array.Reverse(bytes);
-        }
+        if (BitConverter.IsLittleEndian != isLittleEndian) Array.Reverse(bytes);
 
         outputStream.Write(bytes, 0, bytes.Length);
     }
@@ -102,7 +99,7 @@ public class HdrImage
         writer.Write(Encoding.ASCII.GetBytes($"{Width} {Height}\n"));
 
         float floatEndianness;
-        if (endianness == true)
+        if (endianness)
         {
             floatEndianness = -1.0f;
         }
@@ -125,7 +122,12 @@ public class HdrImage
             }
         }
     }
-
+/// <summary>
+/// 
+/// </summary>
+/// <param name="inputStream"></param>
+/// <returns></returns>
+/// <exception cref="InvalidDataException"></exception>
     public static HdrImage ReadPfm(Stream inputStream)
     {
         // 1. Read and validate "PF" header

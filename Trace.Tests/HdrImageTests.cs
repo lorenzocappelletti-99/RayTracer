@@ -1,4 +1,3 @@
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,7 +48,7 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
         img.SetPixel(1, 1, new Color(4.0e2f, 5.0e2f, 6.0e2f));
         img.SetPixel(2, 1, new Color(7.0e2f, 8.0e2f, 9.0e2f));
         
-
+/*
        byte[] referenceBytes = [
                0x50, 0x46, 0x0a, 0x33, 0x20, 0x32, 0x0a, 0x2d, 0x31, 0x2e, 0x30, 0x0a,
     0x00, 0x00, 0xc8, 0x42, 0x00, 0x00, 0x48, 0x43, 0x00, 0x00, 0x96, 0x43,
@@ -60,18 +59,18 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
     0x00, 0x00, 0x8c, 0x42, 0x00, 0x00, 0xa0, 0x42, 0x00, 0x00, 0xb4, 0x42
        ];
 
-/*
+*/
        byte[] referenceBytes;
 
-       using (var fs = new FileStream("../../../reference_be.pfm", FileMode.Open, FileAccess.Read))
+       using (var fs = new FileStream("../../../reference_le.pfm", FileMode.Open, FileAccess.Read))
        {
            referenceBytes = new byte[fs.Length];
            fs.ReadExactly(referenceBytes, 0, (int)fs.Length);
        }
-*/
+
         
         using var buf = new MemoryStream();
-        img.WritePfm(buf, true);
+        img.WritePfm(buf);
         var resultBytes = buf.ToArray();
         Assert.True(resultBytes.SequenceEqual(referenceBytes));
     }
@@ -100,12 +99,12 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
         // 3. Verifica le dimensioni
         Assert.Equal(3, image.Width);
         Assert.Equal(2, image.Height);
-
+        
         /*
         for (int j = 0; j<2; j++)
             for (int i = 0; i < 3; i++)
                 _testOutputHelper.WriteLine($"pixel({i},{j}): {image.GetPixel(i,j)}");
-        */
+       */ 
         
         Assert.True(Color.are_close_colors(image.GetPixel(0, 0), new Color(1.0e1f, 2.0e1f, 3.0e1f)));
         Assert.True(Color.are_close_colors(image.GetPixel(1, 0), new Color(4.0e1f, 5.0e1f, 6.0e1f)));

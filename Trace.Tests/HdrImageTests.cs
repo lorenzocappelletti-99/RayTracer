@@ -1,4 +1,3 @@
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -59,8 +58,8 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
     0x00, 0x00, 0x20, 0x42, 0x00, 0x00, 0x48, 0x42, 0x00, 0x00, 0x70, 0x42,
     0x00, 0x00, 0x8c, 0x42, 0x00, 0x00, 0xa0, 0x42, 0x00, 0x00, 0xb4, 0x42
        ];
-*/
 
+*/
        byte[] referenceBytes;
 
        using (var fs = new FileStream("../../../reference_le.pfm", FileMode.Open, FileAccess.Read))
@@ -95,18 +94,17 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
 
         // 4. Leggi e verifica l'immagine
         using var stream = File.OpenRead(pfmFilePath);
-        var image = new HdrImage();
-        image.ReadPfm(stream);
+        HdrImage image = HdrImage.ReadPfm(stream);
 
         // 3. Verifica le dimensioni
         Assert.Equal(3, image.Width);
         Assert.Equal(2, image.Height);
-
+        
         /*
         for (int j = 0; j<2; j++)
             for (int i = 0; i < 3; i++)
                 _testOutputHelper.WriteLine($"pixel({i},{j}): {image.GetPixel(i,j)}");
-        */
+       */ 
         
         Assert.True(Color.are_close_colors(image.GetPixel(0, 0), new Color(1.0e1f, 2.0e1f, 3.0e1f)));
         Assert.True(Color.are_close_colors(image.GetPixel(1, 0), new Color(4.0e1f, 5.0e1f, 6.0e1f)));
@@ -134,9 +132,8 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
 
         // 4. read and verify image
         using var stream = File.OpenRead(pfmFilePath);
-        var image = new HdrImage();
-        image.ReadPfm(stream);
-        
+        HdrImage image = HdrImage.ReadPfm(stream);
+
         // 5. check dimensions
         Assert.Equal(3, image.Width);
         Assert.Equal(2, image.Height);

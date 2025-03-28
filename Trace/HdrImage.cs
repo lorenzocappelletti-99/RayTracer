@@ -113,7 +113,7 @@ public class HdrImage
             floatEndianness = 1.0f;
         }
 
-        writer.Write(Encoding.ASCII.GetBytes($"{floatEndianness:0.0}\n"));
+        writer.Write(Encoding.ASCII.GetBytes($"{floatEndianness.ToString("0.0", CultureInfo.InvariantCulture)}\n"));
         // watch out! here the .0 after the +-1 is written. Crucial detail.
 
 

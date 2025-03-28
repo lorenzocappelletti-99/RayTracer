@@ -26,8 +26,9 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
         Assert.False(img.valid_coordinates(-1, 0), "Invalid coordinates (negative x)");
         Assert.False(img.valid_coordinates(7, 0), "Invalid coordinates (x out of range)");
         Assert.False(img.valid_coordinates(0, 4), "Invalid coordinates (y out of range)");
+        //_testOutputHelper.WriteLine($"pixel:{img.GetPixel(1,0)}");
 
-         }
+    }
     [Fact]
     public void TestPixelOffset()
     {
@@ -146,6 +147,78 @@ public class HdrImageTests(ITestOutputHelper testOutputHelper)
         Assert.True(Color.are_close_colors(image.GetPixel(1, 1), new Color(4.0e2f, 5.0e2f, 6.0e2f)));
         Assert.True(Color.are_close_colors(image.GetPixel(2, 1), new Color(7.0e2f, 8.0e2f, 9.0e2f)));
     }
+
+
+    [Fact]
+    public void TestAverageLuminosity()
+    {
+        var img = new HdrImage(2,1);
+        
+        img.SetPixel(0,0, new Color(5f, 10f, 15f));
+        img.SetPixel(1,0, new Color(5e2f, 1e3f, 1.5e3f));
+        
+        //_testOutputHelper.WriteLine($"Average Luminosity: {img.AverageLuminosity()}  ");
+        var expectedAvLum = 100f;
+        var actualAvLum = img.AverageLuminosity();
+        // Assert con epsilon
+        float epsilon = 1e-5f;
+        Assert.True(Math.Abs(expectedAvLum - actualAvLum) < epsilon, 
+            $"Expected {expectedAvLum}, but got {actualAvLum}");
+        
+    }
+    
+    [Fact]
+    public void TestAverageLuminosity_BP() //test for black pixel
+    {
+        var img = new HdrImage(2,1);
+        
+        img.SetPixel(0,0, new Color(5f, 10f, 15f));
+        img.SetPixel(1,0, new Color());
+        
+        //_testOutputHelper.WriteLine($"Average Luminosity: {img.AverageLuminosity()}  ");
+        var expectedAvLum = 1e-1f;
+        var actualAvLum = img.AverageLuminosity(1e-3d);
+        // Assert con epsilon
+        float epsilon = 1e-5f;
+        Assert.True(Math.Abs(expectedAvLum - actualAvLum) < epsilon, 
+            $"Expected {expectedAvLum}, but got {actualAvLum}");
+    }
+
+    [Fact]
+    public void TestNormalizeImage()
+    {
+        var img = new HdrImage(2,1);
+        
+        img.SetPixel(0,0, new Color(5f, 10f, 15f));
+        img.SetPixel(1,0, new Color(5e2f, 1e3f, 1.5e3f));
+        
+        img.NormalizeImage(1e3f,1e2f);
+        
+        Assert.True(Color.are_close_colors(img.GetPixel(0, 0), new Color(0.5e2f, 1.0e2f, 1.5e2f)));
+        Assert.True(Color.are_close_colors(img.GetPixel(1, 0), new Color(0.5e4f, 1.0e4f, 1.5e4f)));
+    }
+
+    [Fact]
+    public void TestClampImage()
+    {
+        var img = new HdrImage(2,1);
+        
+        img.SetPixel(0,0, new Color(5f, 10f, 15f));
+        img.SetPixel(1,0, new Color(5e2f, 1e3f, 1.5e3f));
+        
+        img.ClampImage();
+
+        foreach (var pix in img.Pixels)
+        {
+            Assert.True(pix.R is >= 0 and <= 1);
+            Assert.True(pix.G is >= 0 and <= 1);
+            Assert.True(pix.B is >= 0 and <= 1);
+        }
+    }
+
+    
+    
+    
     
     /* $ xxd reference_be.pfm
 00000000: 5046 0a33 2032 0a31 2e30 0a42 c800 0043  PF.3 2.1.0.B...C

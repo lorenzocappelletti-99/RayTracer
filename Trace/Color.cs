@@ -9,7 +9,7 @@ public struct Color(float r, float g, float b)
     {
         return new Color(c1.R + c2.R, c1.G + c2.G, c1.B + c2.B);
     }
-    
+
     // Multiply two colors (component-wise multiplication)
     public static Color operator *(Color c1, Color c2)
     {
@@ -31,16 +31,29 @@ public struct Color(float r, float g, float b)
     {
         return Math.Abs(a - b) <= epsilon;
     }
-    
+
     public static bool are_close_colors(Color c1, Color c2)
     {
         return are_close(c1.R, c2.R) &&
                are_close(c1.B, c2.B) &&
                are_close(c1.G, c2.G);
     }
-    
+
     public override string ToString()
     {
         return $"(R: {R}, G: {G}, B: {B})";
     }
+    
+    /// <summary>
+    /// Calcola luminosità con la formula di Shirley & Morley
+    /// </summary>
+    /// <returns></returns>
+    public float Luminosity()
+    {
+        float maxVal = Math.Max(R, Math.Max(G, B));
+        float minVal = Math.Min(R, Math.Min(G, B));
+        return (maxVal + minVal) / 2.0f;
+    }
+
+
 }

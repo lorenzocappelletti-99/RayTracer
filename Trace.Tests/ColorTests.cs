@@ -49,4 +49,27 @@ public class ColorTests
 
         Assert.True(result);
     }
+
+    [Fact]
+    public void TestLuminosity()
+    {
+        // Arrange
+        var color1 = new Color(5.0f, 6.0f, 7.0f);
+        var color2 = new Color(1.0f, 3.0f, 4.0f);
+        float expectedLuminosity1 = (5+7)/2.0f;
+        float expectedLuminosity2 = (1+4)/2.0f;
+
+        // Act
+        float actualLuminosity1 = color1.Luminosity();
+        float actualLuminosity2 = color2.Luminosity();
+
+        // Assert con epsilon
+        float epsilon = 1e-5f;
+        Assert.True(Math.Abs(expectedLuminosity1 - actualLuminosity1) < epsilon, 
+            $"Expected {expectedLuminosity1}, but got {actualLuminosity1}");
+        Assert.True(Math.Abs(expectedLuminosity2 - actualLuminosity2) < epsilon, 
+            $"Expected {expectedLuminosity2}, but got {actualLuminosity2}");
+        
+    }
+
 }

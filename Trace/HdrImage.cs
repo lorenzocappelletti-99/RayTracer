@@ -1,6 +1,9 @@
 using Xunit;
 using System.Text;
 using System.Globalization;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Trace;
 
@@ -9,7 +12,7 @@ public class HdrImage
     public int Width { get; set; }
     public int Height { get; set; }
     public Color[] Pixels { get; set; }
-
+    
     // Constructor that initializes the image with a width and height
     public HdrImage(int width = 0, int height = 0)
     {
@@ -23,14 +26,14 @@ public class HdrImage
             Pixels[i] = new Color();
         }
     }
-
+    
     /// <summary>
     /// Constructs an HdrImage type by reading it from a PFM, RGB file
     /// </summary>
     /// <param name="filePath"></param>
     public HdrImage(string filePath)
     {
-        using var fileStream = File.OpenRead(filePath);
+        using var fileStream = File.OpenRead(filePath);  
         var tempImage = ReadPfm(fileStream);
         this.Width = tempImage.Width;
         this.Height = tempImage.Height;
@@ -49,16 +52,14 @@ public class HdrImage
         if (y < 0 || y >= Height)
         {
             throw new ArgumentOutOfRangeException(nameof(y), "The y coordinate is out of bounds.");
-        }
+        } 
         */
-        return x >= 0 && x < Width && y >= 0 && y < Height;
+        return x >= 0  && x < Width && y >= 0 && y < Height;
     }
-
     public int pixel_offset(int x, int y)
     {
         return y * Width + x;
-    }
-
+    }    
     public Color GetPixel(int x, int y)
     {
         Assert.True(valid_coordinates(x, y));
@@ -68,10 +69,10 @@ public class HdrImage
     public void SetPixel(int x, int y, Color newColor)
     {
         Assert.True(valid_coordinates(x, y));
-        Pixels[pixel_offset(x, y)] = newColor;
+        Pixels[pixel_offset(x,y)] = newColor;
     }
-
-
+    
+    
     private static void WriteFloat(Stream outputStream, float value, bool isLittleEndian = true)
     {
         var bytes = BitConverter.GetBytes(value);
@@ -84,7 +85,7 @@ public class HdrImage
 
     public void SavePfm(Stream outputStream)
     {
-
+        
     }
 
     /// <summary>
@@ -107,12 +108,10 @@ public class HdrImage
         }
         else
         {
-            floatEndianness = 1.0f;
-        }
-
+            floatEndianness = 1.0f; }
         writer.Write(Encoding.ASCII.GetBytes($"{floatEndianness:0.0}\n"));
         // watch out! here the .0 after the +-1 is written. Crucial detail.
-
+        
 
         // Pixels are written (bottom-to-up, left-to-right). Columns first, then lines.
         for (var y = Height - 1; y >= 0; y--)
@@ -126,14 +125,12 @@ public class HdrImage
             }
         }
     }
-
-    /// <summary>
-    /// Legge un file pfm e crea un'immagine HDR.
-    /// Riceve come input il nome del file pfm
-    /// </summary>
-    /// <param name="inputStream"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidDataException"></exception>
+/// <summary>
+/// 
+/// </summary>
+/// <param name="inputStream"></param>
+/// <returns></returns>
+/// <exception cref="InvalidDataException"></exception>
     public static HdrImage ReadPfm(Stream inputStream)
     {
         // 1. Read and validate "PF" header
@@ -170,7 +167,7 @@ public class HdrImage
         // PFM pixels are written bottom-to-top, convert to top-to-bottom
         for (int yPfm = 0; yPfm < height; yPfm++)
         {
-            int yHdr = height - 1 - yPfm; // Convert to HdrImage coordinates (top-to-bottom)
+            int yHdr = height - 1 - yPfm;  // Convert to HdrImage coordinates (top-to-bottom)
             for (int x = 0; x < width; x++)
             {
                 float r = ReadFloat(reader, isLittleEndian);
@@ -190,9 +187,8 @@ public class HdrImage
         int b;
         while ((b = stream.ReadByte()) != -1 && b != '\n')
         {
-            if (b != '\r') bytes.Add((byte)b); // Ignore '\r' in Windows-style line endings
+            if (b != '\r') bytes.Add((byte)b);  // Ignore '\r' in Windows-style line endings
         }
-
         return bytes.ToArray();
     }
 
@@ -227,6 +223,52 @@ public class HdrImage
     {
         return x / (1 + x);
     }
+    
+    
+    /*
+def write_ldr_image(self, stream, format, gamma=1.0):
+        from PIL import Image
+        img = Image.new("RGB", (self.width, self.height))
+
+        for y in range(self.height):
+            for x in range(self.width):
+                cur_color = self.get_pixel(x, y)
+                img.putpixel(xy=(x, y), value=(
+                        int(255 * math.pow(cur_color.r, 1 / gamma)),
+                        int(255 * math.pow(cur_color.g, 1 / gamma)),
+                        int(255 * math.pow(cur_color.b, 1 / gamma)),
+                ))
+
+        img.save(stream, format=format)
+     */    
+    
+    public void write_ldr_image(Stream outputStream, float gamma = 1.0f)
+    {
+            
+    }
+    
+    public static void ConvertPfmToOtherFormat(Stream pfmPath, string outputStream, string outputFormat)
+    {
+        // Read the PFM file
+        //var img = ReadPfm(pfmPath);
+        var img = Image.Load(pfmPath);
+
+        // Save the image in the desired format
+        using var stream = new FileStream(outputStream, FileMode.Create);
+        switch (outputFormat.ToLower())
+        {
+            case "png":
+                img.Save(stream, SixLabors.ImageSharp.Formats.Png.PngFormat.Instance);
+                break;
+            case "jpeg":
+            case "jpg":
+                img.Save(stream, SixLabors.ImageSharp.Formats.Jpeg.JpegFormat.Instance);
+                break;
+            default:
+                throw new ArgumentException("Unsupported output format");
+        }
+    }
+}
 
     public void ClampImage()
     {
@@ -237,5 +279,3 @@ public class HdrImage
             Pixels[i].B = Clamp(Pixels[i].B);
         }
     }
-
-}

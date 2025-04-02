@@ -1,3 +1,8 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
 namespace Trace;
 
 public struct Vec
@@ -7,11 +12,20 @@ public struct Vec
     public int Z;
 }
 
-public struct Point
+public struct Point()
 {
-    public int X;
-    public int Y;
-    public int Z;
+    public int X = 0;
+    public int Y = 0;
+    public int Z = 0;
+
+    public Point(int x, int y, int z) : this()
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+    
+    
 }
 
 public struct Normal

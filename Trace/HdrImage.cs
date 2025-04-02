@@ -1,3 +1,9 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
+
 using Xunit;
 using System.Text;
 using System.Globalization;
@@ -6,7 +12,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.IO;
-
 
 namespace Trace;
 

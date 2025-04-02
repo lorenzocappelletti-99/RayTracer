@@ -302,9 +302,10 @@ public class HdrImage
                     //var r = (byte)Math.Clamp(col.R * 255, 0, 255);
                     //var g = (byte)Math.Clamp(col.G * 255, 0, 255);
                     //var b = (byte)Math.Clamp(col.B * 255, 0, 255);
-                    var r = (byte)Math.Clamp(col.R * 255, 0, 255);
-                    var g = (byte)Math.Clamp(col.G * 255, 0, 255);
-                    var b = (byte)Math.Clamp(col.B * 255, 0, 255);
+                    var r = (byte)Math.Clamp(Math.Pow(col.R, 1.0f/gamma) * 255, 0, 255);
+                    var g = (byte)Math.Clamp(Math.Pow(col.G, 1.0f/gamma) * 255, 0, 255);
+                    var b = (byte)Math.Clamp(Math.Pow(col.B, 1.0f/gamma) * 255, 0, 255);
+                    
 
                     image[x, y] = new Rgb24(r, g, b);
                 }

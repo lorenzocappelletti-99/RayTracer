@@ -1,11 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using Trace;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using System;
-using System.IO; 
+﻿using Trace;
 
 
 namespace Myraytracer

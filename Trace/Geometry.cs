@@ -1,3 +1,9 @@
+/*===========================================================
+ |                     Raytracer Project                    |
+ |             Released under EUPL-1.2 License              |
+ |                       See LICENSE                        |
+ ===========================================================*/
+
 namespace Trace;
 
 public struct Vec

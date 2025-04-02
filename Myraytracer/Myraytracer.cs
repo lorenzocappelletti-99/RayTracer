@@ -1,4 +1,10 @@
-﻿using Trace;
+﻿/*===========================================================
+ |                     Raytracer Project                    |
+ |             Released under EUPL-1.2 License              |
+ |                       See LICENSE                        |
+ ===========================================================*/
+
+using Trace;
 
 
 namespace Myraytracer

@@ -2,8 +2,11 @@ using Xunit;
 using System.Text;
 using System.Globalization;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.IO;
+
 
 namespace Trace;
 
@@ -13,7 +16,18 @@ public class HdrImage
     public int Height { get; set; }
     public Color[] Pixels { get; set; }
 
-    // Constructor that initializes the image with a width and height
+    
+    /***********************************************************
+     *                                                         *
+     *                       CONSTRUCTORS                     *
+     *                                                         *
+     ***********************************************************/
+    
+    /// <summary>
+    /// Constructs HdrImage type with width and height
+    /// </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     public HdrImage(int width = 0, int height = 0)
     {
         Width = width;
@@ -28,7 +42,7 @@ public class HdrImage
     }
 
     /// <summary>
-    /// Constructs an HdrImage type by reading it from a PFM, RGB file
+    /// Constructs HdrImage type by reading it from a PFM, RGB file
     /// </summary>
     /// <param name="filePath"></param>
     public HdrImage(string filePath)
@@ -39,7 +53,20 @@ public class HdrImage
         this.Height = tempImage.Height;
         this.Pixels = tempImage.Pixels;
     }
+    
+    /***********************************************************
+     *                                                         *
+     *                      PIXEL HANDLING                     *
+     *                                                         *
+     ***********************************************************/
 
+
+    /// <summary>
+    /// Internal method, checks validity of variables. Good for tests.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public bool valid_coordinates(int x, int y)
     {
         /*
@@ -57,24 +84,88 @@ public class HdrImage
         return x >= 0 && x < Width && y >= 0 && y < Height;
     }
 
+    /// <summary>
+    /// Internal method, implement pixel search in a streamed matrix.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public int pixel_offset(int x, int y)
     {
         return y * Width + x;
     }
 
+    /// <summary>
+    /// Returns pixel, Color type. Checks validity of position requested, uses pixel_offset method.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public Color GetPixel(int x, int y)
     {
-        Assert.True(valid_coordinates(x, y));
+        Assert.True(valid_coordinates(x, y), $"Tried to READ out-of-range pixel: x = {x}, y = {y}");
+
         return Pixels[pixel_offset(x, y)];
     }
 
+    /// <summary>
+    /// Sets a pixel. Checks validity of position requested, uses pixel_offset method.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="newColor"></param>
     public void SetPixel(int x, int y, Color newColor)
     {
-        Assert.True(valid_coordinates(x, y));
+        Assert.True(valid_coordinates(x, y), $"Tried to SET out-of-range pixel: x = {x}, y = {y}");
         Pixels[pixel_offset(x, y)] = newColor;
+    }
+    
+    
+    /***********************************************************
+     *                                                         *
+     *                      READ/WRITE PFM                     *
+     *                                                         *
+     ***********************************************************/
+    
+    /// <summary>
+    /// Support function. Reads a line of bytes from stream
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    public static byte[] ReadLineBytes(Stream stream)
+    {
+        List<byte> bytes = [];
+        int b;
+        while ((b = stream.ReadByte()) != -1 && b != '\n')
+        {
+            if (b != '\r') bytes.Add((byte)b); // Ignore '\r' in Windows-style line endings
+        }
+
+        return bytes.ToArray();
+    }
+
+    /// <summary>
+    /// Support function. Reads float with specified endianness
+    /// </summary>
+    /// <param name="reader"></param>
+    /// <param name="isLittleEndian"></param>
+    /// <returns></returns>
+    /// <exception cref="EndOfStreamException"></exception>
+    public static float ReadFloat(BinaryReader reader, bool isLittleEndian)
+    {
+        byte[] bytes = reader.ReadBytes(4);
+        if (bytes.Length != 4) throw new EndOfStreamException("Unexpected end of stream while reading float.");
+        if (BitConverter.IsLittleEndian != isLittleEndian) Array.Reverse(bytes);
+        return BitConverter.ToSingle(bytes, 0);
     }
 
 
+    /// <summary>
+    /// Support function. Writes line of bytes in stream.
+    /// </summary>
+    /// <param name="outputStream"></param>
+    /// <param name="value"></param>
+    /// <param name="isLittleEndian"></param>
     private static void WriteFloat(Stream outputStream, float value, bool isLittleEndian = true)
     {
         var bytes = BitConverter.GetBytes(value);
@@ -83,11 +174,6 @@ public class HdrImage
         if (BitConverter.IsLittleEndian != isLittleEndian) Array.Reverse(bytes);
 
         outputStream.Write(bytes, 0, bytes.Length);
-    }
-
-    public void SavePfm(Stream outputStream)
-    {
-
     }
 
     /// <summary>
@@ -131,7 +217,7 @@ public class HdrImage
     }
 
     /// <summary>
-    /// Read pfm_file. Convert a pfm in HdrImage
+    /// Reads pfm. Returns the HdrImage of that pfm file.
     /// </summary>
     /// <param name="inputStream"></param>
     /// <returns></returns>
@@ -184,73 +270,68 @@ public class HdrImage
 
         return image;
     }
+    
+    
+    /***********************************************************
+     *                                                         *
+     *                      LDR CONVERSION                     *
+     *                                                         *
+     ***********************************************************/
 
-    // Helper to read a line of bytes from the stream
-    public static byte[] ReadLineBytes(Stream stream)
+    /// <summary>
+    /// Reads, Normalizes and Clamps pfmFile. Saves in working directory the converted JPG.
+    /// </summary>
+    /// <param name="pfmPath"></param>
+    /// <param name="jpgFilePath"></param>
+    /// <param name="gamma"></param>
+    /// <param name="factor"></param>
+    public static void write_ldr_image(Stream pfmPath, string jpgFilePath, float gamma=1.0f, float factor=1.0f)
     {
-        List<byte> bytes = [];
-        int b;
-        while ((b = stream.ReadByte()) != -1 && b != '\n')
+        try
         {
-            if (b != '\r') bytes.Add((byte)b); // Ignore '\r' in Windows-style line endings
+            var img = ReadPfm(pfmPath);
+            img.NormalizeImage(factor);
+            img.ClampImage();
+            using var image = new Image<Rgb24>(img.Width, img.Height);
+
+            for (var y = 0; y < img.Height; y++)
+            {
+                for (var x = 0; x < img.Width; x++)
+                {
+                    var col = img.GetPixel(x, y);
+                    //var r = (byte)Math.Clamp(col.R * 255, 0, 255);
+                    //var g = (byte)Math.Clamp(col.G * 255, 0, 255);
+                    //var b = (byte)Math.Clamp(col.B * 255, 0, 255);
+                    var r = (byte)Math.Clamp(col.R * 255, 0, 255);
+                    var g = (byte)Math.Clamp(col.G * 255, 0, 255);
+                    var b = (byte)Math.Clamp(col.B * 255, 0, 255);
+
+                    image[x, y] = new Rgb24(r, g, b);
+                }
+            }
+
+            image.SaveAsJpeg(jpgFilePath);
+
+            Console.WriteLine($"Conversion complete: {jpgFilePath}");
         }
-
-        return bytes.ToArray();
-    }
-
-    // Helper to read float with specified endianness
-    public static float ReadFloat(BinaryReader reader, bool isLittleEndian)
-    {
-        byte[] bytes = reader.ReadBytes(4);
-        if (bytes.Length != 4) throw new EndOfStreamException("Unexpected end of stream while reading float.");
-        if (BitConverter.IsLittleEndian != isLittleEndian) Array.Reverse(bytes);
-        return BitConverter.ToSingle(bytes, 0);
-    }
-    /*
-def write_ldr_image(self, stream, format, gamma=1.0):
-        from PIL import Image
-        img = Image.new("RGB", (self.width, self.height))
-
-        for y in range(self.height):
-            for x in range(self.width):
-                cur_color = self.get_pixel(x, y)
-                img.putpixel(xy=(x, y), value=(
-                        int(255 * math.pow(cur_color.r, 1 / gamma)),
-                        int(255 * math.pow(cur_color.g, 1 / gamma)),
-                        int(255 * math.pow(cur_color.b, 1 / gamma)),
-                ))
-
-        img.save(stream, format=format)
-     */
-
-    public void write_ldr_image(Stream outputStream, float gamma = 1.0f)
-    {
-
-    }
-
-    public static void ConvertPfmToOtherFormat(Stream pfmPath, string outputStream, string outputFormat)
-    {
-        // Read the PFM file
-        //var img = ReadPfm(pfmPath);
-        var img = Image.Load(pfmPath);
-
-        // Save the image in the desired format
-        using var stream = new FileStream(outputStream, FileMode.Create);
-        switch (outputFormat.ToLower())
+        catch (Exception ex)
         {
-            case "png":
-                img.Save(stream, SixLabors.ImageSharp.Formats.Png.PngFormat.Instance);
-                break;
-            case "jpeg":
-            case "jpg":
-                img.Save(stream, SixLabors.ImageSharp.Formats.Jpeg.JpegFormat.Instance);
-                break;
-            default:
-                throw new ArgumentException("Unsupported output format");
+            Console.WriteLine($"Error during conversion: {ex.Message}");
         }
     }
     
-    // TONE MAPPING //////////////////
+
+    /***********************************************************
+     *                                                         *
+     *                       TONE MAPPING                      *
+     *                                                         *
+     ***********************************************************/
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="delta"></param>
+    /// <returns></returns>
     public float AverageLuminosity(double delta = 1e-10d)
     {
         var cumsum = 0.0d;
@@ -260,6 +341,11 @@ def write_ldr_image(self, stream, format, gamma=1.0):
         return (float)Math.Pow(10, cumsum / Pixels.Length);
     }
 
+    /// <summary>
+    /// Normalizes pixel values
+    /// </summary>
+    /// <param name="factor"></param>
+    /// <param name="luminosity"></param>
     public void NormalizeImage(float factor, float? luminosity = null)
     {
         var lum = luminosity ?? AverageLuminosity();
@@ -269,13 +355,22 @@ def write_ldr_image(self, stream, format, gamma=1.0):
         }
     }
 
-    private float Clamp(float x)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <returns></returns>
+    private static float Clamp(float x)
     {
         return x / (1 + x);
     }
+    
+    /// <summary>
+    /// 
+    /// </summary>
     public void ClampImage()
     {
-        for (int i = 0; i < Pixels.Length; i++)
+        for (var i = 0; i < Pixels.Length; i++)
         {
             Pixels[i].R = Clamp(Pixels[i].R);
             Pixels[i].G = Clamp(Pixels[i].G);

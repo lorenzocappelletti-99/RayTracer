@@ -13,7 +13,7 @@ public struct Vec (float x, float y, float z)
     public readonly float Z = z;
 
     public override string ToString()
-    {
+     {
         return $"Vector: ({X}, {Y}, {Z})";
     }
 

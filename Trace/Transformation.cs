@@ -49,7 +49,5 @@ public struct Transformation(float[,]? m = null, float[,]? invm = null)
         return result;
     }
     
-    
-    
 }
 

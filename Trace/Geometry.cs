@@ -6,11 +6,12 @@
 
 namespace Trace;
 
+//STRUCT VEC/////////////////////////////////////////////////////////////
 public struct Vec (float x, float y, float z)
 {
-    public readonly float X = x;
-    public readonly float Y = y;
-    public readonly float Z = z;
+    public  float X = x;
+    public  float Y = y;
+    public  float Z = z;
 
     public override string ToString()
      {
@@ -119,17 +120,73 @@ public struct Vec (float x, float y, float z)
     /// <summary>
     /// Normalizes the Vec
     /// </summary>
-    /// <param name="v"></param>
     /// <returns></returns>
-    public static Vec Normalize(Vec v)
+    public void Normalize()
     {
-        var v1 = v / Norm(v);
-        return v1;
+        float norm = Norm(this); // or Norm(this) if it's static
+        if (norm != 0)
+        {
+            this.X /= norm;
+            this.Y /= norm;
+            this.Z /= norm;
+        }
     }
     
+    /// <summary>
+    /// Converts Vec type to Normal type.
+    /// </summary>
+    /// <param name="v"></param>
+    /// <returns></returns>
+    public static Normal to_normal(Vec v) => new Normal(v.X, v.Y, v.Z);
+
+    /// <summary>
+    /// Rotates the current vector around the X-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated vector.</returns>
+    public Vec RotationX(float angleDeg)
+    {
+        var t = Transformation.RotationX(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current vector around the Y-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated vector.</returns>
+    public Vec RotationY(float angleDeg)
+    {
+        var t = Transformation.RotationY(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current vector around the Z-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated vector.</returns>
+    public Vec RotationZ(float angleDeg)
+    {
+        var t = Transformation.RotationZ(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Applies a scaling transformation to the current vector using the specified scaling vector.
+    /// </summary>
+    /// <param name="v">The scaling vector.</param>
+    /// <returns>The scaled vector.</returns>
+    public Vec Scale(Vec v)
+    {
+        var t = Transformation.Scaling(v);
+        return t.Apply(this);
+    }
+
     
 }
 
+//STRUCT POINT/////////////////////////////////////////////////////////    
 public struct Point(float x, float y, float z)
 {
     public readonly float X = x;
@@ -179,8 +236,65 @@ public struct Point(float x, float y, float z)
     /// <param name="p"></param>
     /// <returns></returns>
     public static Vec to_vec(Point p) => new Vec(p.X, p.Y, p.Z);
+    
+    /// <summary>
+    /// Applies a translation transformation to the current point using the specified translation vector.
+    /// </summary>
+    /// <param name="v">The translation vector.</param>
+    /// <returns>The translated point.</returns>
+    public Point Translation(Vec v)
+    {
+        var t = Transformation.Translation(v);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current point around the X-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated point.</returns>
+    public Point RotationX(float angleDeg)
+    {
+        var t = Transformation.RotationX(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current point around the Y-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated point.</returns>
+    public Point RotationY(float angleDeg)
+    {
+        var t = Transformation.RotationY(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current point around the Z-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated point.</returns>
+    public Point RotationZ(float angleDeg)
+    {
+        var t = Transformation.RotationZ(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Applies a scaling transformation to the current point using the specified scaling vector.
+    /// </summary>
+    /// <param name="v">The scaling vector.</param>
+    /// <returns>The scaled point.</returns>
+    public Point Scale(Vec v)
+    {
+        var t = Transformation.Scaling(v);
+        return t.Apply(this);
+    }
+
 }
 
+//STRUCT NORMAL//////////////////////////////////////////////////////////
 public struct Normal(float x, float y, float z)
 {
     public float X = x;
@@ -326,7 +440,6 @@ public struct Normal(float x, float y, float z)
     /// <summary>
     /// Normalizes the Normal
     /// </summary>
-    /// <param name="n"></param>
     /// <returns></returns>
     public void Normalize()
     {
@@ -339,9 +452,55 @@ public struct Normal(float x, float y, float z)
         }
     }
     
+    /// <summary>
+    /// Rotates the current normal around the X-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated normal.</returns>
+    public Normal RotationX(float angleDeg)
+    {
+        var t = Transformation.RotationX(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current normal around the Y-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated normal.</returns>
+    public Normal RotationY(float angleDeg)
+    {
+        var t = Transformation.RotationY(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Rotates the current normal around the Z-axis by the specified angle in degrees.
+    /// </summary>
+    /// <param name="angleDeg">The angle of rotation in degrees.</param>
+    /// <returns>The rotated normal.</returns>
+    public Normal RotationZ(float angleDeg)
+    {
+        var t = Transformation.RotationZ(angleDeg);
+        return t.Apply(this);
+    }
+
+    /// <summary>
+    /// Scales the current normal using the specified scaling vector.
+    /// Note: In case of non-uniform scaling, normals typically must be re-normalized.
+    /// This method assumes that the transformation is applied appropriately.
+    /// </summary>
+    /// <param name="v">The scaling vector.</param>
+    /// <returns>The scaled normal.</returns>
+    public Normal Scale(Vec v)
+    {
+        var t = Transformation.Scaling(v);
+        return t.Apply(this);
+    }
+
 }
 
-public struct HowMatrix(float a, float b, float c, float d)
+public struct HomMatrix(float a, float b, float c, float d)
 {
     public float A = a; // element (0,0)
     public float B = b; // element (0,1)

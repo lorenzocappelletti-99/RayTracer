@@ -33,6 +33,13 @@ public struct Color(float r, float g, float b)
         return c * scalar; // Reuse the existing overload
     }
 
+    /// <summary>
+    /// Verify that 2 floats are equal within a specified tolerance (epsilon)
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="epsilon"></param>
+    /// <returns></returns>
     public static bool are_close(float a, float b, float epsilon = 1e-5f)
     {
         return Math.Abs(a - b) <= epsilon;

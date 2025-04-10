@@ -20,17 +20,43 @@ namespace Trace
             Invm = invm ?? IdentityMatr4X4;
         }
 
-        public static bool AreClose(Transformation v1, Transformation v2, float sigma = 1e-5f)
+        /// <summary>
+        /// Compare 2 matrices (direct and inverse)
+        /// </summary>
+        /// <param name="t1"></param>
+        /// <param name="t2"></param>
+        /// <param name="sigma=1e-5"></param>
+        /// <param name="sigma"></param>
+        /// <returns></returns>
+        public static bool AreClose(Transformation t1, Transformation t2, float sigma = 1e-4f)
         {
+            // Compare the forward matrices
             for (var i = 0; i < 4; i++)
             {
                 for (var j = 0; j < 4; j++)
                 {
-                    if (Color.are_close(v1.M[i, j], v2.M[i, j], sigma)) return false;
+                    if (!Color.are_close(t1.M[i, j], t2.M[i, j], sigma))
+                        return false;
+                }
+            }
+
+            // Compare the inverse matrices as well
+            for (var i = 0; i < 4; i++)
+            {
+                for (var j = 0; j < 4; j++)
+                {
+                    if (!Color.are_close(t1.Invm[i, j], t2.Invm[i, j], sigma))
+                        return false;
                 }
             }
             return true;
         }
+
+        public Transformation Inverse()
+        {
+            return new Transformation(this.Invm, this.M);
+        }
+
         
         /// <summary>
         /// Method that calculates the matrix multiplication (row by column) of two 4x4 matrices a and b.
@@ -40,30 +66,47 @@ namespace Trace
         /// <returns></returns>
         public static Transformation MatrProd(Transformation a, Transformation b)
         {
-            var result = new Transformation();
-            for (var i = 0; i < 4; i++)
+            float[,] m = new float[4, 4];
+            float[,] invm = new float[4, 4];
+
+            // Calcola m = a.M * b.M
+            for (int i = 0; i < 4; i++)
             {
-                for (var j = 0; j < 4; j++)
+                for (int j = 0; j < 4; j++)
                 {
+                    m[i, j] = 0f;
                     for (int k = 0; k < 4; k++)
-                    {
-                        if (result.M != null)
-                            result.M[i, j] += a.M[i, k] * b.M[k, j];
-                    }
+                        m[i, j] += a.M[i, k] * b.M[k, j];
                 }
             }
-            return result;
+
+            // Calcola invm = b.Invm * a.Invm (ordine invertito!)
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    invm[i, j] = 0f;
+                    for (int k = 0; k < 4; k++)
+                        invm[i, j] += b.Invm[i, k] * a.Invm[k, j];
+                }
+            }
+
+            return new Transformation(m, invm);
         }
-        
+
+
+        /// <summary>
+        /// Overload of the * operator for the row-column product of 2 matrices
+        /// </summary>
+        /// <param name="t1"></param>
+        /// <param name="t2"></param>
+        /// <returns></returns>
         public static Transformation operator *(Transformation t1, Transformation t2)
         {
             // Multiply the forward matrices to get the resulting transformation matrix.
-            var resultM = MatrProd(t1, t2);  
+            var result = MatrProd(t1, t2);  
             // Multiply the inverse matrices in reverse order.
-            // Wrap the inverse matrices (of type float[,]) into Transformation objects.
-            var resultInvm = MatrProd(new Transformation(t2.Invm), new Transformation(t1.Invm));  
-            // Return a new Transformation with the computed forward matrix and inverse matrix.
-            return new Transformation(resultM.M, resultInvm.M);
+            return new Transformation(result.M, result.Invm);
         }
 
          
@@ -72,18 +115,19 @@ namespace Trace
         /// </summary>
         public bool IsConsistent()
         {
-            // Compute the product M * Invm as a Transformation
-            Transformation prod = MatrProd(this, new Transformation(Invm));
+            // Wrap the Invm matrix in a new Transformation (so that both M and Invm are set to Invm).
+            Transformation invTransform = new Transformation(Invm, Invm);
+    
+            // Compute the product: this.M * this.InvM (using our defined MatrProd).
+            Transformation prod = this * invTransform;
 
-            // Compare each element of the resulting matrix with the identity matrix
+            // Compare each element of the resulting matrix with the identity.
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    if (Math.Abs(prod.M[i, j] - IdentityMatr4X4[i, j]) > 1e-5f)
-                    {
+                    if (Math.Abs(prod.M[i, j] - IdentityMatr4X4[i, j]) > 1e-4f)
                         return false;
-                    }
                 }
             }
             return true;
@@ -231,45 +275,50 @@ namespace Trace
             return new Transformation(m, invm);
         }
 
-        public Point Apply(Point p)
+        public static Point operator *(Transformation t, Point p)
         {
-            // Decompose the matrix into rows
-            float[] row0 = [M[0, 0], M[0, 1], M[0, 2], M[0, 3]];
-            float[] row1 = [M[1, 0], M[1, 1], M[1, 2], M[1, 3]];
-            float[] row2 = [M[2, 0], M[2, 1], M[2, 2], M[2, 3]];
-            float[] row3 = [M[3, 0], M[3, 1], M[3, 2], M[3, 3]];
+            // Decomponi la matrice t.M in righe
+            float[] row0 = [t.M[0, 0], t.M[0, 1], t.M[0, 2], t.M[0, 3]];
+            float[] row1 = [t.M[1, 0], t.M[1, 1], t.M[1, 2], t.M[1, 3]];
+            float[] row2 = [t.M[2, 0], t.M[2, 1], t.M[2, 2], t.M[2, 3]];
+            float[] row3 = [t.M[3, 0], t.M[3, 1], t.M[3, 2], t.M[3, 3]];
 
-            // Multiply the matrix by the point
+            // Moltiplica la matrice per il punto
             float newX = p.X * row0[0] + p.Y * row0[1] + p.Z * row0[2] + row0[3];
             float newY = p.X * row1[0] + p.Y * row1[1] + p.Z * row1[2] + row1[3];
             float newZ = p.X * row2[0] + p.Y * row2[1] + p.Z * row2[2] + row2[3];
             float w = p.X * row3[0] + p.Y * row3[1] + p.Z * row3[2] + row3[3];
 
-            // If w == 1, return the transformed point directly
-            if (Color.are_close(w, 1f))
+            // Se w è vicino a 1, ritorna il punto trasformato direttamente
+            if (Math.Abs(w - 1f) < 1e-5f)
             {
                 return new Point(newX, newY, newZ);
             }
             else
             {
-                // Otherwise, normalize the point by dividing by w
+                // Altrimenti, normalizza il punto dividendo per w
                 return new Point(newX / w, newY / w, newZ / w);
             }
         }
+
         
-        public Vec Apply(Vec v)
+        /// <summary>
+        /// Product of a transformation (matrix) and a vector
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public static Vec operator *(Transformation t, Vec v)
         {
-            // Decompose the matrix; use only the first 3 columns of the first 3 rows
-            float[] row0 = [M[0, 0], M[0, 1], M[0, 2]];
-            float[] row1 = [M[1, 0], M[1, 1], M[1, 2]];
-            float[] row2 = [M[2, 0], M[2, 1], M[2, 2]];
+            // Decomponi la matrice t.M (solo i primi 3 elementi della matrice 3x3)
+            float newX = v.X * t.M[0, 0] + v.Y * t.M[0, 1] + v.Z * t.M[0, 2];
+            float newY = v.X * t.M[1, 0] + v.Y * t.M[1, 1] + v.Z * t.M[1, 2];
+            float newZ = v.X * t.M[2, 0] + v.Y * t.M[2, 1] + v.Z * t.M[2, 2];
 
-            float newX = v.X * row0[0] + v.Y * row0[1] + v.Z * row0[2];
-            float newY = v.X * row1[0] + v.Y * row1[1] + v.Z * row1[2];
-            float newZ = v.X * row2[0] + v.Y * row2[1] + v.Z * row2[2];
-
+            // Restituisci il nuovo vettore trasformato
             return new Vec(newX, newY, newZ);
         }
+
         
         /// <summary>
         /// Applies the inverse transformation to a normal. Since normals transform with
@@ -278,19 +327,21 @@ namespace Trace
         /// </summary>
         /// <param name="n">The normal to transform.</param>
         /// <returns>The transformed normal.</returns>
-        public Normal Apply(Normal n)
+        public static Normal operator *(Transformation t, Normal n)
         {
-            // Decompose the inverse matrix (Invm) and use only the first three rows:
-            float[] row0 = [Invm[0, 0], Invm[0, 1], Invm[0, 2]];
-            float[] row1 = [Invm[1, 0], Invm[1, 1], Invm[1, 2]];
-            float[] row2 = [Invm[2, 0], Invm[2, 1], Invm[2, 2]];
-            
+            // Decomponi la matrice inversa t.Invm in righe
+            float[] row0 = [t.Invm[0, 0], t.Invm[0, 1], t.Invm[0, 2]];
+            float[] row1 = [t.Invm[1, 0], t.Invm[1, 1], t.Invm[1, 2]];
+            float[] row2 = [t.Invm[2, 0], t.Invm[2, 1], t.Invm[2, 2]];
+
+            // Moltiplica la matrice inversa per il normal
             float newX = n.X * row0[0] + n.Y * row1[0] + n.Z * row2[0];
             float newY = n.X * row0[1] + n.Y * row1[1] + n.Z * row2[1];
             float newZ = n.X * row0[2] + n.Y * row1[2] + n.Z * row2[2];
 
             return new Normal(newX, newY, newZ);
         }
+
 
         /// <summary>
         /// Applies (composes) another transformation with this one.

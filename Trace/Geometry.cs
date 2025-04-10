@@ -147,7 +147,7 @@ public struct Vec (float x, float y, float z)
     public Vec RotationX(float angleDeg)
     {
         var t = Transformation.RotationX(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public struct Vec (float x, float y, float z)
     public Vec RotationY(float angleDeg)
     {
         var t = Transformation.RotationY(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public struct Vec (float x, float y, float z)
     public Vec RotationZ(float angleDeg)
     {
         var t = Transformation.RotationZ(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ public struct Vec (float x, float y, float z)
     public Vec Scale(Vec v)
     {
         var t = Transformation.Scaling(v);
-        return t.Apply(this);
+        return t * this;
     }
 
     
@@ -245,7 +245,7 @@ public struct Point(float x, float y, float z)
     public Point Translation(Vec v)
     {
         var t = Transformation.Translation(v);
-        return t.Apply(this);
+        return t * this;
     }
 
 }
@@ -416,7 +416,7 @@ public struct Normal(float x, float y, float z)
     public Normal RotationX(float angleDeg)
     {
         var t = Transformation.RotationX(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -427,7 +427,7 @@ public struct Normal(float x, float y, float z)
     public Normal RotationY(float angleDeg)
     {
         var t = Transformation.RotationY(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -438,7 +438,7 @@ public struct Normal(float x, float y, float z)
     public Normal RotationZ(float angleDeg)
     {
         var t = Transformation.RotationZ(angleDeg);
-        return t.Apply(this);
+        return t * this;
     }
 
     /// <summary>
@@ -449,7 +449,7 @@ public struct Normal(float x, float y, float z)
     public Normal Scale(Vec v)
     {
         var t = Transformation.Scaling(v);
-        return t.Apply(this);
+        return t * this;
     }
 
 }

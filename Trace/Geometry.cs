@@ -248,50 +248,6 @@ public struct Point(float x, float y, float z)
         return t.Apply(this);
     }
 
-    /// <summary>
-    /// Rotates the current point around the X-axis by the specified angle in degrees.
-    /// </summary>
-    /// <param name="angleDeg">The angle of rotation in degrees.</param>
-    /// <returns>The rotated point.</returns>
-    public Point RotationX(float angleDeg)
-    {
-        var t = Transformation.RotationX(angleDeg);
-        return t.Apply(this);
-    }
-
-    /// <summary>
-    /// Rotates the current point around the Y-axis by the specified angle in degrees.
-    /// </summary>
-    /// <param name="angleDeg">The angle of rotation in degrees.</param>
-    /// <returns>The rotated point.</returns>
-    public Point RotationY(float angleDeg)
-    {
-        var t = Transformation.RotationY(angleDeg);
-        return t.Apply(this);
-    }
-
-    /// <summary>
-    /// Rotates the current point around the Z-axis by the specified angle in degrees.
-    /// </summary>
-    /// <param name="angleDeg">The angle of rotation in degrees.</param>
-    /// <returns>The rotated point.</returns>
-    public Point RotationZ(float angleDeg)
-    {
-        var t = Transformation.RotationZ(angleDeg);
-        return t.Apply(this);
-    }
-
-    /// <summary>
-    /// Applies a scaling transformation to the current point using the specified scaling vector.
-    /// </summary>
-    /// <param name="v">The scaling vector.</param>
-    /// <returns>The scaled point.</returns>
-    public Point Scale(Vec v)
-    {
-        var t = Transformation.Scaling(v);
-        return t.Apply(this);
-    }
-
 }
 
 //STRUCT NORMAL//////////////////////////////////////////////////////////
@@ -487,8 +443,6 @@ public struct Normal(float x, float y, float z)
 
     /// <summary>
     /// Scales the current normal using the specified scaling vector.
-    /// Note: In case of non-uniform scaling, normals typically must be re-normalized.
-    /// This method assumes that the transformation is applied appropriately.
     /// </summary>
     /// <param name="v">The scaling vector.</param>
     /// <returns>The scaled normal.</returns>

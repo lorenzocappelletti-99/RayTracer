@@ -4,6 +4,7 @@
  |                       See LICENSE                        |
  ===========================================================*/
 
+// ReSharper disable InconsistentNaming
 namespace Trace;
 
 //   VEC    /////////////////////////////////////////////////////////////
@@ -12,6 +13,10 @@ public struct Vec (float x, float y, float z)
     public  float X = x;
     public  float Y = y;
     public  float Z = z;
+    
+    public static readonly Vec VEC_X = new Vec(1f, 0f, 0f);
+    public static readonly Vec VEC_Y = new Vec(0f, 1f, 0f);
+    public static readonly Vec VEC_Z = new Vec(0f, 0f, 1f);
 
     public override string ToString()
      {
@@ -259,7 +264,7 @@ public struct Normal(float x, float y, float z)
 
     public override string ToString()
     {
-        return $"Vector: ({X}, {Y}, {Z})";
+        return $"Vec: ({X}, {Y}, {Z})";
     }
     
     public static bool AreClose(Normal n1, Normal n2, float sigma = 1e-5f)

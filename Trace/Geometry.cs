@@ -209,13 +209,6 @@ public struct Point(float x, float y, float z)
                Math.Abs(p1.Y - p2.Y) <= sigma &&
                Math.Abs(p1.Z - p2.Z) <= sigma;
     }
-    
-    public bool AreClose(Point p2, float sigma = 1e-5f)
-    {
-        return Math.Abs(X - p2.X) <= sigma &&
-               Math.Abs(Y - p2.Y) <= sigma &&
-               Math.Abs(Z - p2.Z) <= sigma;
-    }
 
     /// <summary>
     /// Sum of a Point type with Vec type. Returns a Point type.

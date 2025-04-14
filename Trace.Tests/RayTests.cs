@@ -8,9 +8,9 @@ public class RayTests
     {
         var ray = new Ray(origin: new Point(1.0f, 2.0f, 4.0f), direction: new Vec(4.0f, 2.0f, 1.0f));
         
-        Assert.True(ray.PointAt(0.0f).AreClose(ray.Origin));
-        Assert.True(ray.PointAt(1.0f).AreClose(new Point(5.0f, 4.0f, 5.0f)));
-        Assert.True(ray.PointAt(2.0f).AreClose(new Point(9.0f, 6.0f, 6.0f)));
+        Assert.True(Point.AreClose(ray.PointAt(0.0f),ray.Origin));
+        Assert.True(Point.AreClose(ray.PointAt(1.0f),new Point(5.0f, 4.0f, 5.0f)));
+        Assert.True(Point.AreClose(ray.PointAt(2.0f) ,new Point(9.0f, 6.0f, 6.0f)));
     }
     
     [Fact]

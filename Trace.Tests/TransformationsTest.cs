@@ -205,7 +205,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             Transformation tr1 = Transformation.Translation(new Vec(1.0f, 2.0f, 3.0f));
             Assert.True(tr1.IsConsistent(), "tr1 should be consistent.");
 
-            Transformation tr2 = Transformation.Translation(new Vec(4.0f, 6.0f, 8.0f));
+            Transformation tr2 = Transformation.Translation(new Vec(-4.0f, 6.0f, 8.0f));
             Assert.True(tr2.IsConsistent(), "tr2 should be consistent.");
 
             // Multiply the two transformations
@@ -213,7 +213,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             Assert.True(prod.IsConsistent(), "Product should be consistent.");
 
             // The sum of the translations (1,2,3)+(4,6,8) = (5,8,11)
-            Transformation expected = Transformation.Translation(new Vec(5.0f, 8.0f, 11.0f));
+            Transformation expected = Transformation.Translation(new Vec(-3f, 8.0f, 11.0f));
             Assert.True(Transformation.AreClose(prod, expected), "Product should equal the expected translation.");
         }
         

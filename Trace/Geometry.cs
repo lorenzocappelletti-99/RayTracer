@@ -4,6 +4,7 @@
  |                       See LICENSE                        |
  ===========================================================*/
 
+// ReSharper disable InconsistentNaming
 namespace Trace;
 
 public struct Vec (float x, float y, float z)
@@ -11,10 +12,15 @@ public struct Vec (float x, float y, float z)
     public readonly float X = x;
     public readonly float Y = y;
     public readonly float Z = z;
+    
+    // ReSharper disable once InconsistentNaming
+    public static readonly Vec Vec_X = new Vec(1f, 0f, 0f);
+    public static readonly Vec Vec_Y = new Vec(0f, 1f, 0f);
+    public static readonly Vec Vec_Z = new Vec(0f, 0f, 1f);
 
     public override string ToString()
      {
-        return $"Vector: ({X}, {Y}, {Z})";
+        return $"Vec: ({X}, {Y}, {Z})";
     }
 
     public static bool AreClose(Vec v1, Vec v2, float sigma = 1e-5f)
@@ -329,15 +335,14 @@ public struct Normal(float x, float y, float z)
     /// <returns></returns>
     public static float Norm(Normal v) => MathF.Sqrt(SqNorm(v));
 
-    
+
     /// <summary>
-    /// Normalizes the Normal
+    /// Normalizes the Normal vector.
     /// </summary>
-    /// <param name="n"></param>
     /// <returns></returns>
     public void Normalize()
     {
-        float norm = Norm(this); // or Norm(this) if it's static
+        float norm = Norm(this); 
         if (norm != 0)
         {
             this.X /= norm;

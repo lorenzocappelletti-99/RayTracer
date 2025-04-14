@@ -44,17 +44,22 @@ public struct Ray
         return Origin + Direction * t;
     }
     
-    
-/*
     /// <summary>
-    ///
+    /// Applies a transformation to the ray, modifying both its origin and direction.
+    /// This returns a new ray, transformed according to the given transformation matrix.
     /// </summary>
-    /// <param name="transform"></param>
-    /// <returns></returns>
-    public Ray Transform(Transformation transform)
-    {
-        return Ray(origin: transform * Origin, direction: transform * Direction);
-    }
-    */
+    /// <param name="transformation">The transformation to apply to the ray.</param>
+    /// <returns>A new ray with the transformed origin and direction.</returns>
+    public Ray Transform(Transformation transformation)
+       {
+           return new Ray(
+               origin: transformation * Origin,
+               direction: transformation * Direction,
+               tmin: this.Tmin,
+               tmax: this.Tmax,
+               depth: this.Depth
+           );
+       }
+   
     
 }

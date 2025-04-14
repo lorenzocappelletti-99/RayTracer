@@ -5,7 +5,7 @@ public interface ICamera
 
     public Ray fire_ray(Vec u, Vec v)
     {
-        
+        return new Ray();
     }
     /*
      def fire_ray(self, u, v):

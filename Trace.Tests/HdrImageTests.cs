@@ -6,6 +6,7 @@
 
 using Xunit;
 using Xunit.Abstractions;
+using FileStream = System.IO.FileStream;
 
 namespace Trace.Tests;
 

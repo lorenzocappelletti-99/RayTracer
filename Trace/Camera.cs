@@ -2,7 +2,6 @@ namespace Trace;
 
 public interface ICamera
 {
-
     /*
      def fire_ray(self, u, v):
         """Fire a ray through the camera.

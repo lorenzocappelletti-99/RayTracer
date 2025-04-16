@@ -26,7 +26,7 @@ public class RayTests
         Assert.True(ray1.is_close(ray2));
         Assert.True(!ray1.is_close(ray3));
     }
-/*
+
     [Fact]
     public void Test_rayTransformation()
     {
@@ -36,8 +36,9 @@ public class RayTests
         var tx = trasl*rotx;
 
         var transformed = ray.Transform(tx);
-        
-        Assert.True(transformed.Origin())
+
+        Assert.True(transformed.Origin.IsClose(new Point(11.0f, 8.0f, 14.0f)));
+        Assert.True(transformed.Direction.IsClose(new Vec(6.0f, -4.0f, 5.0f)));
 
     }
     

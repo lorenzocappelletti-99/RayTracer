@@ -2,12 +2,12 @@ namespace Trace;
 
 public struct Ray
 {
-    public readonly Point Origin;
-    public readonly Vec Direction;
-    public readonly float Tmin = 1e-5f;
-    public readonly float Tmax = float.PositiveInfinity;
-    public readonly int Depth = 0;
-    
+    public Point Origin;
+    public Vec Direction;
+    public float Tmin = 1e-5f;
+    public float Tmax = float.PositiveInfinity;
+    public const int Depth = 0;
+
     public Ray(Point origin, Vec direction, float tmin, float tmax, int depth)
     {
         Origin = origin;
@@ -29,7 +29,7 @@ public struct Ray
     /// <returns></returns>
     public bool is_close(Ray b, float epsilon = 1e-5f)
     {
-        return Point.AreClose(Origin, b.Origin) && Vec.AreClose(Direction, b.Direction);
+        return Origin.IsClose(b.Origin) && Direction.IsClose(b.Direction);
     }
     
     /// <summary>
@@ -57,7 +57,7 @@ public struct Ray
                direction: transformation * Direction,
                tmin: this.Tmin,
                tmax: this.Tmax,
-               depth: this.Depth
+               depth: Depth
            );
        }
    

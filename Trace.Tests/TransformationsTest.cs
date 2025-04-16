@@ -147,10 +147,10 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             Assert.True(m.IsConsistent());
 
             var expectedV = new Vec(14f, 38f, 51f);
-            Assert.True(Vec.AreClose(expectedV, m * new Vec(1f, 2f, 3f)));
+            Assert.True(expectedV.IsClose(m * new Vec(1f, 2f, 3f)));
 
             var expectedP = new Point(18f, 46f, 58f);
-            Assert.True(Point.AreClose(expectedP, m * new Point(1f, 2f, 3f)));
+            Assert.True(expectedP.IsClose(m * new Point(1f, 2f, 3f)));
 
             var expectedN = new Normal(-8.75f, 7.75f, -3f);
             Assert.True(Normal.AreClose(expectedN, m * new Normal(3f, 2f, 4f)));
@@ -199,7 +199,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             var p = new Point(3f,4f,5f);
             var p0 = p.Translation(new Vec(1f, 2f, 3f));
             
-            Assert.True(Point.AreClose(p0, new Point(4f,6f,8f)));
+            Assert.True(p0.IsClose(new Point(4f,6f,8f)));
             
             // Create two translation transformations
             Transformation tr1 = Transformation.Translation(new Vec(1.0f, 2.0f, 3.0f));
@@ -239,7 +239,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
 
             var resultX = vecY.RotationX(90f);
             
-            Assert.True(Vec.AreClose(resultX, vecZ), "RotationX(90°) * VEC_Y should be close to VEC_Z.");
+            Assert.True(resultX.IsClose(vecZ), "RotationX(90°) * VEC_Y should be close to VEC_Z.");
 
             // Similarly for Y and Z:
             //Transformation ry = Transformation.RotationY(90f);
@@ -247,13 +247,13 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             
             var resultY = vecZ.RotationY(90f);
             
-            Assert.True(Vec.AreClose(resultY, vecX), "RotationY(90°) * VEC_Z should be close to VEC_X.");
+            Assert.True(resultY.IsClose(vecX), "RotationY(90°) * VEC_Z should be close to VEC_X.");
 
             //Transformation rz = Transformation.RotationZ(90f);
             //Vec resultZ = rz * vecX;
             
             var resultZ = vecX.RotationZ(90f);
             
-            Assert.True(Vec.AreClose(resultZ, vecY), "RotationZ(90°) * VEC_X should be close to VEC_Y.");
+            Assert.True(resultZ.IsClose(vecY), "RotationZ(90°) * VEC_X should be close to VEC_Y.");
         }
 }

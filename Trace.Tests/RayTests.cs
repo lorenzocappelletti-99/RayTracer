@@ -8,9 +8,9 @@ public class RayTests
     {
         var ray = new Ray(origin: new Point(1.0f, 2.0f, 4.0f), direction: new Vec(4.0f, 2.0f, 1.0f));
         
-        Assert.True(Point.AreClose(ray.PointAt(0.0f),ray.Origin));
-        Assert.True(Point.AreClose(ray.PointAt(1.0f),new Point(5.0f, 4.0f, 5.0f)));
-        Assert.True(Point.AreClose(ray.PointAt(2.0f) ,new Point(9.0f, 6.0f, 6.0f)));
+        Assert.True(ray.Origin.IsClose(ray.PointAt(0.0f)));
+        Assert.True(new Point(5.0f, 4.0f, 5.0f).IsClose(ray.PointAt(1.0f)));
+        Assert.True(new Point(9.0f, 6.0f, 6.0f).IsClose(ray.PointAt(2.0f) ));
     }
     
     [Fact]
@@ -26,4 +26,28 @@ public class RayTests
         Assert.True(ray1.is_close(ray2));
         Assert.True(!ray1.is_close(ray3));
     }
+/*
+    [Fact]
+    public void Test_rayTransformation()
+    {
+        var ray = new Ray(origin: new Point(1.0f, 2.0f, 3.0f), direction: new Vec(6.0f, 5.0f, 4.0f));
+        var trasl = Transformation.Translation(new Vec(10.0f, 11.0f, 12.0f));
+        var rotx = Transformation.RotationX(90.0f);
+        var tx = trasl*rotx;
+
+        var transformed = ray.Transform(tx);
+        
+        Assert.True(transformed.Origin())
+
+    }
+    
+    /*
+     def test_transform():
+    ray = Ray(origin=Point(1.0, 2.0, 3.0), dir=Vec(6.0, 5.0, 4.0))
+    transformation = translation(Vec(10.0, 11.0, 12.0)) * rotation_x(90.0)
+    transformed = ray.transform(transformation)
+
+    assert transformed.origin.is_close(Point(11.0, 8.0, 14.0))
+    assert transformed.dir.is_close(Vec(6.0, -4.0, 5.0))
+     */
 }

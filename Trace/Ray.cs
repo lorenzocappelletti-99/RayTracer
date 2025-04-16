@@ -20,6 +20,12 @@ public struct Ray
         Origin = origin;
         Direction = direction;
     }
+    public Ray(Point origin, Vec direction, float tmin)
+    {
+        Origin = origin;
+        Direction = direction;
+        Tmin = tmin;
+    }
 
     /// <summary>
     /// Check if two rays are similar enough to be considered equal

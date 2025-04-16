@@ -211,6 +211,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             // Multiply the two transformations
             Transformation prod = tr1 * tr2;
             Assert.True(prod.IsConsistent(), "Product should be consistent.");
+            _testOutputHelper.WriteLine(prod.ToString());
 
             // The sum of the translations (1,2,3)+(4,6,8) = (5,8,11)
             Transformation expected = Transformation.Translation(new Vec(-3f, 8.0f, 11.0f));

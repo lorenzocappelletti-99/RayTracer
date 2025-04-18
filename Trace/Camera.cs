@@ -7,11 +7,13 @@ public abstract class Camera
     
     public float Distance { get; set; }
     
-    protected Camera(Transformation transform, float distance, float aspectRatio = 1.0f)
+    protected Camera(Transformation transform, float distance = 1.0f, float aspectRatio = 1.0f)
     {
         AspectRatio = aspectRatio;
+        Distance = distance;
         Transform = transform;
     }
+
     
     protected Camera(float aspectRatio = 1.0f)
     {
@@ -30,10 +32,10 @@ public class OrthogonalProjection : Camera
     }
     */
     public OrthogonalProjection(float aspectRatio = 1.0f)
-        : base(new Transformation(), aspectRatio)
-    
+        : base(new Transformation(), 1.0f, aspectRatio)
     {
     }
+
 
     public override Ray FireRay(float u, float v)
     {
@@ -47,7 +49,7 @@ public class PerspectiveProjection : Camera
 {
 
     public PerspectiveProjection(Transformation transform, float distance = 1.0f, float aspectRatio = 1.0f)
-        : base(new Transformation(), distance, aspectRatio)
+        : base(transform, distance, aspectRatio)
     {
     }
     public PerspectiveProjection(Transformation transform, float aspectRatio = 1.0f)

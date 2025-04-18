@@ -26,6 +26,12 @@ public struct Ray
         Direction = direction;
         Tmin = tmin;
     }
+    
+    public override string ToString()
+    {
+        return $"Ray(Origin={Origin}, Direction={Direction}, " +
+               $"Tmin={Tmin}, Tmax={Tmax}, Depth={Depth})";
+    }
 
     /// <summary>
     /// Check if two rays are similar enough to be considered equal

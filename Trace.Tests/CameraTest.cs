@@ -1,9 +1,10 @@
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Trace.Tests;
 
 
-public class CameraTest
+public class CameraTest(ITestOutputHelper testOutputHelper)
 {
     public static bool are_close(float a, float b, float epsilon = 1e-5f)
     {
@@ -21,11 +22,13 @@ public class CameraTest
         var ray3 = cam.FireRay(0.0f, 1.0f);
         var ray4 = cam.FireRay(1.0f, 1.0f);
 
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction%(ray2.Direction))));
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction%(ray3.Direction))));
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction%(ray4.Direction))));
+        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray2.Direction)));
+        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray3.Direction)));
+        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray4.Direction)));
 
 
+        //testOutputHelper.WriteLine($"{ray1}");
+        
         Assert.True(ray1.PointAt(1.0f).IsClose(new Point(0.0f, 2.0f, -1.0f)));
         Assert.True(ray2.PointAt(1.0f).IsClose(new Point(0.0f, -2.0f, -1.0f)));
         Assert.True(ray3.PointAt(1.0f).IsClose(new Point(0.0f, 2.0f, 1.0f)));

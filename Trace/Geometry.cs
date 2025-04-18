@@ -7,7 +7,11 @@
 // ReSharper disable InconsistentNaming
 namespace Trace;
 
-//   VEC    /////////////////////////////////////////////////////////////
+    /***********************************************************
+     *                                                         *
+     *                      VEC                                *
+     *                                                         *
+     ***********************************************************/
 public struct Vec (float x, float y, float z)
 {
     public  float X = x;
@@ -191,7 +195,11 @@ public struct Vec (float x, float y, float z)
     
 }
 
-//   POINT   /////////////////////////////////////////////////////////    
+    /***********************************************************
+     *                                                         *
+     *                      POINT                              *
+     *                                                         *
+     ***********************************************************/
 public struct Point(float x, float y, float z)
 {
     public readonly float X = x;
@@ -255,7 +263,11 @@ public struct Point(float x, float y, float z)
 
 }
 
-//     NORMAL     //////////////////////////////////////////////////////////
+    /***********************************************************
+     *                                                         *
+     *                      NORMAL                             *
+     *                                                         *
+     ***********************************************************/
 public struct Normal(float x, float y, float z)
 {
     public float X = x;

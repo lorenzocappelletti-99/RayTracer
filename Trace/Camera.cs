@@ -4,78 +4,68 @@ public abstract class Camera
 {
     public float AspectRatio { get; set; }
     public Transformation Transform { get; set; }
-    
     public float Distance { get; set; }
-    
-    protected Camera(Transformation transform, float distance = 1.0f, float aspectRatio = 1.0f)
+
+    // Tutti i parametri opzionali, con defaults:
+    protected Camera(
+        float aspectRatio = 1.0f,
+        float distance    = 1.0f,
+        Transformation? transform = null
+    )
     {
         AspectRatio = aspectRatio;
-        Distance = distance;
-        Transform = transform;
+        Distance    = distance;
+        Transform   = transform ?? new Transformation();
     }
 
-    
-    protected Camera(float aspectRatio = 1.0f)
-    {
-        AspectRatio = aspectRatio;
-    }
-    
     public abstract Ray FireRay(float u, float v);
 }
-
 public class OrthogonalProjection : Camera
 {
-    /*
-    public OrthogonalProjection(Transformation? transform = null, float aspectRatio = 1.0f)
-        : base(transform, aspectRatio)
-    {
-    }
-    */
-    public OrthogonalProjection(float aspectRatio = 1.0f)
-        : base(new Transformation(), 1.0f, aspectRatio)
-    {
-    }
-
+    /// <summary>
+    /// aspectRatio: width/height del film plane
+    /// transform:  matrice di posizionamento/orientamento in world
+    /// </summary>
+    public OrthogonalProjection(
+        float aspectRatio = 1.0f,
+        Transformation? transform   = null
+    ) : base(aspectRatio, distance: 1.0f, transform) { }
 
     public override Ray FireRay(float u, float v)
     {
-        var origin = new Point(-1.0f, (1.0f - 2.0f * u) * AspectRatio, 2.0f * v - 1.0f);
+        var origin    = new Point(
+            -1.0f,
+            (1.0f - 2.0f * u) * AspectRatio,
+            2.0f * v - 1.0f
+        );
         var direction = Vec.VEC_X;
-        return new Ray(origin, direction, 1.0e-5f).Transform(Transform);
+        return new Ray(origin, direction, 1e-5f)
+            .Transform(Transform);
     }
 }
 
 public class PerspectiveProjection : Camera
 {
-
-    public PerspectiveProjection(Transformation transform, float distance = 1.0f, float aspectRatio = 1.0f)
-        : base(transform, distance, aspectRatio)
-    {
-    }
-    public PerspectiveProjection(Transformation transform, float aspectRatio = 1.0f)
-        : base(transform, aspectRatio)
-    {
-    }
-    public PerspectiveProjection(float aspectRatio = 1.0f, float distance = 1.0f)
-        : base(new Transformation(), distance, aspectRatio)
-    
-    {
-    }
-    
-    /*    def __init__(self, distance=1.0, aspect_ratio=1.0, transformation=Transformation()):
-        self.distance = distance
-        self.aspect_ratio = aspect_ratio
-        self.transformation = transformation
-
-    def fire_ray(self, u: float, v: float) -> Ray:
-        origin = Point(-self.distance, 0.0, 0.0)
-        direction = Vec(self.distance, (1.0 - 2 * u) * self.aspect_ratio, 2 * v - 1)
-        return Ray(origin=origin, dir=direction, tmin=1.0e-5).transform(self.transformation)*/
+    /// <summary>
+    /// aspectRatio: width/height del film plane
+    /// distance:    distanza della camera dal film plane
+    /// transform:   matrice di posizionamento/orientamento in world
+    /// </summary>
+    public PerspectiveProjection(
+        float aspectRatio = 1.0f,
+        float distance    = 1.0f,
+        Transformation? transform   = null
+    ) : base(aspectRatio, distance, transform) { }
 
     public override Ray FireRay(float u, float v)
     {
-        var origin = new Point(-Distance, 0.0f, 0.0f);
-        var direction = new Vec(Distance, (1.0f - 2.0f * u) * AspectRatio, 2 * v - 1);
-        return new Ray(origin, direction, 1.0e-5f).Transform(Transform);
+        var origin    = new Point(-Distance, 0.0f, 0.0f);
+        var direction = new Vec(
+            Distance,
+            (1.0f - 2.0f * u) * AspectRatio,
+            2.0f * v - 1.0f
+        );
+        return new Ray(origin, direction, 1e-5f)
+            .Transform(Transform);
     }
 }

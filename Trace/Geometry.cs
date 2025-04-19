@@ -7,7 +7,11 @@
 // ReSharper disable InconsistentNaming
 namespace Trace;
 
-//   VEC    /////////////////////////////////////////////////////////////
+    /***********************************************************
+     *                                                         *
+     *                      VEC                                *
+     *                                                         *
+     ***********************************************************/
 public struct Vec (float x, float y, float z)
 {
     public  float X = x;
@@ -23,11 +27,11 @@ public struct Vec (float x, float y, float z)
         return $"Vector: ({X}, {Y}, {Z})";
     }
 
-    public static bool AreClose(Vec v1, Vec v2, float sigma = 1e-5f)
+    public bool IsClose(Vec v2, float sigma = 1e-5f)
     {
-        return Math.Abs(v1.X - v2.X) <= sigma &&
-               Math.Abs(v1.Y - v2.Y) <= sigma &&
-               Math.Abs(v1.Z - v2.Z) <= sigma;
+        return Math.Abs(this.X - v2.X) <= sigma &&
+               Math.Abs(this.Y - v2.Y) <= sigma &&
+               Math.Abs(this.Z - v2.Z) <= sigma;
     }
     
     /// <summary>
@@ -191,7 +195,11 @@ public struct Vec (float x, float y, float z)
     
 }
 
-//   POINT   /////////////////////////////////////////////////////////    
+    /***********************************************************
+     *                                                         *
+     *                      POINT                              *
+     *                                                         *
+     ***********************************************************/
 public struct Point(float x, float y, float z)
 {
     public readonly float X = x;
@@ -203,11 +211,11 @@ public struct Point(float x, float y, float z)
         return $"Point: ({X}, {Y}, {Z})";
     }
     
-    public static bool AreClose(Point p1, Point p2, float sigma = 1e-5f)
+    public bool IsClose(Point p2, float sigma = 1e-5f)
     {
-        return Math.Abs(p1.X - p2.X) <= sigma &&
-               Math.Abs(p1.Y - p2.Y) <= sigma &&
-               Math.Abs(p1.Z - p2.Z) <= sigma;
+        return Math.Abs(this.X - p2.X) <= sigma &&
+               Math.Abs(this.Y - p2.Y) <= sigma &&
+               Math.Abs(this.Z - p2.Z) <= sigma;
     }
 
     /// <summary>
@@ -255,7 +263,11 @@ public struct Point(float x, float y, float z)
 
 }
 
-//     NORMAL     //////////////////////////////////////////////////////////
+    /***********************************************************
+     *                                                         *
+     *                      NORMAL                             *
+     *                                                         *
+     ***********************************************************/
 public struct Normal(float x, float y, float z)
 {
     public float X = x;

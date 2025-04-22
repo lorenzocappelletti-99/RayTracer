@@ -1,32 +1,33 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
+
 namespace Trace;
 
 public struct Ray
 {
     public Point Origin;
     public Vec Direction;
-    public float Tmin = 1e-5f;
-    public float Tmax = float.PositiveInfinity;
-    public const int Depth = 0;
+    public float Tmin;
+    public float Tmax;
+    public int Depth;
 
-    public Ray(Point origin, Vec direction, float tmin, float tmax, int depth)
+    public Ray(Point origin, Vec direction, float tmin = 1e-5f, float tmax = float.PositiveInfinity, int depth = 0)
     {
         Origin = origin;
         Direction = direction;
         Tmin = tmin;
         Tmax = tmax;
-    }
-    public Ray(Point origin, Vec direction)
-    {
-        Origin = origin;
-        Direction = direction;
-    }
-    public Ray(Point origin, Vec direction, float tmin)
-    {
-        Origin = origin;
-        Direction = direction;
-        Tmin = tmin;
+        Depth = depth;
     }
     
+    
+    /// <summary>
+    /// Returns the description of ray parameters as a string
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return $"Ray(Origin={Origin}, Direction={Direction}, " +

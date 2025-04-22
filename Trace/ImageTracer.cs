@@ -1,3 +1,9 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
+
 namespace Trace;
 
 public class ImageTracer
@@ -22,13 +28,13 @@ public class ImageTracer
     /// </summary>
     /// <param name="col">The column of the pixel.</param>
     /// <param name="row">The row of the pixel.</param>
-    /// <param name="u_pixel">The horizontal subpixel offset (default 0.5).</param>
-    /// <param name="v_pixel">The vertical subpixel offset (default 0.5).</param>
+    /// <param name="uPixel">The horizontal subpixel offset (default 0.5).</param>
+    /// <param name="vPixel">The vertical subpixel offset (default 0.5).</param>
     /// <returns>A ray fired through the camera corresponding to the pixel.</returns>
-    public Ray FireRay(int col, int row, float u_pixel = 0.5f, float v_pixel = 0.5f)
+    public Ray FireRay(int col, int row, float uPixel = 0.5f, float vPixel = 0.5f)
     {
-        var u = (col + u_pixel) / (Image.Width - 1);
-        var v = (row + v_pixel) / (Image.Height - 1);
+        var u = (col + uPixel) / (Image.Width - 1);
+        var v = (row + vPixel) / (Image.Height - 1);
         return Camera.FireRay(u, v);
     }
 
@@ -39,12 +45,12 @@ public class ImageTracer
     /// <param name="func">A function that, given a Ray, returns a Color (i.e. solving rendering equation).</param>
     public void FireAllRays(Func <Ray, Color> func)
     {
-        for (int row = 0; row < Image.Height; row++)
+        for (var row = 0; row < Image.Height; row++)
         {
-            for (int col = 0; col < Image.Width; col++)
+            for (var col = 0; col < Image.Width; col++)
             {
-                Ray ray = FireRay(col, row);
-                Color color = func(ray);
+                var ray = FireRay(col, row);
+                var color = func(ray);
                 Image.SetPixel(col, row, color);
             }
         }

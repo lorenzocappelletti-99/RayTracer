@@ -1,12 +1,17 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
+
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Trace.Tests;
 
 
-public class CameraImageTracerTest(ITestOutputHelper testOutputHelper)
+public class CameraImageTracerTest
 {
-    public static bool are_close(float a, float b, float epsilon = 1e-5f)
+    private static bool are_close(float a, float b, float epsilon = 1e-5f)
     {
         return Math.Abs(a - b) <= epsilon;
     }
@@ -91,8 +96,8 @@ public class CameraImageTracerTest(ITestOutputHelper testOutputHelper)
         var camera = new PerspectiveProjection(aspectRatio: 2.0f);
         var tracer = new ImageTracer(image, camera);
 
-        var ray1 = tracer.FireRay(col: 0, row: 0, u_pixel: 2.5f, v_pixel: 1.5f);
-        var ray2 = tracer.FireRay(col: 2, row: 1, u_pixel: 0.5f, v_pixel: 0.5f);
+        var ray1 = tracer.FireRay(col: 0, row: 0, uPixel: 2.5f, vPixel: 1.5f);
+        var ray2 = tracer.FireRay(col: 2, row: 1, uPixel: 0.5f, vPixel: 0.5f);
 
         Assert.True(
             ray1.is_close(ray2),
@@ -104,9 +109,9 @@ public class CameraImageTracerTest(ITestOutputHelper testOutputHelper)
         tracer.FireAllRays(ray => color);
         
         // Assert: every pixel equals the fill color
-        for (int row = 0; row < image.Height; row++)
+        for (var row = 0; row < image.Height; row++)
         {
-            for (int col = 0; col < image.Width; col++)
+            for (var col = 0; col < image.Width; col++)
             {
                 var pixel = image.GetPixel(col, row);
                 //testOutputHelper.WriteLine($"{pixel}");

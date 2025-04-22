@@ -1,12 +1,27 @@
+/*===========================================================
+ |                     Raytracer Project                    
+ |             Released under EUPL-1.2 License               
+ |                       See LICENSE                        
+ ===========================================================*/
+
 namespace Trace;
 
+
+/// <summary>
+/// Base Class
+/// </summary>
 public abstract class Camera
 {
     public float AspectRatio { get; set; }
     public Transformation Transform { get; set; }
     public float Distance { get; set; }
 
-    // Tutti i parametri opzionali, con defaults:
+    /// <summary>
+    /// All parameters are optional. 
+    /// </summary>
+    /// <param name="aspectRatio"></param>
+    /// <param name="distance"></param>
+    /// <param name="transform"></param>
     protected Camera(
         float aspectRatio = 1.0f,
         float distance    = 1.0f,
@@ -23,8 +38,8 @@ public abstract class Camera
 public class OrthogonalProjection : Camera
 {
     /// <summary>
-    /// aspectRatio: width/height del film plane
-    /// transform:  matrice di posizionamento/orientamento in world
+    /// aspectRatio: width/height of the film plane
+    /// transform:  posizionamento/orientamento matrix in world
     /// </summary>
     public OrthogonalProjection(
         float aspectRatio = 1.0f,
@@ -47,9 +62,9 @@ public class OrthogonalProjection : Camera
 public class PerspectiveProjection : Camera
 {
     /// <summary>
-    /// aspectRatio: width/height del film plane
-    /// distance:    distanza della camera dal film plane
-    /// transform:   matrice di posizionamento/orientamento in world
+    /// aspectRatio: width/height of the film plane
+    /// distance:    distance of camera from film plane
+    /// transform:   posizionamento/orientamento matrix in world
     /// </summary>
     public PerspectiveProjection(
         float aspectRatio = 1.0f,

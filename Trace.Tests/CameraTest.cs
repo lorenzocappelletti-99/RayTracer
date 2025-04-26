@@ -118,6 +118,13 @@ public class CameraImageTracerTest
                 Assert.Equal(color, pixel);
             }
         }
+    }
+
+    [Fact]
+    public void TestActions()
+    {
+        var v = new Vec(1f,2f,3f);
         
+        Assert.True(v.IsClose(new Vec(1f,2f,3f)));
     }
 }

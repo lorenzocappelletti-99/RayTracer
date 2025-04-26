@@ -125,6 +125,6 @@ public class CameraImageTracerTest
     {
         var v = new Vec(1f,2f,3f);
         
-        Assert.True(v.IsClose(new Vec(1f,2f,3f)));
+        Assert.True(v.IsClose(new Vec(-1f,2f,3f)));
     }
 }

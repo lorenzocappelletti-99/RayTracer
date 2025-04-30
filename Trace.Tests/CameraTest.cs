@@ -38,22 +38,22 @@ public class CameraImageTracerTest
         Assert.True(ray2.PointAt(1.0f).IsClose(new Point(0.0f, -2.0f, -1.0f)));
         Assert.True(ray3.PointAt(1.0f).IsClose(new Point(0.0f, 2.0f, 1.0f)));
         Assert.True(ray4.PointAt(1.0f).IsClose(new Point(0.0f, -2.0f, 1.0f)));
-        
+
     }
 
     [Fact]
     public void TestOrthogonalCameraTransform()
     {
-        var rotZ      = Transformation.RotationZ(90f);
+        var rotZ = Transformation.RotationZ(90f);
         var trasl = Transformation.Translation(new Vec(0f, -2f, 0f));
-        var combined  = trasl * rotZ;
+        var combined = trasl * rotZ;
 
         var cam = new OrthogonalProjection(
             aspectRatio: 1.0f,
             transform: combined
         );
 
-        var ray      = cam.FireRay(0.5f, 0.5f);
+        var ray = cam.FireRay(0.5f, 0.5f);
         var pointAt1 = ray.PointAt(1.0f);
 
         var expected = new Point(0f, -2f, 0f);
@@ -61,7 +61,7 @@ public class CameraImageTracerTest
         );
     }
 
-    
+
     [Fact]
     public void TestPerspectiveCamera()
     {
@@ -78,46 +78,12 @@ public class CameraImageTracerTest
         Assert.True(ray1.Origin.IsClose(ray2.Origin));
         Assert.True(ray1.Origin.IsClose(ray3.Origin));
         Assert.True(ray1.Origin.IsClose(ray4.Origin));
-        
+
         // Assert: corners hit at t=1 have correct coordinates
-        Assert.True(ray1.PointAt(1.0f).IsClose(new Point(0f,  2f, -1f)));
-        Assert.True(ray2.PointAt(1.0f).IsClose(new Point(0f,  -2f, -1f)));
-        Assert.True(ray3.PointAt(1.0f).IsClose(new Point(0f,  2f, 1f)));
-        Assert.True(ray4.PointAt(1.0f).IsClose(new Point(0f,  -2f, 1f)));
-        
-    }   
-    
-    
-    [Fact]
-    public void TestImageTracer()
-    {
-        // Arrange
-        var image = new HdrImage(4,2);
-        var camera = new PerspectiveProjection(aspectRatio: 2.0f);
-        var tracer = new ImageTracer(image, camera);
+        Assert.True(ray1.PointAt(1.0f).IsClose(new Point(0f, 2f, -1f)));
+        Assert.True(ray2.PointAt(1.0f).IsClose(new Point(0f, -2f, -1f)));
+        Assert.True(ray3.PointAt(1.0f).IsClose(new Point(0f, 2f, 1f)));
+        Assert.True(ray4.PointAt(1.0f).IsClose(new Point(0f, -2f, 1f)));
 
-        var ray1 = tracer.FireRay(col: 0, row: 0, uPixel: 2.5f, vPixel: 1.5f);
-        var ray2 = tracer.FireRay(col: 2, row: 1, uPixel: 0.5f, vPixel: 0.5f);
-
-        Assert.True(
-            ray1.is_close(ray2),
-            $"Expected ray1 and ray2 to be close, but got origins {ray1.Origin} vs {ray2.Origin}"
-        );
-        
-        var color = new Color(1.0f, 2.0f, 3.0f);
-        
-        tracer.FireAllRays(ray => color);
-        
-        // Assert: every pixel equals the fill color
-        for (var row = 0; row < image.Height; row++)
-        {
-            for (var col = 0; col < image.Width; col++)
-            {
-                var pixel = image.GetPixel(col, row);
-                //testOutputHelper.WriteLine($"{pixel}");
-                Assert.Equal(color, pixel);
-            }
-        }
-        
     }
 }

@@ -33,6 +33,7 @@ public class ImageTracer
     /// <returns>A ray fired through the camera corresponding to the pixel.</returns>
     public Ray FireRay(int col, int row, float uPixel = 0.5f, float vPixel = 0.5f)
     {
+        
         var u = (col + uPixel) / (Image.Width - 1);
         var v = (row + vPixel) / (Image.Height - 1);
         return Camera.FireRay(u, v);

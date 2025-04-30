@@ -4,12 +4,17 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.Runtime.InteropServices.Swift;
+
 namespace Trace;
 
-public class Shape
-{   
-    
+public abstract class Shape(Transformation transformation)
+{
+    public Transformation Transform { get; } = transformation;
+
+    public abstract HitRecord RayIntersection(Ray ray);
 }
+
 
 /*class Shape:
     def __init__(self, transformation=Transformation()):

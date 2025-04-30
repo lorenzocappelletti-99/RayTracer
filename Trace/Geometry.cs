@@ -490,3 +490,11 @@ public struct HomMatrix(float a, float b, float c, float d)
         return $"Matrix: \n[{A} {B}]\n[{C} {D}]";
     }
 }
+
+
+// just a simple 2dVec
+public struct Vec2d
+{
+    public float u;
+    public float v;
+}

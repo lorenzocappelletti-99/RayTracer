@@ -27,9 +27,9 @@ public class CameraImageTracerTest
         var ray3 = cam.FireRay(0.0f, 1.0f);
         var ray4 = cam.FireRay(1.0f, 1.0f);
 
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray2.Direction)));
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray3.Direction)));
-        Assert.True(are_close(0.0f, Vec.SqNorm(ray1.Direction % ray4.Direction)));
+        Assert.True(are_close(0.0f, (ray1.Direction % ray3.Direction).SqNorm()));
+        Assert.True(are_close(0.0f, (ray1.Direction % ray2.Direction).SqNorm()));
+        Assert.True(are_close(0.0f, (ray1.Direction % ray4.Direction).SqNorm()));
 
 
         //testOutputHelper.WriteLine($"{ray1}");

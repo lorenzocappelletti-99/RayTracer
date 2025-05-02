@@ -33,8 +33,8 @@ public class GeometryTests
         Assert.True(new Vec(-2.0f, 4.0f, -2.0f).IsClose(a % b));
         Assert.True(new Vec(2.0f, -4.0f, 2.0f).IsClose(b % a));
         
-        Assert.Equal((double)14.0f, Vec.SqNorm(a), 5);
-        Assert.Equal((double)14.0f, MathF.Pow(Vec.Norm(a), 2), 5);
+        Assert.Equal((double)14.0f, a.SqNorm(), 5);
+        Assert.Equal((double)14.0f, MathF.Pow(a.Norm(), 2), 5);
     }
     
     [Fact]
@@ -47,7 +47,7 @@ public class GeometryTests
         Assert.True(new Point(5.0f, 8.0f, 11.0f).IsClose(a + vector));
         Assert.True(new Point(-3.0f, -4.0f, -5.0f).IsClose(a - vector));
         Assert.True(new Vec(-3.0f, -4.0f, -5.0f).IsClose(a - b));
-        Assert.True(new Vec(1.0f, 2.0f, 3.0f).IsClose(Point.to_vec(a)));
+        Assert.True(new Vec(1.0f, 2.0f, 3.0f).IsClose(a.to_vec()));
     }
     
     

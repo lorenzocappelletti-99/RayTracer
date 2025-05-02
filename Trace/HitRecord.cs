@@ -33,24 +33,3 @@ public class HitRecord
                 self.ray.is_close(other.ray)
         )* /*/
 }
-
-/*class HitRecord:
-    """
-    A class holding information about a ray-shape intersection
-
-    The parameters defined in this dataclass are the following:
-
-    -   `world_point`: a :class:`.Point` object holding the world coordinates of the hit point
-    -   `normal`: a :class:`.Normal` object holding the orientation of the normal to the surface where the hit happened
-    -   `surface_point`: a :class:`.Vec2d` object holding the position of the hit point on the surface of the object
-    -   `t`: a floating-point value specifying the distance from the origin of the ray where the hit happened
-    -   `ray`: the ray that hit the surface
-    """
-    world_point: Point
-    normal: Normal
-    surface_point: Vec2d
-    t: float
-    ray: Ray
-    material: Material
-
-*/

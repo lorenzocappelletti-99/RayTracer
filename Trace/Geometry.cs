@@ -36,11 +36,11 @@ public struct Vec (float x, float y, float z)
         return $"Vector: ({X}, {Y}, {Z})";
     }
 
-    public bool IsClose(Vec v2, float sigma = 1e-5f)
+    public bool IsClose(Vec v, float sigma = 1e-5f)
     {
-        return Math.Abs(this.X - v2.X) <= sigma &&
-               Math.Abs(this.Y - v2.Y) <= sigma &&
-               Math.Abs(this.Z - v2.Z) <= sigma;
+        return Math.Abs(this.X - v.X) <= sigma &&
+               Math.Abs(this.Y - v.Y) <= sigma &&
+               Math.Abs(this.Z - v.Z) <= sigma;
     }
     
     /// <summary>
@@ -218,11 +218,11 @@ public struct Point(float x, float y, float z)
         return $"Point: ({X}, {Y}, {Z})";
     }
     
-    public bool IsClose(Point p2, float sigma = 1e-5f)
+    public bool IsClose(Point p, float sigma = 1e-5f)
     {
-        return Math.Abs(this.X - p2.X) <= sigma &&
-               Math.Abs(this.Y - p2.Y) <= sigma &&
-               Math.Abs(this.Z - p2.Z) <= sigma;
+        return Math.Abs(this.X - p.X) <= sigma &&
+               Math.Abs(this.Y - p.Y) <= sigma &&
+               Math.Abs(this.Z - p.Z) <= sigma;
     }
 
     /// <summary>
@@ -284,11 +284,11 @@ public struct Normal(float x, float y, float z)
         return $"Vec: ({X}, {Y}, {Z})";
     }
     
-    public static bool AreClose(Normal n1, Normal n2, float sigma = 1e-5f)
+    public bool IsClose(Normal v, float sigma = 1e-5f)
     {
-        return Math.Abs(n1.X - n2.X) <= sigma &&
-               Math.Abs(n1.Y - n2.Y) <= sigma &&
-               Math.Abs(n1.Z - n2.Z) <= sigma;
+        return Math.Abs(this.X - v.X) <= sigma &&
+               Math.Abs(this.Y - v.Y) <= sigma &&
+               Math.Abs(this.Z - v.Z) <= sigma;
     }
 
         
@@ -497,9 +497,29 @@ public struct HomMatrix(float a, float b, float c, float d)
 }
 
 
-// just a simple 2dVec
-public struct Vec2d(float u, float v)
+/// <summary>
+/// Simple 2D vector for UV coordinates.
+/// </summary>
+public struct Vec2d
 {
-    public float u = u;
-    public float v = v;
+    public float u;
+    public float v;
+
+    public Vec2d(float u, float v)
+    {
+        this.u = u;
+        this.v = v;
+    }
+
+    /// <summary>
+    /// Checks whether this Vec2d and another are approximately equal.
+    /// </summary>
+    /// <param name="other">The other Vec2d to compare against.</param>
+    /// <param name="epsilon">Tolerance for comparisons.</param>
+    /// <returns>True if both u and v differ by less than epsilon.</returns>
+    public bool IsClose(Vec2d other, float epsilon = 1e-5f)
+    {
+        return MathF.Abs(this.u - other.u) <= epsilon
+               && MathF.Abs(this.v - other.v) <= epsilon;
+    }
 }

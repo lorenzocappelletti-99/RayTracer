@@ -1,6 +1,13 @@
 namespace Trace;
 
-
+/// <summary>
+/// Represents the result of a ray intersection with a shape, containing:
+/// - <see cref="WorldPoint"/>: the hit position in world coordinates
+/// - <see cref="Normal"/>: the surface normal at the hit point in world space
+/// - <see cref="SurfacePoint"/>: the UV texture coordinates at the hit point
+/// - <see cref="t"/>: the parameter along the ray where the hit occurred
+/// - <see cref="Ray"/>: the original ray that produced this hit
+/// </summary>
 public class HitRecord
 {
 
@@ -9,27 +16,26 @@ public class HitRecord
     public Vec2d SurfacePoint;
     public float t;
     public Ray Ray;
-
-    /// <summary>
-    /// TO BE IMPLEMENTED
-    /// </summary>
+    
+    
     /// <param name="epsilon"></param>
     /// <returns></returns>
-    public bool IsClose(float epsilon = 1e-5f)
+    /// <summary>
+    /// Checks whether this hit record and another are approximately equal.
+    /// </summary>
+    /// <param name="other">The other HitRecord to compare against.</param>
+    /// <param name="epsilon">Tolerance for floating-point comparisons.</param>
+    /// <returns>True if all components are within epsilon, false otherwise.</returns>
+    public bool IsClose(HitRecord? other, float epsilon = 1e-5f)
     {
-        return true;
-    }
-    
-    /*    def is_close(self, other: Union["HitRecord", None], epsilon=1e-5) -> bool:
-        """Check whether two `HitRecord` represent the same hit event or not"""
-        if not other:
-            return False
+        if (other == null)
+            return false;
 
-        return (
-                self.world_point.is_close(other.world_point) and
-                self.normal.is_close(other.normal) and
-                self.surface_point.is_close(other.surface_point) and
-                (abs(self.t - other.t) < epsilon) and
-                self.ray.is_close(other.ray)
-        )* /*/
+        return
+            WorldPoint.IsClose(other.WorldPoint, epsilon) &&
+            Normal.IsClose(other.Normal, epsilon) &&
+            SurfacePoint.IsClose(other.SurfacePoint, epsilon) &&
+            MathF.Abs(this.t - other.t) < epsilon &&
+            Ray.IsClose(other.Ray, epsilon);
+    }
 }

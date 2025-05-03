@@ -58,10 +58,10 @@ public class GeometryTests
         var a1 = new Normal(4.0f, 6.0f, 8.0f);
         var b = new Vec(4.0f, 6.0f, 8.0f);
         
-        Assert.True(Normal.AreClose(a * 2.0f, new Normal(2.0f, 4.0f, 6.0f)));
-        Assert.True(Normal.AreClose(2.0f * a, new Normal(2.0f, 4.0f, 6.0f)));
-        Assert.True(Normal.AreClose(a / 2.0f, new Normal(0.5f, 1.0f, 1.5f)));
-        Assert.True(Normal.AreClose(-a, new Normal(-1.0f, -2.0f, -3.0f)));
+        Assert.True((a * 2.0f).IsClose(new Normal(2.0f, 4.0f, 6.0f)));
+        Assert.True((2.0f * a).IsClose(new Normal(2.0f, 4.0f, 6.0f)));
+        Assert.True((a / 2.0f).IsClose(new Normal(0.5f, 1.0f, 1.5f)));
+        Assert.True((-a).IsClose(new Normal(-1.0f, -2.0f, -3.0f)));
 
         Assert.Equal((double)40.0f, b * a, 5);
         Assert.True(new Vec(-2.0f, 4.0f, -2.0f).IsClose(a % b));

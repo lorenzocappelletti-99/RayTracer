@@ -43,7 +43,7 @@ namespace Myraytracer
             var image = new HdrImage(1366, 768);
             var tracer = new ImageTracer(image, observer);
             
-            tracer.FireAllRays(scene);
+            //tracer.FireAllRays(scene);
 
             //using Stream fileStream = File.OpenRead("first.pfm");
             

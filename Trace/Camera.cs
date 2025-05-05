@@ -43,7 +43,7 @@ public class OrthogonalProjection : Camera
     /// </summary>
     public OrthogonalProjection(
         float aspectRatio = 1.0f,
-        Transformation? transform   = null
+        Transformation? transform = null
     ) : base(aspectRatio, distance: 1.0f, transform) { }
 
     public override Ray FireRay(float u, float v)

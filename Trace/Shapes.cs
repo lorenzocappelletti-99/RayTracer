@@ -24,7 +24,7 @@ public abstract class Shape
     /// </summary>
     public Normal OrientedNormal(Point p, Vec rayDir)
     {
-        Normal result = new Normal(p.X, p.Y, p.Z);
+        var result = new Normal(p.X, p.Y, p.Z);
         return p.to_vec() * rayDir < 0 ? result : -result;
     }
 
@@ -35,10 +35,26 @@ public class Sphere : Shape
 {
     public float Radius { get; } = 1.0f;
 
+    
+    public Sphere()
+    {
+    }
     public Sphere(Transformation? transformation = null)
         : base(transformation)
     {
     }
+    public Sphere(Transformation? transformation = null, float? radius = 1.0f)
+        : base(transformation)
+    {
+        Radius = radius ?? 1.0f;
+    }
+    public Sphere(float? radius = 1.0f)
+    {
+        Radius = radius ?? 1.0f;
+    }
+
+
+
 
     /// <summary>
     /// Maps a point on the unit sphere (local coordinates) to UV texture coordinates.
@@ -60,7 +76,7 @@ public class Sphere : Shape
     
     public override HitRecord? RayIntersection(Ray ray)
     {
-        Ray localRay = ray.Transform(Transformation.Inverse());
+        var localRay = ray.Transform(Transformation.Inverse());
 
         var origin    = localRay.Origin.to_vec();
         var direction = localRay.Direction;

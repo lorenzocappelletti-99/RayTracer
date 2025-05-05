@@ -1,3 +1,9 @@
+/*===========================================================
+ |                     Raytracer Project
+ |             Released under EUPL-1.2 License
+ |                       See LICENSE
+ ===========================================================*/
+
 namespace Trace;
 
 /// <summary>
@@ -18,8 +24,6 @@ public class HitRecord
     public Ray Ray;
     
     
-    /// <param name="epsilon"></param>
-    /// <returns></returns>
     /// <summary>
     /// Checks whether this hit record and another are approximately equal.
     /// </summary>

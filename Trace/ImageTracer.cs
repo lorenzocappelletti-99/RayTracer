@@ -56,8 +56,6 @@ public class ImageTracer
         }
     }
     
-    /*
-
     public void FireAllRays(World? scene)
     {
         for (var row = 0; row < Image.Height; row++)
@@ -77,9 +75,9 @@ public class ImageTracer
             }
         }
     }
-    */
+    
 
-    public Color Re(World scene, Ray ray)
+    public static Color Re(World scene, Ray ray)
     {
         //tracer.fire_all_rays(lambda ray: WHITE if world.ray_intersection(ray) else BLACK)
         if (scene.ray_intersection(ray) != null)

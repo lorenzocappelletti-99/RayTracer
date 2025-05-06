@@ -40,11 +40,14 @@ public class OrthogonalProjection : Camera
     /// <summary>
     /// aspectRatio: width/height of the film plane
     /// transform:  posizionamento/orientamento matrix in world
+    /// distance : distance of the observer
     /// </summary>
     public OrthogonalProjection(
         float aspectRatio = 1.0f,
-        Transformation? transform = null
-    ) : base(aspectRatio, distance: 1.0f, transform) { }
+        Transformation? transform = null,
+        float distance = 1.0f
+    ) : base(aspectRatio, distance, transform) { }
+
 
     public override Ray FireRay(float u, float v)
     {

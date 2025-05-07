@@ -81,8 +81,8 @@ namespace Myraytracer
 
             // Observer e tracer
             var observer = new OrthogonalProjection(
-                    transform: //Transformation.RotationY(-MathF.PI / 4) *
-                               Transformation.Translation(new Vec(1f, 0.1f, 0.1f))
+                    transform: Transformation.Translation(new Vec(1f, 0.1f, 0.1f)) * Transformation.RotationY(90)
+
                 );
             
             var image  = new HdrImage(1366, 768);

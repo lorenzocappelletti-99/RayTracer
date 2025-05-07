@@ -17,49 +17,26 @@ public class World
     /// <returns></returns>
     public HitRecord? ray_intersection(Ray ray)
     {
-        return Shapes.Select(t => t.RayIntersection(ray)).OfType<HitRecord>().FirstOrDefault();
-        
-         /*HitRecord? closest = null;
+        HitRecord? closest = null;
 
-         
-        foreach (var shape in Shapes)
+        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.t < closest.t))
         {
-            var intersection = shape.RayIntersection(ray);
-
-            if (intersection == null) continue;
             closest = intersection;
-            break;
         }
-
         return closest;
-        */
-    }
 
-    /*
+    }
+    
     public bool IsPointVisible(Point p, Point observerPoint)
     {
         var dir = p - observerPoint;
-        var normDir = dir.Normalize();
+        var dirNorm = dir.SqNorm();
 
-        var ray = new Ray(origin: observerPoint, direction: dir);
+        var ray = new Ray(origin: observerPoint, direction: dir, tmin: 1e-2f / dirNorm, tmax:1.0f);
         foreach (var shape in Shapes)
         {
-            if (shape.QuickRayIntersection(ray) != null) return false;
-
+            if (shape.QuickRayIntersection(ray) == true) return false;
         }
         return true;
     }
-
-    def is_point_visible(self, point: Point, observer_pos: Point):
-    direction = point - observer_pos
-        dir_norm = direction.norm()
-
-    ray = Ray(origin=observer_pos, dir=direction, tmin=1e-2 / dir_norm, tmax=1.0)
-    for shape in self.shapes:
-    if shape.quick_ray_intersection(ray):
-    return False
-
-    return True
-    */
-
 }

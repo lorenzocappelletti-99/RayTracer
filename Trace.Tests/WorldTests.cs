@@ -44,22 +44,12 @@ public class WorldTests
         world.AddShape(sphere1);
         world.AddShape(sphere2);
         
+        Assert.False(world.IsPointVisible(p:new Point(10,0,0), observerPoint: new Point(0,0,0)));
+        Assert.False(world.IsPointVisible(p:new Point(5,0,0), observerPoint: new Point(0,0,0)));
+        Assert.True(world.IsPointVisible(p:new Point(5,0,0), observerPoint: new Point(4,0,0)));
+        Assert.True(world.IsPointVisible(p: new Point(0.5f, 0, 0), observerPoint: new Point(0, 0, 0)));
+        Assert.True(world.IsPointVisible(p: new Point(0, 10, 0), observerPoint: new Point(0, 0, 0)));
+        Assert.True(world.IsPointVisible(p: new Point(0, 0, 10), observerPoint: new Point(0, 0, 0)));
 
     }
-/**/
 }
-/*
-        assert not world.is_point_visible(point=Point(10.0, 0.0, 0.0),
-                                          observer_pos=Point(0.0, 0.0, 0.0))
-        assert not world.is_point_visible(point=Point(5.0, 0.0, 0.0),
-                                          observer_pos=Point(0.0, 0.0, 0.0))
-        assert world.is_point_visible(point=Point(5.0, 0.0, 0.0),
-                                      observer_pos=Point(4.0, 0.0, 0.0))
-        assert world.is_point_visible(point=Point(0.5, 0.0, 0.0),
-                                      observer_pos=Point(0.0, 0.0, 0.0))
-        assert world.is_point_visible(point=Point(0.0, 10.0, 0.0),
-                                      observer_pos=Point(0.0, 0.0, 0.0))
-        assert world.is_point_visible(point=Point(0.0, 0.0, 10.0),
-                                      observer_pos=Point(0.0, 0.0, 0.0))
-
-*/

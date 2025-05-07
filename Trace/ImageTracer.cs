@@ -63,15 +63,7 @@ public class ImageTracer
             for (var col = 0; col < Image.Width; col++)
             {
                 var ray = FireRay(col, row);
-                if (scene != null)
-                {
-                    Image.SetPixel(col, row, Re(scene, ray));
-                }
-                else
-                {
-                    Image.SetPixel(col, row, new Color(0.0f,0.0f,0.0f));
-                }
-                
+                Image.SetPixel(col, row, scene != null ? Re(scene, ray) : new Color(0.0f, 0.0f, 0.0f));
             }
         }
     }
@@ -80,10 +72,6 @@ public class ImageTracer
     public static Color Re(World scene, Ray ray)
     {
         //tracer.fire_all_rays(lambda ray: WHITE if world.ray_intersection(ray) else BLACK)
-        if (scene.ray_intersection(ray) != null)
-        {
-            return new Color(1.0f, 1.0f, 1.0f);
-        }
-        else return new Color(0.0f, 0.0f, 0.0f);
+        return scene.ray_intersection(ray) != null ? new Color(1.0f, 1.0f, 1.0f) : new Color(0.0f, 0.0f, 0.0f);
     }
 }

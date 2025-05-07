@@ -12,8 +12,8 @@ public class ShapeTests
     [Fact]
     public void TestSphereOuter()
     {
-        Ray ray1 = new Ray(origin: new Point(0, 0, 2), direction: -Vec.VEC_Z);
-        Ray ray2 = new Ray(origin: new Point(3, 0, 0), direction: -Vec.VEC_X);
+        var ray1 = new Ray(origin: new Point(0, 0, 2), direction: -Vec.VEC_Z);
+        var ray2 = new Ray(origin: new Point(3, 0, 0), direction: -Vec.VEC_X);
         
         Sphere sphere = new Sphere();
 
@@ -22,6 +22,9 @@ public class ShapeTests
         
         Assert.NotNull(hit1);
         Assert.NotNull(hit2);
+        
+        Assert.True(sphere.QuickRayIntersection(ray1));
+        Assert.True(sphere.QuickRayIntersection(ray2));
 
         var expected1 = new HitRecord
         {
@@ -55,6 +58,7 @@ public class ShapeTests
         var hit = sphere.RayIntersection(ray);
         
         Assert.NotNull(hit);
+        Assert.True(sphere.QuickRayIntersection(ray));
         
         var expected = new HitRecord
         {
@@ -84,6 +88,8 @@ public class ShapeTests
         
         Assert.NotNull(hit1);
         Assert.NotNull(hit2);
+        Assert.True(sphere.QuickRayIntersection(ray1));
+        Assert.True(sphere.QuickRayIntersection(ray2));
         
         var expected1 = new HitRecord
         {
@@ -109,6 +115,9 @@ public class ShapeTests
         Assert.Null(sphere.RayIntersection(new Ray(origin: new Point(0, 0, 2), direction: -Vec.VEC_Z)));
         Assert.Null(sphere.RayIntersection(new Ray(origin: new Point(-10, 0, 2), direction: -Vec.VEC_Z)));
 
+        Assert.False(sphere.QuickRayIntersection(new Ray(origin: new Point(0, 0, 2), direction: -Vec.VEC_Z)));
+        Assert.False(sphere.QuickRayIntersection(new Ray(origin: new Point(-10, 0, 2), direction: -Vec.VEC_Z)));
+
     }
 
     [Fact]
@@ -130,14 +139,17 @@ public class ShapeTests
         var ray2 = new Ray(origin: new Point(0, 0, 1), direction : Vec.VEC_Z);
         var intersection2 = plane.RayIntersection(ray2);
         Assert.Null(intersection2);
+        Assert.False(plane.QuickRayIntersection(ray2));
 
         var ray3 = new Ray(origin : new Point(0, 0, 1), direction : Vec.VEC_X);
         var intersection3 = plane.RayIntersection(ray3);
         Assert.Null(intersection3);
+        Assert.False(plane.QuickRayIntersection(ray3));
 
         var ray4 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_Y);
         var intersection4 = plane.RayIntersection(ray4);
         Assert.Null(intersection4);
+        Assert.False(plane.QuickRayIntersection(ray4));
 
     }
 
@@ -148,6 +160,7 @@ public class ShapeTests
         
         var ray1 = new Ray(origin: new Point(1, 0, 0), direction: -Vec.VEC_X);
         Assert.NotNull(plane.RayIntersection(ray1));
+        Assert.True(plane.QuickRayIntersection(ray1));
         
         var intersection1 = plane.RayIntersection(ray1);
         Assert.True(
@@ -161,14 +174,17 @@ public class ShapeTests
         var ray2 = new Ray(origin: new Point(0, 0, 1), direction: Vec.VEC_Z);
         var intersection2 = plane.RayIntersection(ray2);
         Assert.Null(intersection2);
+        Assert.False(plane.QuickRayIntersection(ray2));
         
         var ray3 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_X);
         var intersection3 = plane.RayIntersection(ray3);
         Assert.Null(intersection3);
+        Assert.False(plane.QuickRayIntersection(ray3));
         
         var ray4 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_Y);
         var intersection4 = plane.RayIntersection(ray4);
         Assert.Null(intersection4);
+        Assert.False(plane.QuickRayIntersection(ray4));
     }
 
     [Fact]

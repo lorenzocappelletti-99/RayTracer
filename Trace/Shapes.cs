@@ -4,8 +4,6 @@
  |                       See LICENSE
  ===========================================================*/
 
-using System;
-
 namespace Trace;
 
 public abstract class Shape
@@ -22,14 +20,13 @@ public abstract class Shape
     /// If dot(normal, rayDir) > 0, the normal points in the same direction
     /// as the ray (backface), so it is inverted.
     /// </summary>
-    public Normal OrientedNormal(Point p, Vec rayDir)
+    public static Normal OrientedNormal(Point p, Vec rayDir)
     {
         var result = new Normal(p.X, p.Y, p.Z);
         return p.to_vec() * rayDir < 0 ? result : -result;
     }
     
     public abstract Vec2d ShapePointToUV(Point p);
-
     public abstract bool QuickRayIntersection(Ray ray);
     public abstract HitRecord? RayIntersection(Ray ray);
 }
@@ -73,6 +70,11 @@ public class Sphere : Shape
         return new Vec2d(u, v);
     }
 
+    /// <summary>
+    /// Returns true if ray intersects sphere. Returns false if it doesn't.
+    /// </summary>
+    /// <param name="ray"></param>
+    /// <returns></returns>
     public override bool QuickRayIntersection(Ray ray)
     {
         var localRay = ray.Transform(Transformation.Inverse());
@@ -96,6 +98,12 @@ public class Sphere : Shape
 
     }
 
+    /// <summary>
+    /// Checks if a ray intersects the sphere
+    /// Returns a `HitRecord`, or `null` if no intersection was found.
+    /// </summary>
+    /// <param name="ray"></param>
+    /// <returns></returns>
     public override HitRecord? RayIntersection(Ray ray)
     {
         var localRay = ray.Transform(Transformation.Inverse());
@@ -160,7 +168,11 @@ public class Plane : Shape
 
     public override bool QuickRayIntersection(Ray ray)
     {
-        throw new NotImplementedException();
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        var t = -localRay.Origin.Z / localRay.Direction.Z;
+
+        return !(t <= localRay.Tmin) && !(t >= localRay.Tmax) && !(Math.Abs(localRay.Direction.Z) < 1E-5);
     }
 
     /// <summary>

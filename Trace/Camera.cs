@@ -57,7 +57,7 @@ public class OrthogonalProjection : Camera
             2.0f * v - 1.0f
         );
         var direction = Vec.VEC_X;
-        return new Ray(origin, direction, 1e-5f)
+        return new Ray(origin, direction)
             .Transform(Transform);
     }
 }
@@ -83,7 +83,7 @@ public class PerspectiveProjection : Camera
             (1.0f - 2.0f * u) * AspectRatio,
             2.0f * v - 1.0f
         );
-        return new Ray(origin, direction, 1e-5f)
+        return new Ray(origin, direction)
             .Transform(Transform);
     }
 }

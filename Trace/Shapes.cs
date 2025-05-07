@@ -29,6 +29,8 @@ public abstract class Shape
     }
     
     public abstract Vec2d ShapePointToUV(Point p);
+
+    public abstract bool QuickRayIntersection(Ray ray);
     public abstract HitRecord? RayIntersection(Ray ray);
 }
 
@@ -70,7 +72,30 @@ public class Sphere : Shape
 
         return new Vec2d(u, v);
     }
-    
+
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        var origin    = localRay.Origin.to_vec();
+        var direction = localRay.Direction;
+
+        var a = direction.SqNorm();
+        var b = 2 * origin * direction;
+        var c = origin.SqNorm() - Radius * Radius;
+        
+        var delta = b * b - 4 * a * c;
+        if (delta < 0)
+            return false;
+        
+        var sqrtDelta = MathF.Sqrt(delta);
+        var tMin       = (-b - sqrtDelta) / (2 * a);
+        var tMax     = (-b + sqrtDelta) / (2 * a);
+
+        return (localRay.Tmin < tMin && tMin < localRay.Tmax) || (localRay.Tmin < tMax && tMax < localRay.Tmax);
+
+    }
+
     public override HitRecord? RayIntersection(Ray ray)
     {
         var localRay = ray.Transform(Transformation.Inverse());
@@ -131,6 +156,11 @@ public class Plane : Shape
     public override Vec2d ShapePointToUV(Point p)
     {
         return new Vec2d(p.X - (float)Math.Floor(p.X), p.Y - (float)Math.Floor(p.Y));
+    }
+
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

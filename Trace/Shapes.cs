@@ -122,7 +122,7 @@ public class Plane : Shape
     {
     }
 
-    public override Vec2d ShapePointToUV(Point p)
+    public Vec2d ShapePointToUV(Point p)
     {
         return new Vec2d(p.X - (float)Math.Floor(p.X), p.Y - (float)Math.Floor(p.Y));
     }

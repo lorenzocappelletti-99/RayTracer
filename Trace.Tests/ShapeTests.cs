@@ -110,5 +110,82 @@ public class ShapeTests
         Assert.Null(sphere.RayIntersection(new Ray(origin: new Point(-10, 0, 2), direction: -Vec.VEC_Z)));
 
     }
-    
+
+    [Fact]
+    public void TestPlaneHit()
+    {
+        var plane = new Plane();
+
+        var ray1 = new Ray(origin: new Point(0.0f, 0.0f, 1.0f), direction: -Vec.VEC_Z);
+        var intersection1 = plane.RayIntersection(ray1);
+
+        Assert.True(
+            new HitRecord(
+                worldPoint: new Point(0.0f, 0.0f, 0.0f), normal: 
+                new Normal(0.0f, 0.0f, 1.0f),
+                surfacePoint: new Vec2d(0.0f, 0.0f),
+                t: 1.0f,
+                ray: ray1).IsClose(intersection1));
+
+        var ray2 = new Ray(origin: new Point(0, 0, 1), direction : Vec.VEC_Z);
+        var intersection2 = plane.RayIntersection(ray2);
+        Assert.Null(intersection2);
+
+        var ray3 = new Ray(origin : new Point(0, 0, 1), direction : Vec.VEC_X);
+        var intersection3 = plane.RayIntersection(ray3);
+        Assert.Null(intersection3);
+
+        var ray4 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_Y);
+        var intersection4 = plane.RayIntersection(ray4);
+        Assert.Null(intersection4);
+
+    }
+
+    [Fact]
+    public void TestPlaneHitTransform()
+    {
+        var plane = new Plane(transformation: Transformation.RotationY(angleDeg: 90.0f));
+        
+        var ray1 = new Ray(origin: new Point(1, 0, 0), direction: -Vec.VEC_X);
+        Assert.NotNull(plane.RayIntersection(ray1));
+        
+        var intersection1 = plane.RayIntersection(ray1);
+        Assert.True(
+            new HitRecord(
+                worldPoint: new Point(0.0f, 0.0f, 0.0f), normal: 
+                new Normal(1.0f, 0.0f, 0.0f),
+                surfacePoint: new Vec2d(0.0f, 0.0f),
+                t: 1.0f,
+                ray: ray1).IsClose(intersection1));
+        
+        var ray2 = new Ray(origin: new Point(0, 0, 1), direction: Vec.VEC_Z);
+        var intersection2 = plane.RayIntersection(ray2);
+        Assert.Null(intersection2);
+        
+        var ray3 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_X);
+        var intersection3 = plane.RayIntersection(ray3);
+        Assert.Null(intersection3);
+        
+        var ray4 = new Ray(origin : new Point(0, 0, 1), direction: Vec.VEC_Y);
+        var intersection4 = plane.RayIntersection(ray4);
+        Assert.Null(intersection4);
+    }
+
+    [Fact]
+    public void TestUVCoordinates()
+    {
+        var plane = new Plane();
+        
+        var ray1 = new Ray(origin: new Point(0, 0, 1), direction: -Vec.VEC_Z);
+        var intersection1 = plane.RayIntersection(ray1);
+        Assert.True(intersection1?.SurfacePoint.IsClose(new Vec2d(0.0f, 0.0f)));
+
+        var ray2 = new Ray(origin: new Point(0.25f, 0.75f, 1), direction: -Vec.VEC_Z);
+        var intersection2 = plane.RayIntersection(ray2);
+        Assert.True(intersection2?.SurfacePoint.IsClose(new Vec2d(0.25f, 0.75f)));
+
+        var ray3 = new Ray(origin: new Point(4.25f, 7.75f, 1), direction:-Vec.VEC_Z);
+        var intersection3 = plane.RayIntersection(ray3);
+        Assert.True(intersection3?.SurfacePoint.IsClose(new Vec2d(0.25f, 0.75f)));
+    }
 }

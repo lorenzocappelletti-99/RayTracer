@@ -21,7 +21,23 @@ public class HitRecord
     public Normal Normal;
     public Vec2d SurfacePoint;
     public float t;
-    public Ray Ray;
+    public Ray   Ray;
+
+    public HitRecord(){}
+
+    public HitRecord(
+        Point worldPoint, 
+        Normal normal, 
+        Vec2d surfacePoint,
+        float t,
+        Ray ray)
+    {
+        WorldPoint = worldPoint;
+        Normal = normal;
+        SurfacePoint = surfacePoint;
+        this.t = t;
+        Ray = ray;
+    }
     
     
     /// <summary>

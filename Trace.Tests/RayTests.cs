@@ -29,8 +29,8 @@ public class RayTests
         var ray3 = new Ray(    origin: new Point(5.0f, 1.0f, 4.0f), 
             direction: new Vec(3.0f, 9.0f, 4.0f));
 
-        Assert.True(ray1.is_close(ray2));
-        Assert.True(!ray1.is_close(ray3));
+        Assert.True(ray1.IsClose(ray2));
+        Assert.True(!ray1.IsClose(ray3));
     }
 
     [Fact]

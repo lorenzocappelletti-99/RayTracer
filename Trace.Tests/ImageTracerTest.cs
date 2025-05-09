@@ -27,7 +27,7 @@ public class ImageTracerTest : IDisposable
         var ray1 = Tracer.FireRay(col: 0, row: 0, uPixel: 2.5f, vPixel: 1.5f);
         var ray2 = Tracer.FireRay(col: 2, row: 1, uPixel: 0.5f, vPixel: 0.5f);
         Assert.True(
-            ray1.is_close(ray2),
+            ray1.IsClose(ray2),
             $"Expected ray1 and ray2 to be close, but got origins {ray1.Origin} vs {ray2.Origin}"
         );
     }

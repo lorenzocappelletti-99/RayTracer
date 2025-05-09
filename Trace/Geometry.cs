@@ -18,8 +18,17 @@ public struct Vec (float x, float y, float z)
     public  float Y = y;
     public  float Z = z;
     
+    /// <summary>
+    /// Unit vector along the X axis (1, 0, 0).
+    /// </summary>
     public static readonly Vec VEC_X = new Vec(1f, 0f, 0f);
+    /// <summary>
+    /// Unit vector along the Y axis (0, 1, 0).
+    /// </summary>
     public static readonly Vec VEC_Y = new Vec(0f, 1f, 0f);
+    /// <summary>
+    /// Unit vector along the Z axis (0, 0, 1).
+    /// </summary>
     public static readonly Vec VEC_Z = new Vec(0f, 0f, 1f);
 
     public override string ToString()
@@ -27,11 +36,11 @@ public struct Vec (float x, float y, float z)
         return $"Vector: ({X}, {Y}, {Z})";
     }
 
-    public bool IsClose(Vec v2, float sigma = 1e-5f)
+    public bool IsClose(Vec v, float sigma = 1e-5f)
     {
-        return Math.Abs(this.X - v2.X) <= sigma &&
-               Math.Abs(this.Y - v2.Y) <= sigma &&
-               Math.Abs(this.Z - v2.Z) <= sigma;
+        return Math.Abs(this.X - v.X) <= sigma &&
+               Math.Abs(this.Y - v.Y) <= sigma &&
+               Math.Abs(this.Z - v.Z) <= sigma;
     }
     
     /// <summary>
@@ -110,20 +119,18 @@ public struct Vec (float x, float y, float z)
             v1.X * v2.Y - v1.Y * v2.X
         );
     }
-    
+
     /// <summary>
     /// Calculates the squared norm ||v||^2 of a Vec type
     /// </summary>
-    /// <param name="v"></param>
     /// <returns></returns>
-    public static float SqNorm(Vec v) => v.X * v.X + v.Y * v.Y + v.Z * v.Z;
+    public float SqNorm() => this.X * this.X + this.Y * this.Y + this.Z * this.Z;
 
     /// <summary>
     /// Calculates the norm ||v||^2 of a Vec type
     /// </summary>
-    /// <param name="v"></param>
     /// <returns></returns>
-    public static float Norm(Vec v) => MathF.Sqrt(SqNorm(v));
+    public float Norm() => MathF.Sqrt(this.SqNorm());
 
     
     /// <summary>
@@ -132,7 +139,7 @@ public struct Vec (float x, float y, float z)
     /// <returns></returns>
     public void Normalize()
     {
-        float norm = Norm(this); // or Norm(this) if it's static
+        float norm = this.Norm(); 
         if (norm != 0)
         {
             this.X /= norm;
@@ -211,11 +218,11 @@ public struct Point(float x, float y, float z)
         return $"Point: ({X}, {Y}, {Z})";
     }
     
-    public bool IsClose(Point p2, float sigma = 1e-5f)
+    public bool IsClose(Point p, float sigma = 1e-5f)
     {
-        return Math.Abs(this.X - p2.X) <= sigma &&
-               Math.Abs(this.Y - p2.Y) <= sigma &&
-               Math.Abs(this.Z - p2.Z) <= sigma;
+        return Math.Abs(this.X - p.X) <= sigma &&
+               Math.Abs(this.Y - p.Y) <= sigma &&
+               Math.Abs(this.Z - p.Z) <= sigma;
     }
 
     /// <summary>
@@ -246,10 +253,8 @@ public struct Point(float x, float y, float z)
     /// <summary>
     /// Converts Point type to Vec type.
     /// </summary>
-    /// <param name="p"></param>
     /// <returns></returns>
-    public static Vec to_vec(Point p) => new Vec(p.X, p.Y, p.Z);
-    
+    public Vec to_vec() => new Vec(this.X, this.Y, this.Z);    
     /// <summary>
     /// Applies a translation transformation to the current point using the specified translation vector.
     /// </summary>
@@ -279,11 +284,11 @@ public struct Normal(float x, float y, float z)
         return $"Vec: ({X}, {Y}, {Z})";
     }
     
-    public static bool AreClose(Normal n1, Normal n2, float sigma = 1e-5f)
+    public bool IsClose(Normal v, float sigma = 1e-5f)
     {
-        return Math.Abs(n1.X - n2.X) <= sigma &&
-               Math.Abs(n1.Y - n2.Y) <= sigma &&
-               Math.Abs(n1.Z - n2.Z) <= sigma;
+        return Math.Abs(this.X - v.X) <= sigma &&
+               Math.Abs(this.Y - v.Y) <= sigma &&
+               Math.Abs(this.Z - v.Z) <= sigma;
     }
 
         
@@ -488,5 +493,33 @@ public struct HomMatrix(float a, float b, float c, float d)
     public override string ToString()
     {
         return $"Matrix: \n[{A} {B}]\n[{C} {D}]";
+    }
+}
+
+
+/// <summary>
+/// Simple 2D vector for UV coordinates.
+/// </summary>
+public struct Vec2d
+{
+    public float u;
+    public float v;
+
+    public Vec2d(float u, float v)
+    {
+        this.u = u;
+        this.v = v;
+    }
+
+    /// <summary>
+    /// Checks whether this Vec2d and another are approximately equal.
+    /// </summary>
+    /// <param name="other">The other Vec2d to compare against.</param>
+    /// <param name="epsilon">Tolerance for comparisons.</param>
+    /// <returns>True if both u and v differ by less than epsilon.</returns>
+    public bool IsClose(Vec2d other, float epsilon = 1e-5f)
+    {
+        return MathF.Abs(this.u - other.u) <= epsilon
+               && MathF.Abs(this.v - other.v) <= epsilon;
     }
 }

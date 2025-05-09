@@ -153,7 +153,7 @@ public class TransformationsTest(ITestOutputHelper testOutputHelper)
             Assert.True(expectedP.IsClose(m * new Point(1f, 2f, 3f)));
 
             var expectedN = new Normal(-8.75f, 7.75f, -3f);
-            Assert.True(Normal.AreClose(expectedN, m * new Normal(3f, 2f, 4f)));
+            Assert.True(expectedN.IsClose(m * new Normal(3f, 2f, 4f)));
         }
         
         [Fact]

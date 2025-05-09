@@ -37,12 +37,12 @@ public struct Ray
     /// <summary>
     /// Check if two rays are similar enough to be considered equal
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="other"></param>
     /// <param name="epsilon"></param>
     /// <returns></returns>
-    public bool is_close(Ray b, float epsilon = 1e-5f)
+    public bool IsClose(Ray other, float epsilon = 1e-5f)
     {
-        return Origin.IsClose(b.Origin) && Direction.IsClose(b.Direction);
+        return Origin.IsClose(other.Origin) && Direction.IsClose(other.Direction);
     }
     
     /// <summary>

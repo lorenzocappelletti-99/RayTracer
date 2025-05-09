@@ -80,15 +80,14 @@ namespace Myraytracer
             scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f)), 0.1f));
 
             // Observer e tracer
-            var observer = new OrthogonalProjection(
-                    transform: Transformation.Translation(new Vec(1f, 0.1f, 0.1f)) * Transformation.RotationY(90)
-
+            var observer = new PerspectiveProjection(
+                    transform: Transformation.Translation(new Vec(1f, 0.0f, 0.0f))
                 );
             
             var image  = new HdrImage(1366, 768);
-            var tracer = new ImageTracer(image, observer);
+            var tracer = new ImageTracer(image, observer, scene);
             
-            tracer.FireAllRays(scene);
+            tracer.FireAllRays();
 
             // Scrivo il file PFM
             var filePath = "myNewFile.pfm";

@@ -10,16 +10,19 @@ public class ImageTracer
 {
     public HdrImage Image { get; }
     public Camera Camera { get; }
+    public World Scene { get; }
 
     /// <summary>
     /// Constructs an ImageTracer using the specified HdrImage and camera.
     /// </summary>
     /// <param name="image">The HDR image to work on.</param>
     /// <param name="camera">The camera used to fire rays.</param>
-    public ImageTracer(HdrImage image, Camera camera)
+    /// <param name="scene">The world containg all the shapes</param>
+    public ImageTracer(HdrImage image, Camera camera, World scene)
     {
         Image = image;
         Camera = camera;
+        Scene = scene;
     }
 
     /// <summary>
@@ -56,14 +59,14 @@ public class ImageTracer
         }
     }
     
-    public void FireAllRays(World? scene)
+    public void FireAllRays()
     {
         for (var row = 0; row < Image.Height; row++)
         {
             for (var col = 0; col < Image.Width; col++)
             {
                 var ray = FireRay(col, row);
-                Image.SetPixel(col, row, scene != null ? Re(scene, ray) : new Color(0.0f, 0.0f, 0.0f));
+                Image.SetPixel(col, row, Scene != null ? Re(Scene, ray) : new Color(0.0f, 0.0f, 0.0f));
             }
         }
     }

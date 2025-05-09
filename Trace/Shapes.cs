@@ -33,23 +33,18 @@ public abstract class Shape
 
 public class Sphere : Shape
 {
-    public float Radius { get; } = 1.0f;
-    
-    public Sphere()
-    {
-    }
-    public Sphere(Transformation? transformation = null)
+    public float Radius { get; }
+
+    /// <summary>
+    /// Creates a unit‐sphere (radius=1) at the origin, or with an optional
+    /// radius and/or transformation.
+    /// </summary>
+    /// <param name="radius">Sphere radius (default 1.0f).</param>
+    /// <param name="transformation">Optional transform (default identity).</param>
+    public Sphere(float radius = 1.0f, Transformation? transformation = null)
         : base(transformation)
     {
-    }
-    public Sphere(Transformation? transformation = null, float? radius = 1.0f)
-        : base(transformation)
-    {
-        Radius = radius ?? 1.0f;
-    }
-    public Sphere(float? radius = 1.0f)
-    {
-        Radius = radius ?? 1.0f;
+        Radius = radius;
     }
 
     /// <summary>

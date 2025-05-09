@@ -67,22 +67,21 @@ namespace Myraytracer
 
             var scene = new World();
             
-            // Le tue 10 sfere traslate
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f)), 0.1f));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f))));
+
 
             // Observer e tracer
             var observer = new OrthogonalProjection(
-                    transform: Transformation.Translation(new Vec(1f, 0.1f, 0.1f)) * Transformation.RotationY(90)
-
+                    transform: Transformation.Translation(new Vec(-1f, 0f, 0f)) * Transformation.RotationY(90)
                 );
             
             var image  = new HdrImage(1366, 768);

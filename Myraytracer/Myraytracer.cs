@@ -68,16 +68,16 @@ namespace Myraytracer
             var scene = new World();
             
             // Le tue 10 sfere traslate
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f)), 0.1f));
-            scene.AddShape(new Sphere(Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f)), 0.1f));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f))));
+            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f))));
 
             // Observer e tracer
             var observer = new OrthogonalProjection(
@@ -86,9 +86,9 @@ namespace Myraytracer
                 );
             
             var image  = new HdrImage(1366, 768);
-            var tracer = new ImageTracer(image, observer);
+            var tracer = new ImageTracer(image, observer, scenegit pu);
             
-            tracer.FireAllRays(scene);
+            tracer.FireAllRays();
 
             // Scrivo il file PFM
             var filePath = "myNewFile.pfm";

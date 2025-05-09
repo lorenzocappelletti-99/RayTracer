@@ -80,9 +80,16 @@ namespace Myraytracer
 
 
             // Observer e tracer
+            /*
             var observer = new OrthogonalProjection(
-                    transform: Transformation.Translation(new Vec(-1f, 0f, 0f)) * Transformation.RotationY(90)
+                    transform: Transformation.Translation(new Vec(-1f, 0f, 0f))
                 );
+            */
+
+            var observer = new PerspectiveProjection(
+                aspectRatio: 16f / 9f,
+                distance: 4f,
+                transform: Transformation.RotationZ(35));
             
             var image  = new HdrImage(1366, 768);
             var tracer = new ImageTracer(image, observer);

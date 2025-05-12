@@ -72,6 +72,6 @@ public class ImageTracer
     public static Color Re(World scene, Ray ray)
     {
         //tracer.fire_all_rays(lambda ray: WHITE if world.ray_intersection(ray) else BLACK)
-        return scene.ray_intersection(ray) != null ? new Color(1.0f, 1.0f, 1.0f) : new Color(0.0f, 0.0f, 0.0f);
+        return scene.ray_intersection(ray) != null ? new Color(.5f, .5f, 0f) : new Color(0.0f, 0.0f, 0.0f);
     }
 }

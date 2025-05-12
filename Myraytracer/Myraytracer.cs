@@ -15,7 +15,7 @@ namespace Myraytracer
             if (args.Length == 0 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine("Usage:");
-                Console.WriteLine("  dotnet run demo                -> run demo");
+                Console.WriteLine("  dotnet run demo    [options]   -> run demo");
                 Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to PNG");
                 Console.WriteLine("  dotnet run help                -> show this message");
                 return;
@@ -24,7 +24,15 @@ namespace Myraytracer
             // Se non ci sono argomenti, o il primo è "demo", eseguo la demo scene→PFM
             if (args[0].Equals("demo", StringComparison.OrdinalIgnoreCase))
             {
-                RunDemoScene();
+
+                var parameters = new ParametersDemo();
+                parameters.ParseCommandLine(args);
+                Console.WriteLine($"Image Pixel Width: {parameters.Width}");
+                Console.WriteLine($"Image Pixel Height: {parameters.Height}");
+                Console.WriteLine($"AngleDeg: {parameters.AngleDeg}");
+                Console.WriteLine($"Camera: {parameters.Camera}");
+                
+                RunDemoScene(parameters);
                 return;
             }
 
@@ -33,7 +41,8 @@ namespace Myraytracer
             {
                 try
                 {
-                    var parameters = new Parameters();
+                    
+                    var parameters = new ParametersPfm2Png();
                     parameters.ParseCommandLine(args);
 
                     Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
@@ -61,7 +70,7 @@ namespace Myraytracer
         /// <summary>
         /// Builds a demo scene of spheres and writes it to "myNewFile.pfm".
         /// </summary>
-        private static void RunDemoScene()
+        private static void RunDemoScene(ParametersDemo parameters)
         {
             Console.WriteLine("Running demo scene and writing PFM file...");
 
@@ -80,21 +89,30 @@ namespace Myraytracer
 
 
             // Observer e tracer
-            var observer = new OrthogonalProjection(
-                    transform: Transformation.Translation(new Vec(-1f, 0f, 0f)) * Transformation.RotationY(90)
-                );
+            var observer = parameters.Camera;
             
-            var image  = new HdrImage(1366, 768);
+            var image  = new HdrImage(parameters.Width, parameters.Height);
             var tracer = new ImageTracer(image, observer);
             
             tracer.FireAllRays(scene);
 
-            // Scrivo il file PFM
-            var filePath = "myNewFile.pfm";
-            using var fs = File.Create(filePath);
-            image.WritePfm(fs);
+            const string filePath = "Demo.pfm";
+
+            using (var outputStream = File.Create(filePath))
+            {
+                image.WritePfm(outputStream);
+            }
 
             Console.WriteLine($"Demo scene written to {filePath}");
+
+            using var inputStream = File.OpenRead(filePath);
+            HdrImage.write_ldr_image(
+                inputStream,
+                parameters.OutputPngFileName,
+                1f,
+                1f
+            );
+
         }
     }
 }

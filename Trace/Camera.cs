@@ -44,8 +44,8 @@ public class OrthogonalProjection : Camera
     /// </summary>
     public OrthogonalProjection(
         float aspectRatio = 1.0f,
-        Transformation? transform = null,
-        float distance = 1.0f
+        float distance = 1.0f,
+        Transformation? transform = null
     ) : base(aspectRatio, distance, transform) { }
 
 

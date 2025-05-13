@@ -58,20 +58,24 @@ public class ImageTracer
     
     public void FireAllRays(World? scene)
     {
+        if (scene == null)
+        {
+            Image.SetAllPixels(Color.Black);
+            return;
+        }
+        
         for (var row = 0; row < Image.Height; row++)
         {
             for (var col = 0; col < Image.Width; col++)
             {
                 var ray = FireRay(col, row);
-                Image.SetPixel(col, row, scene != null ? Re(scene, ray) : new Color(0.0f, 0.0f, 0.0f));
+                Image.SetPixel(col, row, Re(scene, ray));
             }
         }
     }
-    
 
-    public static Color Re(World scene, Ray ray)
+    private static Color Re(World scene, Ray ray)
     {
-        //tracer.fire_all_rays(lambda ray: WHITE if world.ray_intersection(ray) else BLACK)
-        return scene.ray_intersection(ray) != null ? new Color(.5f, .5f, 0f) : new Color(0.0f, 0.0f, 0.0f);
+        return scene.ray_intersection(ray) != null ? Color.White : Color.Black;
     }
 }

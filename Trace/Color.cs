@@ -9,6 +9,10 @@ namespace Trace;
 public struct Color(float r, float g, float b)
 {
     public float R = r, G = g, B = b;
+    
+    // Common colors
+    public static readonly Color Black = new Color(0f, 0f, 0f);
+    public static readonly Color White = new Color(1f, 1f, 1f);
 
     // Add two colors
     public static Color operator +(Color c1, Color c2)

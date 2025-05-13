@@ -9,9 +9,6 @@ using System.Text;
 using System.Globalization;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using System;
-using System.IO;
 
 namespace Trace;
 
@@ -118,11 +115,17 @@ public class HdrImage
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    /// <param name="newColor"></param>
-    public void SetPixel(int x, int y, Color newColor)
+    /// <param name="color"></param>
+    public void SetPixel(int x, int y, Color color)
     {
         Assert.True(valid_coordinates(x, y), $"Tried to SET out-of-range pixel: x = {x}, y = {y}");
-        Pixels[pixel_offset(x, y)] = newColor;
+        Pixels[pixel_offset(x, y)] = color;
+    }
+
+    public void SetAllPixels(Color newColor)
+    {
+        for (int i = 0; i < Pixels.Length; i++)
+            Pixels[i] = newColor;
     }
     
     

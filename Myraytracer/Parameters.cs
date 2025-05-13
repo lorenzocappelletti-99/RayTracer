@@ -69,15 +69,19 @@ namespace Myraytracer
                                                 "\ndotnet run demo [Camera] [AngleDeg] [Width] [Height]" +
                                                 "\ndotnet run demo [Camera] [AngleDeg] [output.png]  " +
                                                 "\ndotnet run demo help");
-                    break;
                 case 1:
-                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
-                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    Console.WriteLine("Generating PFM file with: Camera = "+"Perspective"+
+                                      ", AngleDeg = "+AngleDeg+", ImageWidth = "+Width+", ImageHeight = "+Height);
                     break;
             }
 
             switch (args.Length)
             {
+                case 1:
+                {
+                    AngleDeg = 0;
+                    break;
+                }
                 case 2 when args[1] == "PerspectiveProjection" || args[1] == "OrthogonalProjection":
                 {
                     var input = args[1].Trim();

@@ -18,7 +18,7 @@ namespace Myraytracer
 
         public void ParseCommandLine(string[] args)
         {
-            // args[0] è "pfm2png", quindi servono almeno args[1] e args[2]
+            // args[0] is "pfm2png", need at least args[1] e args[2]
             if (args.Length < 3)
             {
                 throw new ArgumentException("Usage: pfm2png <input.pfm> <output.png> [factor] [gamma]");
@@ -62,133 +62,179 @@ namespace Myraytracer
         
         public void ParseCommandLine(string[] args)
         {
-            if (args.Length == 1)
+            switch (args.Length)
             {
-                Console.WriteLine("Generating PFM file with: Camera=Perspective, AngleDeg=0, ImageWidth=1366, ImageHeight=768");
+                case 2 when args[1].Equals("help", StringComparison.OrdinalIgnoreCase):
+                    throw new ArgumentException("\nUsage:" +
+                                                "\ndotnet run demo [Camera] [AngleDeg] [Width] [Height]" +
+                                                "\ndotnet run demo [Camera] [AngleDeg] [output.png]  " +
+                                                "\ndotnet run demo help");
+                    break;
+                case 1:
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
             }
-            
-            if (args.Length == 4 && !float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _))
+
+            switch (args.Length)
             {
-                OutputPngFileName = args[3];
+                case 2 when args[1] == "PerspectiveProjection" || args[1] == "OrthogonalProjection":
+                {
+                    var input = args[1].Trim();
+                    if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new PerspectiveProjection();
+                    }
+                    else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new OrthogonalProjection();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
+                        );
+                    }
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
+                }
+                case 3:
+                {
+                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                    {
+                        AngleDeg = value;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
+                    }
                 
+                    var input = args[1].Trim();
+                    if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(value));
+                    }
+                    else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(value));
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
+                        );
+                    }
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
+                }
+                case 4 when float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _):
+                {
+                    var input = args[1].Trim();
+                    if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new PerspectiveProjection();
+                    }
+                    else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new OrthogonalProjection();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
+                        );
+                    }
+                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                    {
+                        AngleDeg = value;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
+                    }
+                    if(int.TryParse(args[3], out var width)) {Width = width;}
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
+                }
             }
 
-            
-            
-            // args[0] è "demo", quindi potrebbero servire args[1], args[2], args[3], args[4]
-            if (args.Length == 2)
+
+            switch (args.Length)
             {
-                var input = args[1].Trim();
-                if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                case 4 when !float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _):
                 {
-                    Camera = new PerspectiveProjection();
+                    OutputPngFileName = args[3];
+                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                    {
+                        AngleDeg = value;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
+                    }
+                
+                    var input = args[1];
+                    if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(AngleDeg), aspectRatio: 16/9f );
+                    }
+                    else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(AngleDeg), aspectRatio: 16/9f);
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between PerspectiveProjection and OrthogonalProjection."
+                        );
+                    }
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
                 }
-                else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                case 5:
                 {
-                    Camera = new OrthogonalProjection();
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
-                    );
-                }
-            }
-            
-            
-
-            if (args.Length == 3)
-            {
-                var input = args[1].Trim();
-                if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new PerspectiveProjection();
-                }
-                else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new OrthogonalProjection();
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
-                    );
-                }
-                if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-                {
-                    AngleDeg = value;
-                }
-                else
-                {
-                    throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
-                }
-            }
-            
-
-            if (args.Length == 4)
-            {
-                var input = args[1].Trim();
-                if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new PerspectiveProjection();
-                }
-                else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new OrthogonalProjection();
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
-                    );
-                }
-                if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-                {
-                    AngleDeg = value;
-                }
-                else
-                {
-                    throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
+                    var input = args[1].Trim();
+                    if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new PerspectiveProjection();
+                    }
+                    else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Camera = new OrthogonalProjection();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
+                        );
+                    }
+                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                    {
+                        AngleDeg = value;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
+                    }
+                    if (int.TryParse(args[3], out var value3) && int.TryParse(args[4], out var value4))
+                    {
+                        Width = value3;
+                        Height = value4;
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"Invalid Width ('{args[3]}') or Height ('{args[4]}'), it must be a floating-point number.");
+                    }
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                    break;
                 }
             }
-
-            if (args.Length == 5)
-            {
-                var input = args[1].Trim();
-                if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new PerspectiveProjection();
-                }
-                else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
-                {
-                    Camera = new OrthogonalProjection();
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
-                    );
-                }
-                if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-                {
-                    AngleDeg = value;
-                }
-                else
-                {
-                    throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
-                }
-                if (int.TryParse(args[3], out var value3) && int.TryParse(args[4], out var value4))
-                {
-                    Width = value3;
-                    Height = value4;
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Invalid Width ('{args[3]}') or Height ('{args[4]}'), it must be a floating-point number.");
-                }
-            }
-
         }
     }
 }

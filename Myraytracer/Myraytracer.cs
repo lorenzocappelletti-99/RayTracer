@@ -4,6 +4,7 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System.Reflection.Metadata;
 using Trace;
 
 namespace Myraytracer
@@ -24,14 +25,8 @@ namespace Myraytracer
             // Se non ci sono argomenti, o il primo è "demo", eseguo la demo scene→PFM
             if (args[0].Equals("demo", StringComparison.OrdinalIgnoreCase))
             {
-
                 var parameters = new ParametersDemo();
                 parameters.ParseCommandLine(args);
-                Console.WriteLine($"Image Pixel Width: {parameters.Width}");
-                Console.WriteLine($"Image Pixel Height: {parameters.Height}");
-                Console.WriteLine($"AngleDeg: {parameters.AngleDeg}");
-                Console.WriteLine($"Camera: {parameters.Camera}");
-                
                 RunDemoScene(parameters);
                 return;
             }
@@ -89,7 +84,8 @@ namespace Myraytracer
 
 
             // Observer e tracer
-            var observer = parameters.Camera;
+            var observer = new PerspectiveProjection(
+                transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationZ(parameters.AngleDeg));
             
             var image  = new HdrImage(parameters.Width, parameters.Height);
             var tracer = new ImageTracer(image, observer);

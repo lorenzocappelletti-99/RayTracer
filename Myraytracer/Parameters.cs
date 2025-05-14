@@ -9,12 +9,12 @@ using Trace;
 
 namespace Myraytracer
 {
-    public class ParametersPfm2Png
+    public class ParametersPfm2Jpg
     {
         public string InputPfmFileName { get; private set; } = "";
         public float Factor { get; private set; } = 0.6f;
         public float Gamma { get; private set; } = 1.0f;
-        public string OutputPngFileName { get; private set; } = "";
+        public string OutputJpgFileName { get; private set; } = "";
 
         public void ParseCommandLine(string[] args)
         {
@@ -25,7 +25,7 @@ namespace Myraytracer
             }
 
             InputPfmFileName = args[1];
-            OutputPngFileName = args[2];
+            OutputJpgFileName = args[2];
 
             if (args.Length > 3)
             {
@@ -58,7 +58,7 @@ namespace Myraytracer
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
             new PerspectiveProjection(16/9f, transform: Transformation.Translation(new Vec(-1, 0,0)));
-        public string OutputPngFileName { get; private set; } = "Demo.png";
+        public string OutputPngFileName { get; private set; } = "Demo.jpg";
         
         public void ParseCommandLine(string[] args)
         {
@@ -67,7 +67,7 @@ namespace Myraytracer
                 case 2 when args[1].Equals("help", StringComparison.OrdinalIgnoreCase):
                     throw new ArgumentException("\nUsage:" +
                                                 "\ndotnet run demo [Camera] [AngleDeg] [Width] [Height]" +
-                                                "\ndotnet run demo [Camera] [AngleDeg] [output.png]  " +
+                                                "\ndotnet run demo [Camera] [AngleDeg] [output.jpg]  " +
                                                 "\ndotnet run demo help");
                 case 1:
                     Console.WriteLine("Generating PFM file with: Camera = "+"Perspective"+

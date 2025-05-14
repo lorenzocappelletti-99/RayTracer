@@ -17,7 +17,7 @@ namespace Myraytracer
             {
                 Console.WriteLine("Usage:");
                 Console.WriteLine("  dotnet run demo    [options]   -> run demo");
-                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to PNG");
+                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to JPG");
                 Console.WriteLine("  dotnet run help                -> show this message");
                 return;
             }
@@ -31,24 +31,24 @@ namespace Myraytracer
                 return;
             }
 
-            // Altrimenti provo a fare la conversione PFM→PNG con la classe Parameters
-            if (args[0].Equals("pfm2png", StringComparison.OrdinalIgnoreCase))
+            // Altrimenti provo a fare la conversione PFM→JPG con la classe Parameters
+            if (args[0].Equals("pfm2jpg", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
                     
-                    var parameters = new ParametersPfm2Png();
+                    var parameters = new ParametersPfm2Jpg();
                     parameters.ParseCommandLine(args);
 
                     Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
                     Console.WriteLine($"Factor: {parameters.Factor}");
                     Console.WriteLine($"Gamma: {parameters.Gamma}");
-                    Console.WriteLine($"Output File: {parameters.OutputPngFileName}");
+                    Console.WriteLine($"Output File: {parameters.OutputJpgFileName}");
 
                     using Stream fileStream = File.OpenRead(parameters.InputPfmFileName);
                     HdrImage.write_ldr_image(
                         fileStream,
-                        parameters.OutputPngFileName,
+                        parameters.OutputJpgFileName,
                         parameters.Gamma,
                         parameters.Factor
                     );

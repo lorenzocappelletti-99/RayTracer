@@ -56,9 +56,9 @@ public class CheckeredPigment : Pigment
     
     public CheckeredPigment(Color color1, Color color2, int n = 20)
     {
-        this.Color1 = color1;
-        this.Color2 = color2;
-        this.N = n;
+        Color1 = color1;
+        Color2 = color2;
+        N = n;
     }
     
     /// <summary>
@@ -75,3 +75,59 @@ public class CheckeredPigment : Pigment
     }
 }
 
+/// <summary>
+/// A textured pigment
+/// The texture is given through a PFM image
+/// </summary>
+/// <param name="image"></param>
+public class ImagePigment(HdrImage image) : Pigment
+{
+    public HdrImage Image = image;
+
+    public override Color GetColor(Vec2d uv)
+    {
+        var col = uv.u * Image.Width;
+        var row = uv.v * Image.Height;
+        
+        if(col >= Image.Width) col = Image.Width - 1;
+        if(row >= Image.Height) row = Image.Height - 1;
+        
+        return Image.GetPixel((int)col, (int)row);
+    }
+}
+
+
+/// <summary>
+/// An abstract class representing a Bidirectional Reflectance Distribution Function
+/// </summary>
+public abstract class Brdf
+{
+    public Pigment Pigment = new UniformPigment(Color.White);
+    
+    public abstract Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv);
+    
+    public abstract Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
+}
+
+/// <summary>
+/// A class representing an ideal diffuse BRDF (also called «Lambertian»)
+/// </summary>
+public class DiffusiveBrdf : Brdf
+{ public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
+    {
+        return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);
+    }
+
+    public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    {
+        throw new NotImplementedException();
+    }
+    
+}
+
+
+public class Material
+{
+    public Pigment Pigment = new UniformPigment(Color.Black);
+    public Brdf Brdf = new DiffusiveBrdf();
+}

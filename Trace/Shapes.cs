@@ -9,10 +9,17 @@ namespace Trace;
 public abstract class Shape
 {
     public Transformation Transformation { get; }
+    public Material Material { get; }
 
     public Shape(Transformation? transformation = null)
     {
         Transformation = transformation ?? new Transformation();
+    }
+    
+    public Shape(Material material, Transformation? transformation = null)
+    {
+        Transformation = transformation ?? new Transformation();
+        Material = material;
     }
 
     /// <summary>
@@ -143,7 +150,7 @@ public class Sphere : Shape
             WorldPoint   = worldPoint,
             Normal       = worldNormal,
             SurfacePoint = surfaceUV,
-            t            = firstHit,
+            T            = firstHit,
             Ray          = ray,
         };
     }
@@ -195,7 +202,7 @@ public class Plane : Shape
             WorldPoint   = Transformation * localHit,
             Normal       = Transformation * localNormal,
             SurfacePoint = ShapePointToUV(localHit),
-            t            = -localRay.Origin.Z / localRay.Direction.Z,
+            T            = -localRay.Origin.Z / localRay.Direction.Z,
             Ray          = ray,
     };
 

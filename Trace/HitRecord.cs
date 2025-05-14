@@ -11,7 +11,7 @@ namespace Trace;
 /// - <see cref="WorldPoint"/>: the hit position in world coordinates
 /// - <see cref="Normal"/>: the surface normal at the hit point in world space
 /// - <see cref="SurfacePoint"/>: the UV texture coordinates at the hit point
-/// - <see cref="t"/>: the parameter along the ray where the hit occurred
+/// - <see cref="T"/>: the parameter along the ray where the hit occurred
 /// - <see cref="Ray"/>: the original ray that produced this hit
 /// </summary>
 public class HitRecord
@@ -20,8 +20,9 @@ public class HitRecord
     public Point WorldPoint;
     public Normal Normal;
     public Vec2d SurfacePoint;
-    public float t;
+    public float T;
     public Ray   Ray;
+    public Material Material;
 
     public HitRecord(){}
 
@@ -35,8 +36,23 @@ public class HitRecord
         WorldPoint = worldPoint;
         Normal = normal;
         SurfacePoint = surfacePoint;
-        this.t = t;
+        this.T = t;
         Ray = ray;
+    }
+    
+    public HitRecord(Point worldPoint, 
+        Normal normal, 
+        Vec2d surfacePoint,
+        float t,
+        Ray ray,
+        Material material)
+    {
+        WorldPoint = worldPoint;
+        Normal = normal;
+        SurfacePoint = surfacePoint;
+        this.T = t;
+        Ray = ray;
+        Material = material;
     }
     
     
@@ -55,7 +71,7 @@ public class HitRecord
             WorldPoint.IsClose(other.WorldPoint, epsilon) &&
             Normal.IsClose(other.Normal, epsilon) &&
             SurfacePoint.IsClose(other.SurfacePoint, epsilon) &&
-            MathF.Abs(this.t - other.t) < epsilon &&
+            Math.Abs(T - other.T) < epsilon &&
             Ray.IsClose(other.Ray, epsilon);
     }
 }

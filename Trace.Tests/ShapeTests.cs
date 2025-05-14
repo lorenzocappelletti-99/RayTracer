@@ -188,6 +188,16 @@ public class ShapeTests
     }
 
     [Fact]
+    public void TestIsInternal()
+    {
+        var sphere = new Sphere();
+        var ray = new Ray(origin: new Point(0,0,2), direction: -Vec.VEC_Z);
+        var hit = sphere.RayIntersection(ray);
+        Assert.True(sphere.IsPointInternals(new Point(0,0,0), ray));
+
+    }
+
+    [Fact]
     public void TestUVCoordinates()
     {
         var plane = new Plane();

@@ -5,7 +5,9 @@
  ===========================================================*/
 
 namespace Trace;
-
+/// <summary>
+/// Represents an RGB color with floating-point components.
+/// </summary>
 public struct Color(float r, float g, float b)
 {
     public float R = r, G = g, B = b;

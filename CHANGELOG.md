@@ -6,7 +6,7 @@
 
 -   First release of the code
 
-# Versio 0.2.0
+# Version 0.2.0
 
 - Second release of the code. Now it actually generates PFM files
 - Functionalities of 0.1.0 are available

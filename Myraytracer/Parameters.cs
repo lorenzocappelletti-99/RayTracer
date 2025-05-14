@@ -21,7 +21,7 @@ namespace Myraytracer
             // args[0] is "pfm2png", need at least args[1] e args[2]
             if (args.Length < 3)
             {
-                throw new ArgumentException("Usage: pfm2png <input.pfm> <output.png> [factor] [gamma]");
+                throw new ArgumentException("Usage: pfm2jpg <input.pfm> <output.jpg> [factor] [gamma]");
             }
 
             InputPfmFileName = args[1];

@@ -29,6 +29,7 @@ public abstract class Shape
     public abstract Vec2d ShapePointToUV(Point p);
     public abstract bool QuickRayIntersection(Ray ray);
     public abstract HitRecord? RayIntersection(Ray ray);
+    public abstract bool IsPointInternals(Point p, Ray ray);
 }
 
 public class Sphere : Shape
@@ -147,6 +148,35 @@ public class Sphere : Shape
             Ray          = ray,
         };
     }
+
+    public override bool IsPointInternals(Point p, Ray ray)
+    {
+        if(!QuickRayIntersection(ray))
+        {
+            //throw new Exception("ray does not intersect sphere");
+            return false;
+        }
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        var origin    = localRay.Origin.to_vec();
+        var direction = localRay.Direction;
+
+        var a = direction.SqNorm();
+        var b = 2 * origin * direction;
+        var c = origin.SqNorm() - Radius * Radius;
+
+        var delta = b * b - 4 * a * c;
+        if (delta < 0)
+            return false;
+
+        var sqrtDelta = MathF.Sqrt(delta);
+        var tMin       = (-b - sqrtDelta) / (2 * a);
+        var tMax     = (-b + sqrtDelta) / (2 * a);
+
+        return Math.Abs(ray.PointAt(tMin).X) < Math.Abs(p.X) && Math.Abs(ray.PointAt(tMax).X) > Math.Abs(p.X) &&
+               Math.Abs(ray.PointAt(tMin).Y) < Math.Abs(p.Y) && Math.Abs(ray.PointAt(tMax).Y) > Math.Abs(p.Y) &&
+               Math.Abs(ray.PointAt(tMin).Z) < Math.Abs(p.Z) && Math.Abs(ray.PointAt(tMax).Z) > Math.Abs(p.Z);
+    }
 }
 
 public class Plane : Shape
@@ -200,4 +230,45 @@ public class Plane : Shape
     };
 
     }
+    
+    public override bool IsPointInternals(Point p, Ray ray)
+    {
+        
+        return true;
+    }
+}
+
+public class Composition
+{
+    public List<Shape> Shapes { get; set; } = [];
+
+    public void AddShape(Shape shape)
+    {
+        Shapes.Add(shape);
+    }
+
+    public HitRecord Union(Ray ray)
+    {
+        var closest = new HitRecord();
+        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.t < closest.t))
+        {
+            closest = intersection;
+        }
+        return closest;
+    }
+    
+    /*
+    public HitRecord Difference(Ray ray)
+    {
+        var intersections = (from t in Shapes where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+
+        var T = .0f;
+        for (var i = 0; i < intersections.Count; i++)
+        {
+            if(intersections[i].t  T) continue;
+        }
+
+        return intersection;
+    }
+    */
 }

@@ -255,6 +255,7 @@ public struct Point(float x, float y, float z)
     /// </summary>
     /// <returns></returns>
     public Vec to_vec() => new Vec(this.X, this.Y, this.Z);    
+    
     /// <summary>
     /// Applies a translation transformation to the current point using the specified translation vector.
     /// </summary>

@@ -19,7 +19,7 @@ public class World
     {
         HitRecord? closest = null;
 
-        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.t < closest.t))
+        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.T < closest.T))
         {
             closest = intersection;
         }

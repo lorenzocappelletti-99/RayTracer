@@ -31,8 +31,9 @@ public class ShapeTests
             WorldPoint   = new Point(0f, 0f, 1f),
             Normal       = new Normal(0f, 0f, 1f),
             SurfacePoint = new Vec2d(0f, 0f),
-            t            = 1f,
+            T            = 1f,
             Ray          = ray1
+            
         };
         
         var expected2 = new HitRecord
@@ -40,7 +41,7 @@ public class ShapeTests
             WorldPoint   = new Point(1f, 0f, 0f),
             Normal       = new Normal(1f, 0f, 0f),
             SurfacePoint = new Vec2d(0f, 0.5f),
-            t            = 2f,
+            T            = 2f,
             Ray          = ray2
         };
         
@@ -65,7 +66,7 @@ public class ShapeTests
             WorldPoint   = new Point(1f, 0f, 0f),
             Normal       = new Normal(-1f, 0f, 0f),
             SurfacePoint = new Vec2d(0f, 0.5f),
-            t            = 1f,
+            T            = 1f,
             Ray          = ray
         };
 
@@ -96,7 +97,7 @@ public class ShapeTests
             WorldPoint   = new Point(10f, 0f, 1f),
             Normal       = new Normal(0f, 0f, 1f),
             SurfacePoint = new Vec2d(0f, 0f),
-            t            = 1f,
+            T            = 1f,
             Ray          = ray1
         };
         
@@ -105,7 +106,7 @@ public class ShapeTests
             WorldPoint   = new Point(11f, 0f, 0f),
             Normal       = new Normal(1f, 0f, 0f),
             SurfacePoint = new Vec2d(0f, 0.5f),
-            t            = 2f,
+            T            = 2f,
             Ray          = ray2
         };
         

@@ -113,7 +113,8 @@ public abstract class Brdf
 /// A class representing an ideal diffuse BRDF (also called «Lambertian»)
 /// </summary>
 public class DiffusiveBrdf : Brdf
-{ public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
+{ 
+    public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
         return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);
     }

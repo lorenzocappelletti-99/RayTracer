@@ -20,7 +20,7 @@ internal static class Program
             Console.WriteLine("  dotnet run help                -> show this message");
             return;
         }
-            
+
         // Se non ci sono argomenti, o il primo è "demo", eseguo la demo scene→PFM
         if (args[0].Equals("demo", StringComparison.OrdinalIgnoreCase))
         {
@@ -35,7 +35,7 @@ internal static class Program
         {
             try
             {
-                    
+
                 var parameters = new ParametersPfm2Jpg();
                 parameters.ParseCommandLine(args);
 
@@ -66,8 +66,10 @@ internal static class Program
     /// </summary>
     private static void RunDemoScene(ParametersDemo parameters)
     {
+
         Console.WriteLine("Running demo scene and writing PFM file...");
 
+        // Costruzione della scena
         var scene = new World();
             
         var yellowMaterial = new Material
@@ -79,81 +81,63 @@ internal static class Program
             Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
         };
             
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f)),
-            material: yellowMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f)),
-            material: checkeredMaterial));
-
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f)),
-            material: checkeredMaterial));
-
-
-
-        // Observer e tracer
-        var observer = new PerspectiveProjection(
-            transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationZ(parameters.AngleDeg)*Transformation.RotationY(-10f));
-            
-        var image  = new HdrImage(parameters.Width, parameters.Height);
-        var tracer = new ImageTracer(image, observer);
-            
-        tracer.FireAllRaysFlat(scene);
-
-        const string filePath = "Demo.pfm";
-
-        using (var outputStream = File.Create(filePath))
+        // Spheres at the corners (yellow)
+        var corners = new[]
         {
-            image.WritePfm(outputStream);
+            new Vec(+0.5f, +0.5f, +0.5f),
+            new Vec(-0.5f, +0.5f, +0.5f),
+            new Vec(-0.5f, -0.5f, +0.5f),
+            new Vec(+0.5f, -0.5f, +0.5f),
+            new Vec(+0.5f, +0.5f, -0.5f),
+            new Vec(-0.5f, +0.5f, -0.5f),
+            new Vec(-0.5f, -0.5f, -0.5f),
+            new Vec(+0.5f, -0.5f, -0.5f),
+        };
+        foreach (var v in corners)
+        {
+            scene.AddShape(new Sphere(
+                radius: 0.1f,
+                transformation: Transformation.Translation(v),
+                material: yellowMaterial));
         }
 
-        Console.WriteLine($"Demo scene written to {filePath}");
+        // Two face-centers (checkered)
+        scene.AddShape(new Sphere(
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(0, 0, -0.5f)),
+            material: checkeredMaterial));
+        scene.AddShape(new Sphere(
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
+            material: checkeredMaterial));
 
-        using var inputStream = File.OpenRead(filePath);
+        // Observer e tracer: orbit attorno al centro
+        var observer = new PerspectiveProjection(
+            transform:
+                Transformation.RotationZ(parameters.AngleDeg)
+                * Transformation.Translation(new Vec(-1, 0, 0)));
+
+        var image  = new HdrImage(parameters.Width, parameters.Height);
+        var tracer = new ImageTracer(image, observer);
+        tracer.FireAllRaysFlat(scene);
+
+        // --- OUTPUT PATHS DA PARAMETRI ---
+        var pngPath = parameters.OutputPngFileName;
+
+        // 1) Crea le directory di destinazione se necessario
+        var pngDir = Path.GetDirectoryName(pngPath);
+        if (!string.IsNullOrEmpty(pngDir)) Directory.CreateDirectory(pngDir);
+
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+
         HdrImage.write_ldr_image(
-            inputStream,
-            parameters.OutputPngFileName
+            pfmStream,
+            pngPath
         );
 
+        Console.WriteLine($"Generated PNG: {pngPath}");
     }
+
 }

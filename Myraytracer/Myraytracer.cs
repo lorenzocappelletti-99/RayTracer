@@ -17,7 +17,7 @@ namespace Myraytracer
             {
                 Console.WriteLine("Usage:");
                 Console.WriteLine("  dotnet run demo    [options]   -> run demo");
-                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to LDR");
+                Console.WriteLine("  dotnet run pfm2ldr [options]   -> convert PFM to LDR");
                 Console.WriteLine("  dotnet run help                -> show this message");
                 return;
             }
@@ -90,7 +90,7 @@ namespace Myraytracer
             var image  = new HdrImage(parameters.Width, parameters.Height);
             var tracer = new ImageTracer(image, observer);
             
-            tracer.FireAllRays(scene);
+            tracer.FireAllRaysBw(scene);
 
             const string filePath = "Demo.pfm";
 

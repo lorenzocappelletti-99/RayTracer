@@ -1,5 +1,3 @@
-using SixLabors.ImageSharp.Processing;
-
 namespace Trace;
 
 

@@ -17,7 +17,7 @@ public class ImageTracerTest : IDisposable
     {
         Image = new HdrImage(4, 2);
         var camera = new PerspectiveProjection(aspectRatio: 2.0f);
-        Tracer = new ImageTracer(Image, camera, Scene);
+        Tracer = new ImageTracer(Image, camera);
     }
     
     

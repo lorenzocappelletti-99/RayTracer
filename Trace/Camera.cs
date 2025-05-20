@@ -35,6 +35,11 @@ public abstract class Camera
 
     public abstract Ray FireRay(float u, float v);
 }
+
+/// <summary>
+/// A camera implementing an orthogonal 3D → 2D projection
+/// This class implements an observer seeing the world through an orthogonal projection.
+/// </summary>
 public class OrthogonalProjection : Camera
 {
     /// <summary>
@@ -42,10 +47,15 @@ public class OrthogonalProjection : Camera
     /// transform:  posizionamento/orientamento matrix in world
     /// distance : distance of the observer
     /// </summary>
+    /// Create a new orthographic camera
+    /// The parameter `aspect_ratio` defines how larger than the height is the image. For fullscreen
+    /// images, you should probably set `aspect_ratio` to 16/9, as this is the most used aspect ratio
+    /// used in modern monitors.
+    /// The `transformation` parameter is an instance of the :class:`.Transformation` class.
     public OrthogonalProjection(
-        float aspectRatio = 1.0f,
-        float distance = 1.0f,
-        Transformation? transform = null
+        float aspectRatio = 16/9f,
+        Transformation? transform = null,
+        float distance = 1.0f
     ) : base(aspectRatio, distance, transform) { }
 
 

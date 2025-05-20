@@ -11,12 +11,13 @@ public class ImageTracerTest : IDisposable
 {
     public ImageTracer Tracer;
     public HdrImage Image;
+    public World Scene;
 
     public ImageTracerTest()
     {
         Image = new HdrImage(4, 2);
         var camera = new PerspectiveProjection(aspectRatio: 2.0f);
-        Tracer = new ImageTracer(Image, camera);
+        Tracer = new ImageTracer(Image, camera, Scene);
     }
     
     

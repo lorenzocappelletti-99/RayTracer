@@ -60,8 +60,8 @@ public class Sphere : Shape
     /// <param name="transformation">World‐to‐object transform (optional).</param>
     public Sphere(
         float radius = 1.0f,
-        Material? material = null,
-        Transformation? transformation = null)
+        Transformation? transformation = null,
+        Material? material = null)
         : base(material, transformation)
     {
         Radius = radius;

@@ -8,18 +8,25 @@ namespace Trace;
 
 public abstract class Shape
 {
+    /// <summary>
+    /// World‐to‐object transformation.
+    /// </summary>
     public Transformation Transformation { get; }
-    public Material Material { get; }
 
-    public Shape(Transformation? transformation = null)
+    /// <summary>
+    /// Surface material (optional).
+    /// </summary>
+    public Material? Material { get; }
+
+    /// <summary>
+    /// Initializes a new shape with an optional material and optional transform.
+    /// </summary>
+    /// <param name="material">Surface material (optional).</param>
+    /// <param name="transformation">World‐to‐object transform (optional).</param>
+    public Shape(Material? material = null, Transformation? transformation = null)
     {
+        Material       = material;
         Transformation = transformation ?? new Transformation();
-    }
-    
-    public Shape(Material material, Transformation? transformation = null)
-    {
-        Transformation = transformation ?? new Transformation();
-        Material = material;
     }
 
     /// <summary>
@@ -40,16 +47,22 @@ public abstract class Shape
 
 public class Sphere : Shape
 {
+    /// <summary>
+    /// Sphere radius.
+    /// </summary>
     public float Radius { get; }
 
     /// <summary>
-    /// Creates a unit‐sphere (radius=1) at the origin, or with an optional
-    /// radius and/or transformation.
+    /// Creates a sphere with optional radius, material and transform.
     /// </summary>
-    /// <param name="radius">Sphere radius (default 1.0f).</param>
-    /// <param name="transformation">Optional transform (default identity).</param>
-    public Sphere(float radius = 1.0f, Transformation? transformation = null)
-        : base(transformation)
+    /// <param name="radius">Sphere radius (default=1.0f).</param>
+    /// <param name="material">Surface material (optional).</param>
+    /// <param name="transformation">World‐to‐object transform (optional).</param>
+    public Sphere(
+        float radius = 1.0f,
+        Material? material = null,
+        Transformation? transformation = null)
+        : base(material, transformation)
     {
         Radius = radius;
     }
@@ -152,14 +165,17 @@ public class Sphere : Shape
             SurfacePoint = surfaceUV,
             T            = firstHit,
             Ray          = ray,
+            Material      = Material
         };
     }
 }
 
 public class Plane : Shape
 {
-    public Plane(Transformation? transformation = null)
-        : base(transformation)
+    public Plane(
+        Material? material = null,
+        Transformation? transformation = null)
+        : base(material, transformation)
     {
     }
 

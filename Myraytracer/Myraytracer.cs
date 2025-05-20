@@ -4,111 +4,140 @@
  |                       See LICENSE                        
  ===========================================================*/
 
-using System.Reflection.Metadata;
 using Trace;
 
-namespace Myraytracer
+namespace Myraytracer;
+
+internal static class Program
 {
-    internal static class Program
+    private static void Main(string[] args)
     {
-        private static void Main(string[] args)
+        if (args.Length == 0 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
         {
-            if (args.Length == 0 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Usage:");
-                Console.WriteLine("  dotnet run demo    [options]   -> run demo");
-                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to LDR");
-                Console.WriteLine("  dotnet run help                -> show this message");
-                return;
-            }
-            
-            // Se non ci sono argomenti, o il primo è "demo", eseguo la demo scene→PFM
-            if (args[0].Equals("demo", StringComparison.OrdinalIgnoreCase))
-            {
-                var parameters = new ParametersDemo();
-                parameters.ParseCommandLine(args);
-                RunDemoScene(parameters);
-                return;
-            }
-
-            // Altrimenti provo a fare la conversione PFM→LDR con la classe Parameters
-            if (args[0].Equals("pfm2ldr", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    
-                    var parameters = new ParametersPfm2Ldr();
-                    parameters.ParseCommandLine(args);
-
-                    Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
-                    Console.WriteLine($"Factor: {parameters.Factor}");
-                    Console.WriteLine($"Gamma: {parameters.Gamma}");
-                    Console.WriteLine($"Output File: {parameters.OutputLdrFileName}");
-
-                    using Stream fileStream = File.OpenRead(parameters.InputPfmFileName);
-                    HdrImage.write_ldr_image(
-                        fileStream,
-                        parameters.OutputLdrFileName,
-                        parameters.Gamma,
-                        parameters.Factor
-                    );
-
-                    Console.WriteLine("Conversion completed successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error during conversion: {ex.Message}");
-                }
-            }
+            Console.WriteLine("Usage:");
+            Console.WriteLine("  dotnet run demo    [options]   -> run demo");
+            Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to JPG");
+            Console.WriteLine("  dotnet run help                -> show this message");
+            return;
         }
 
-        /// <summary>
-        /// Builds a demo scene of spheres and writes it to "myNewFile.pfm".
-        /// </summary>
-        private static void RunDemoScene(ParametersDemo parameters)
+        // Se non ci sono argomenti, o il primo è "demo", eseguo la demo scene→PFM
+        if (args[0].Equals("demo", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("Running demo scene and writing PFM file...");
+            var parameters = new ParametersDemo();
+            parameters.ParseCommandLine(args);
+            RunDemoScene(parameters);
+            return;
+        }
 
-            var scene = new World();
-            
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, +0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, +0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, +0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, +0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, +0.5f, -0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, +0.5f, -0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(-0.5f, -0.5f, -0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.5f, -0.5f, -0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.0f, -0.5f))));
-            scene.AddShape(new Sphere(0.1f, Transformation.Translation(new Vec(+0.0f, +0.5f, +0.0f))));
-
-
-            // Observer e tracer
-            var observer = new PerspectiveProjection(
-                transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationZ(parameters.AngleDeg));
-            
-            var image  = new HdrImage(parameters.Width, parameters.Height);
-            var tracer = new ImageTracer(image, observer);
-            
-            tracer.FireAllRays(scene);
-
-            const string filePath = "Demo.pfm";
-
-            using (var outputStream = File.Create(filePath))
+        // Altrimenti provo a fare la conversione PFM→JPG con la classe Parameters
+        if (args[0].Equals("pfm2jpg", StringComparison.OrdinalIgnoreCase))
+        {
+            try
             {
-                image.WritePfm(outputStream);
+
+                var parameters = new ParametersPfm2Jpg();
+                parameters.ParseCommandLine(args);
+
+                Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
+                Console.WriteLine($"Factor: {parameters.Factor}");
+                Console.WriteLine($"Gamma: {parameters.Gamma}");
+                Console.WriteLine($"Output File: {parameters.OutputJpgFileName}");
+
+                using Stream fileStream = File.OpenRead(parameters.InputPfmFileName);
+                HdrImage.write_ldr_image(
+                    fileStream,
+                    parameters.OutputJpgFileName,
+                    parameters.Gamma,
+                    parameters.Factor
+                );
+
+                Console.WriteLine("Conversion completed successfully.");
             }
-
-            Console.WriteLine($"Demo scene written to {filePath}");
-
-            using var inputStream = File.OpenRead(filePath);
-            HdrImage.write_ldr_image(
-                inputStream,
-                parameters.OutputLdrFileName,
-                1f,
-                1f
-            );
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during conversion: {ex.Message}");
+            }
         }
     }
+
+    /// <summary>
+    /// Builds a demo scene of spheres and writes it to "myNewFile.pfm".
+    /// </summary>
+    private static void RunDemoScene(ParametersDemo parameters)
+    {
+
+        Console.WriteLine("Running demo scene and writing PFM file...");
+
+        // Costruzione della scena
+        var scene = new World();
+            
+        var yellowMaterial = new Material
+        {
+            Pigment = new UniformPigment(Color.Yellow)  
+        };
+        var checkeredMaterial = new Material
+        {
+            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
+        };
+            
+        // Spheres at the corners (yellow)
+        var corners = new[]
+        {
+            new Vec(+0.5f, +0.5f, +0.5f),
+            new Vec(-0.5f, +0.5f, +0.5f),
+            new Vec(-0.5f, -0.5f, +0.5f),
+            new Vec(+0.5f, -0.5f, +0.5f),
+            new Vec(+0.5f, +0.5f, -0.5f),
+            new Vec(-0.5f, +0.5f, -0.5f),
+            new Vec(-0.5f, -0.5f, -0.5f),
+            new Vec(+0.5f, -0.5f, -0.5f),
+        };
+        foreach (var v in corners)
+        {
+            scene.AddShape(new Sphere(
+                radius: 0.1f,
+                transformation: Transformation.Translation(v),
+                material: yellowMaterial));
+        }
+
+        // Two face-centers (checkered)
+        scene.AddShape(new Sphere(
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(0, 0, -0.5f)),
+            material: checkeredMaterial));
+        scene.AddShape(new Sphere(
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
+            material: checkeredMaterial));
+
+        // Observer e tracer: orbit attorno al centro
+        var observer = new PerspectiveProjection(
+            transform:
+                Transformation.RotationZ(parameters.AngleDeg)
+                * Transformation.Translation(new Vec(-1, 0, 0)));
+
+        var image  = new HdrImage(parameters.Width, parameters.Height);
+        var tracer = new ImageTracer(image, observer);
+        tracer.FireAllRaysFlat(scene);
+
+        // --- OUTPUT PATHS DA PARAMETRI ---
+        var pngPath = parameters.OutputPngFileName;
+
+        // 1) Crea le directory di destinazione se necessario
+        var pngDir = Path.GetDirectoryName(pngPath);
+        if (!string.IsNullOrEmpty(pngDir)) Directory.CreateDirectory(pngDir);
+
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+
+        HdrImage.write_ldr_image(
+            pfmStream,
+            pngPath
+        );
+
+        Console.WriteLine($"Generated PNG: {pngPath}");
+    }
+
 }

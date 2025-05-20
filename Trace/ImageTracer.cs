@@ -56,7 +56,7 @@ public class ImageTracer
         }
     }
     
-    public void FireAllRays(World? scene)
+    public void FireAllRaysBw(World? scene)
     {
         if (scene == null)
         {
@@ -69,13 +69,47 @@ public class ImageTracer
             for (var col = 0; col < Image.Width; col++)
             {
                 var ray = FireRay(col, row);
-                Image.SetPixel(col, row, Re(scene, ray));
+                Image.SetPixel(col, row, Bw(scene, ray));
+            }
+        }
+    }
+    
+    public void FireAllRaysFlat(World? scene)
+    {
+        if (scene == null)
+        {
+            Image.SetAllPixels(Color.Black);
+            return;
+        }
+        
+        for (var row = 0; row < Image.Height; row++)
+        {
+            for (var col = 0; col < Image.Width; col++)
+            {
+                var ray = FireRay(col, row);
+                Image.SetPixel(col, row, Flat(scene, ray, Color.Black));
             }
         }
     }
 
-    private static Color Re(World scene, Ray ray)
+    private static Color Bw(World scene, Ray ray)
     {
         return scene.ray_intersection(ray) != null ? Color.White : Color.Black;
+    }
+    
+    /// <summary>
+    /// Flat shading: returns only the material's pigment
+    /// </summary>
+    public static Color Flat(World scene, Ray ray, Color backgroundColor)
+    {
+        var hit = scene.ray_intersection(ray);
+        if (hit == null)
+            return backgroundColor;
+
+        var material = hit.Material!;
+    
+        var pigmentColor = material.Pigment.GetColor(hit.SurfacePoint);
+
+        return pigmentColor;
     }
 }

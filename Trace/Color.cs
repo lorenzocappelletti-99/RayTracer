@@ -15,6 +15,13 @@ public struct Color(float r, float g, float b)
     // Common colors
     public static readonly Color Black = new Color(0f, 0f, 0f);
     public static readonly Color White = new Color(1f, 1f, 1f);
+    public static readonly Color Red   = new Color(1f,   0f,   0f);
+    public static readonly Color Green = new Color(0f,   1f,   0f);
+    public static readonly Color Blue  = new Color(0f,   0f,   1f);
+    public static readonly Color Yellow = new Color(1f,   1f,   0f);
+    public static readonly Color Purple  = new Color(0.5f, 0f,   0.5f);
+
+    
 
     // Add two colors
     public static Color operator +(Color c1, Color c2)

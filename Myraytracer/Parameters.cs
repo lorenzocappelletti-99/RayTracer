@@ -9,12 +9,11 @@ using Trace;
 
 namespace Myraytracer
 {
-    public class ParametersPfm2Jpg
-    {
+    public class ParametersPfm2Ldr    {
         public string InputPfmFileName { get; private set; } = "";
         public float Factor { get; private set; } = 0.6f;
         public float Gamma { get; private set; } = 1.0f;
-        public string OutputJpgFileName { get; private set; } = "";
+        public string OutputLdrFileName { get; private set; } = "";
 
         public void ParseCommandLine(string[] args)
         {
@@ -25,7 +24,7 @@ namespace Myraytracer
             }
 
             InputPfmFileName = args[1];
-            OutputJpgFileName = args[2];
+            OutputLdrFileName = args[2];
 
             if (args.Length > 3)
             {
@@ -58,7 +57,7 @@ namespace Myraytracer
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
             new PerspectiveProjection(16/9f, transform: Transformation.Translation(new Vec(-1, 0,0)));
-        public string OutputPngFileName { get; private set; } = "Demo.jpg";
+        public string OutputLdrFileName { get; private set; } = "Demo.png";
         
         public void ParseCommandLine(string[] args)
         {
@@ -67,7 +66,7 @@ namespace Myraytracer
                 case 2 when args[1].Equals("help", StringComparison.OrdinalIgnoreCase):
                     throw new ArgumentException("\nUsage:" +
                                                 "\ndotnet run demo [Camera] [AngleDeg] [Width] [Height]" +
-                                                "\ndotnet run demo [Camera] [AngleDeg] [output.jpg]  " +
+                                                "\ndotnet run demo [Camera] [AngleDeg] [output.ldr]  " +
                                                 "\ndotnet run demo help");
                 case 1:
                     Console.WriteLine("Generating PFM file with: Camera = "+"Perspective"+
@@ -170,7 +169,7 @@ namespace Myraytracer
             {
                 case 4 when !float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _):
                 {
-                    OutputPngFileName = args[3];
+                    OutputLdrFileName = args[3];
                     if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
                     {
                         AngleDeg = value;

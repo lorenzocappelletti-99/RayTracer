@@ -37,6 +37,11 @@ public class UniformPigment : Pigment
         this.Color = color;
     }
 
+    public UniformPigment()
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Returns the uniform color, ignoring the UV coordinates.
     /// </summary>
@@ -128,6 +133,6 @@ public class DiffusiveBrdf : Brdf
 
 public class Material
 {
-    public Pigment Pigment = new UniformPigment(Color.Black);
+    public Pigment Pigment = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
 }

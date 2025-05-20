@@ -17,7 +17,7 @@ namespace Myraytracer
             {
                 Console.WriteLine("Usage:");
                 Console.WriteLine("  dotnet run demo    [options]   -> run demo");
-                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to JPG");
+                Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to LDR");
                 Console.WriteLine("  dotnet run help                -> show this message");
                 return;
             }
@@ -31,24 +31,24 @@ namespace Myraytracer
                 return;
             }
 
-            // Altrimenti provo a fare la conversione PFM→JPG con la classe Parameters
-            if (args[0].Equals("pfm2jpg", StringComparison.OrdinalIgnoreCase))
+            // Altrimenti provo a fare la conversione PFM→LDR con la classe Parameters
+            if (args[0].Equals("pfm2ldr", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
                     
-                    var parameters = new ParametersPfm2Jpg();
+                    var parameters = new ParametersPfm2Ldr();
                     parameters.ParseCommandLine(args);
 
                     Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
                     Console.WriteLine($"Factor: {parameters.Factor}");
                     Console.WriteLine($"Gamma: {parameters.Gamma}");
-                    Console.WriteLine($"Output File: {parameters.OutputJpgFileName}");
+                    Console.WriteLine($"Output File: {parameters.OutputLdrFileName}");
 
                     using Stream fileStream = File.OpenRead(parameters.InputPfmFileName);
                     HdrImage.write_ldr_image(
                         fileStream,
-                        parameters.OutputJpgFileName,
+                        parameters.OutputLdrFileName,
                         parameters.Gamma,
                         parameters.Factor
                     );
@@ -104,7 +104,7 @@ namespace Myraytracer
             using var inputStream = File.OpenRead(filePath);
             HdrImage.write_ldr_image(
                 inputStream,
-                parameters.OutputPngFileName,
+                parameters.OutputLdrFileName,
                 1f,
                 1f
             );

@@ -9,23 +9,23 @@ using Trace;
 
 namespace Myraytracer
 {
-    public class ParametersPfm2Jpg
+    public class ParametersPfm2Ldr
     {
         public string InputPfmFileName { get; private set; } = "";
         public float Factor { get; private set; } = 0.6f;
         public float Gamma { get; private set; } = 1.0f;
-        public string OutputJpgFileName { get; private set; } = "";
+        public string OutputLdrFileName { get; private set; } = "";
 
         public void ParseCommandLine(string[] args)
         {
             // args[0] is "pfm2png", need at least args[1] e args[2]
             if (args.Length < 3)
             {
-                throw new ArgumentException("Usage: pfm2jpg <input.pfm> <output.jpg> [factor] [gamma]");
+                throw new ArgumentException("Usage: pfm2Ldr <input.pfm> <output.jpg> [factor] [gamma]");
             }
 
             InputPfmFileName = args[1];
-            OutputJpgFileName = args[2];
+            OutputLdrFileName = args[2];
 
             if (args.Length > 3)
             {
@@ -58,7 +58,7 @@ namespace Myraytracer
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
             new PerspectiveProjection(16/9f, transform: Transformation.Translation(new Vec(-1, 0,0)));
-        public string OutputPngFileName { get; private set; } = "Demo.jpg";
+        public string OutputLdrFileName { get; private set; } = "Demo.png";
         public string OutputPfmFileName { get; private set; } = "Demo.pfm";
 
         
@@ -89,11 +89,11 @@ namespace Myraytracer
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new PerspectiveProjection();
+                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
                     }
                     else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new OrthogonalProjection();
+                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
                     }
                     else
                     {
@@ -102,7 +102,7 @@ namespace Myraytracer
                         );
                     }
                     Console.WriteLine("Generating PFM file with: Camera"+args[1]+
-                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
+                                      ", AngleDeg=0, ImageWidth="+Width+", ImageHeight="+Height);
                     break;
                 }
                 case 3:
@@ -172,7 +172,7 @@ namespace Myraytracer
             {
                 case 4 when !float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _):
                 {
-                    OutputPngFileName = args[3];
+                    OutputLdrFileName = args[3];
                     if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
                     {
                         AngleDeg = value;
@@ -238,15 +238,15 @@ namespace Myraytracer
                         throw new ArgumentException($"Invalid Width or Height ('{args[3]}', '{args[4]}'), must be integers.");
                     }
 
-                    OutputPngFileName = args[5];
+                    OutputLdrFileName = args[5];
                     // generiamo il nome del PFM sostituendo l’estensione
-                    OutputPfmFileName = Path.ChangeExtension(OutputPngFileName, ".pfm");
+                    OutputPfmFileName = Path.ChangeExtension(OutputLdrFileName, ".pfm");
 
                     Console.WriteLine("Generating PFM file with: Camera=" + args[1] +
                                       ", AngleDeg=" + args[2] +
                                       ", Width=" + Width +
                                       ", Height=" + Height +
-                                      ", Output=" + OutputPngFileName);
+                                      ", Output=" + OutputLdrFileName);
                     break;
                 }
 

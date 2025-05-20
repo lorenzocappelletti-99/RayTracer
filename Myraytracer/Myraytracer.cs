@@ -16,7 +16,7 @@ internal static class Program
         {
             Console.WriteLine("Usage:");
             Console.WriteLine("  dotnet run demo    [options]   -> run demo");
-            Console.WriteLine("  dotnet run pfm2png [options]   -> convert PFM to JPG");
+            Console.WriteLine("  dotnet run pfm2ldr [options]   -> convert PFM to ldr (png or jpg)");
             Console.WriteLine("  dotnet run help                -> show this message");
             return;
         }
@@ -30,24 +30,24 @@ internal static class Program
             return;
         }
 
-        // Altrimenti provo a fare la conversione PFM→JPG con la classe Parameters
-        if (args[0].Equals("pfm2jpg", StringComparison.OrdinalIgnoreCase))
+        // Altrimenti provo a fare la conversione PFM→Ldr con la classe Parameters
+        if (args[0].Equals("pfm2ldr", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
 
-                var parameters = new ParametersPfm2Jpg();
+                var parameters = new ParametersPfm2Ldr();
                 parameters.ParseCommandLine(args);
 
                 Console.WriteLine($"PFM File: {parameters.InputPfmFileName}");
                 Console.WriteLine($"Factor: {parameters.Factor}");
                 Console.WriteLine($"Gamma: {parameters.Gamma}");
-                Console.WriteLine($"Output File: {parameters.OutputJpgFileName}");
+                Console.WriteLine($"Output File: {parameters.OutputLdrFileName}");
 
                 using Stream fileStream = File.OpenRead(parameters.InputPfmFileName);
                 HdrImage.write_ldr_image(
                     fileStream,
-                    parameters.OutputJpgFileName,
+                    parameters.OutputLdrFileName,
                     parameters.Gamma,
                     parameters.Factor
                 );
@@ -110,23 +110,31 @@ internal static class Program
             radius: 0.1f,
             transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
             material: checkeredMaterial));
+        
+        /*
+        using Stream fileStream = File.OpenRead("output/Demo.pfm");
+        var imgMaterial = new Material{Pigment = new ImagePigment(HdrImage.ReadPfm(fileStream))};
+
+        scene.AddShape(new Sphere(radius: .2f, material: imgMaterial));
+
 
         // Observer e tracer: orbit attorno al centro
         var observer = new PerspectiveProjection(
             transform:
                 Transformation.RotationZ(parameters.AngleDeg)
                 * Transformation.Translation(new Vec(-1, 0, 0)));
+        */
 
         var image  = new HdrImage(parameters.Width, parameters.Height);
-        var tracer = new ImageTracer(image, observer);
+        var tracer = new ImageTracer(image, parameters.Camera);
         tracer.FireAllRaysFlat(scene);
 
         // --- OUTPUT PATHS DA PARAMETRI ---
-        var pngPath = parameters.OutputPngFileName;
+        var ldrPath = parameters.OutputLdrFileName;
 
         // 1) Crea le directory di destinazione se necessario
-        var pngDir = Path.GetDirectoryName(pngPath);
-        if (!string.IsNullOrEmpty(pngDir)) Directory.CreateDirectory(pngDir);
+        var ldrDir = Path.GetDirectoryName(ldrPath);
+        if (!string.IsNullOrEmpty(ldrDir)) Directory.CreateDirectory(ldrDir);
 
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);
@@ -134,10 +142,10 @@ internal static class Program
 
         HdrImage.write_ldr_image(
             pfmStream,
-            pngPath
+            ldrPath
         );
 
-        Console.WriteLine($"Generated PNG: {pngPath}");
+        Console.WriteLine($"Generated ldr: {ldrPath}");
     }
 
 }

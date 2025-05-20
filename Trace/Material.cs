@@ -39,8 +39,9 @@ public class UniformPigment : Pigment
 
     public UniformPigment()
     {
-        throw new NotImplementedException();
+        
     }
+    
 
     /// <summary>
     /// Returns the uniform color, ignoring the UV coordinates.

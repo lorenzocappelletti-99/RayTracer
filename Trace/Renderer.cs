@@ -4,7 +4,7 @@ namespace Trace;
 public abstract class Renderer
 {
     public World World;
-    public Color BackgroundColor = Color.Black;
+    public Color BackgroundColor;
     public Ray Ray;
 
     protected Renderer(World world, Color backgroundColor)
@@ -43,7 +43,7 @@ public class FlatRenderer : Renderer{
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
         var material = hit.Material;
-        return (material.Brdf.Pigment.GetColor(hit.SurfacePoint));
+        return material != null ? material.Brdf.Pigment.GetColor(hit.SurfacePoint) : BackgroundColor;
         //return (material.Brdf.Pigment.GetColor(hit.SurfacePoint)) + material.EmittedRadiance.GetColor(hit.SurfacePoint));
     }
 }

@@ -287,13 +287,15 @@ public class HdrImage
      ***********************************************************/
 
     /// <summary>
-    /// Reads, Normalizes and Clamps pfmFile. Saves in working directory the converted JPG.
+    /// Reads, Normalizes and Clamps pfmFile. Saves in working directory the converted LDR.
+    /// If file extension is not specified converts in png. This is decided in <see cref="Myraytracer.ParametersDemo.OutputLdrFileName"/>
+    /// Automatically converts in jpg or png depending on given filename extension.
     /// </summary>
     /// <param name="pfmPath"></param>
-    /// <param name="jpgFilePath"></param>
+    /// <param name="filePath"></param>
     /// <param name="gamma"></param>
     /// <param name="factor"></param>
-    public static void write_ldr_image(Stream pfmPath, string jpgFilePath, float gamma=1.0f, float factor=1.0f)
+    public static void write_ldr_image(Stream pfmPath, string filePath, float gamma=1.0f, float factor=1.0f)
     {
         try
         {
@@ -319,9 +321,11 @@ public class HdrImage
                 }
             }
 
-            image.SaveAsJpeg(jpgFilePath);
+            if(filePath.Contains("JPG", StringComparison.OrdinalIgnoreCase)) image.SaveAsJpeg(filePath);
+            if(filePath.Contains("PNG", StringComparison.OrdinalIgnoreCase)) image.SaveAsPng(filePath);
+            
 
-            Console.WriteLine($"Conversion complete: {jpgFilePath}");
+            Console.WriteLine($"Conversion complete: {filePath}");
         }
         catch (Exception ex)
         {

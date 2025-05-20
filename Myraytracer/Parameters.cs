@@ -9,12 +9,11 @@ using Trace;
 
 namespace Myraytracer
 {
-    public class ParametersPfm2Jpg
-    {
+    public class ParametersPfm2Ldr    {
         public string InputPfmFileName { get; private set; } = "";
         public float Factor { get; private set; } = 0.6f;
         public float Gamma { get; private set; } = 1.0f;
-        public string OutputJpgFileName { get; private set; } = "";
+        public string OutputLdrFileName { get; private set; } = "";
 
         public void ParseCommandLine(string[] args)
         {
@@ -25,7 +24,7 @@ namespace Myraytracer
             }
 
             InputPfmFileName = args[1];
-            OutputJpgFileName = args[2];
+            OutputLdrFileName = args[2];
 
             if (args.Length > 3)
             {
@@ -58,9 +57,7 @@ namespace Myraytracer
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
             new PerspectiveProjection(16/9f, transform: Transformation.Translation(new Vec(-1, 0,0)));
-        public string OutputPngFileName { get; private set; } = "Demo.jpg";
-        public string OutputPfmFileName { get; private set; } = "Demo.pfm";
-
+        public string OutputLdrFileName { get; private set; } = "Demo.png";
         
         public void ParseCommandLine(string[] args)
         {
@@ -69,7 +66,7 @@ namespace Myraytracer
                 case 2 when args[1].Equals("help", StringComparison.OrdinalIgnoreCase):
                     throw new ArgumentException("\nUsage:" +
                                                 "\ndotnet run demo [Camera] [AngleDeg] [Width] [Height]" +
-                                                "\ndotnet run demo [Camera] [AngleDeg] [output.jpg]  " +
+                                                "\ndotnet run demo [Camera] [AngleDeg] [output.ldr]  " +
                                                 "\ndotnet run demo help");
                 case 1:
                     Console.WriteLine("Generating PFM file with: Camera = "+"Perspective"+
@@ -172,7 +169,7 @@ namespace Myraytracer
             {
                 case 4 when !float.TryParse(args[3], NumberStyles.Float, CultureInfo.InvariantCulture, out _):
                 {
-                    OutputPngFileName = args[3];
+                    OutputLdrFileName = args[3];
                     if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
                     {
                         AngleDeg = value;
@@ -201,7 +198,7 @@ namespace Myraytracer
                                       ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
                     break;
                 }
-                case 6:
+                case 5:
                 {
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
@@ -215,41 +212,31 @@ namespace Myraytracer
                     else
                     {
                         throw new ArgumentException(
-                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between PerspectiveProjection and OrthogonalProjection."
+                            $"Invalid Camera ('{args[1]}'), it must be a camera: choose between Perspective Projection and Orthogonal Projection."
                         );
                     }
-
-                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var angle))
+                    if (float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
                     {
-                        AngleDeg = angle;
+                        AngleDeg = value;
                     }
                     else
                     {
                         throw new ArgumentException($"Invalid AngleDeg ('{args[2]}'), it must be a floating-point number.");
                     }
-
-                    if (int.TryParse(args[3], out var width) && int.TryParse(args[4], out var height))
+                    if (int.TryParse(args[3], out var value3) && int.TryParse(args[4], out var value4))
                     {
-                        Width = width;
-                        Height = height;
+                        Width = value3;
+                        Height = value4;
                     }
                     else
                     {
-                        throw new ArgumentException($"Invalid Width or Height ('{args[3]}', '{args[4]}'), must be integers.");
+                        throw new ArgumentException(
+                            $"Invalid Width ('{args[3]}') or Height ('{args[4]}'), it must be a floating-point number.");
                     }
-
-                    OutputPngFileName = args[5];
-                    // generiamo il nome del PFM sostituendo l’estensione
-                    OutputPfmFileName = Path.ChangeExtension(OutputPngFileName, ".pfm");
-
-                    Console.WriteLine("Generating PFM file with: Camera=" + args[1] +
-                                      ", AngleDeg=" + args[2] +
-                                      ", Width=" + Width +
-                                      ", Height=" + Height +
-                                      ", Output=" + OutputPngFileName);
+                    Console.WriteLine("Generating PFM file with: Camera"+args[1]+
+                                      ", AngleDeg"+args[2]+", ImageWidth="+Width+", ImageHeight="+Height);
                     break;
                 }
-
             }
         }
     }

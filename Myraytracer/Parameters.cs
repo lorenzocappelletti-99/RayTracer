@@ -84,7 +84,7 @@ namespace Myraytracer
                     AngleDeg = 0;
                     break;
                 }
-                case 2 when args[1] == "PerspectiveProjection" || args[1] == "OrthogonalProjection":
+                case 2:
                 {
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))

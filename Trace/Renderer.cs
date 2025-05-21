@@ -24,9 +24,11 @@ public abstract class Renderer
 
 public class OnOffRenderer : Renderer
 {
-    public Color OnColor;
+    public Color OnColor = Color.White;
     
     public OnOffRenderer(World world, Color onColor) : base(world) { OnColor = onColor; }
+    
+    public OnOffRenderer(World world) : base(world) {}
     
     public OnOffRenderer(World world, Color backgroundColor, Color onColor) : 
         base(world, backgroundColor) 
@@ -55,5 +57,4 @@ public class FlatRenderer : Renderer{
         return pigmentColor;
 
     }
-
 }

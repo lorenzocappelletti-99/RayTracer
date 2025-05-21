@@ -58,6 +58,13 @@ public struct Color(float r, float g, float b)
         return Math.Abs(a - b) <= epsilon;
     }
 
+    public bool IsClose(Color a, float epsilon = 1e-5f)
+    {
+        return are_close(R, a.R) &&
+               are_close(B, a.B) &&
+               are_close(G, a.G);
+    }
+
     public static bool are_close_colors(Color c1, Color c2)
     {
         return are_close(c1.R, c2.R) &&

@@ -57,7 +57,7 @@ namespace Myraytracer
         public int Height { get; private set; } = 768;
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
-            new PerspectiveProjection(16/9f, transform: Transformation.Translation(new Vec(-1, 0,0)));
+            new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
         public string OutputLdrFileName { get; private set; } = "Demo.png";
         public string OutputPfmFileName { get; private set; } = "Demo.pfm";
 
@@ -119,11 +119,11 @@ namespace Myraytracer
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(value));
+                        Camera = new PerspectiveProjection(transform: Transformation.RotationX(value) * Transformation.Translation(new Vec(-1, 0,0)));
                     }
                     else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(value));
+                        Camera = new OrthogonalProjection(transform: Transformation.RotationX(value) * Transformation.Translation(new Vec(-1, 0,0)));
                     }
                     else
                     {

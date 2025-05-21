@@ -116,18 +116,12 @@ internal static class Program
         var imgMaterial = new Material{Pigment = new ImagePigment(HdrImage.ReadPfm(fileStream))};
 
         scene.AddShape(new Sphere(radius: .2f, material: imgMaterial));
-
-
-        // Observer e tracer: orbit attorno al centro
-        var observer = new PerspectiveProjection(
-            transform:
-                Transformation.RotationZ(parameters.AngleDeg)
-                * Transformation.Translation(new Vec(-1, 0, 0)));
         */
 
         var image  = new HdrImage(parameters.Width, parameters.Height);
         var tracer = new ImageTracer(image, parameters.Camera);
-        tracer.FireAllRaysFlat(scene);
+        var render = new FlatRenderer(scene);
+        tracer.FireAllRays(scene, render.Render);
 
         // --- OUTPUT PATHS DA PARAMETRI ---
         var ldrPath = parameters.OutputLdrFileName;

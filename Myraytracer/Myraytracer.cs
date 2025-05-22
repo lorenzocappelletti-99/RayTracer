@@ -72,6 +72,17 @@ internal static class Program
         // Costruzione della scena
         var scene = new World();
             
+        /*
+        var yellowCheckered = new Material
+        {
+            Pigment = new CheckeredPigment(Color.Yellow, Color.Black, 5)  
+        };
+        var greenCheckered = new Material
+        {
+            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
+        };
+        */
+        
         var yellowMaterial = new Material
         {
             Pigment = new UniformPigment(Color.Yellow)  
@@ -81,6 +92,8 @@ internal static class Program
             Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
         };
             
+        
+        
         // Spheres at the corners (yellow)
         var corners = new[]
         {
@@ -111,18 +124,16 @@ internal static class Program
             transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
             material: checkeredMaterial));
         
+        
         /*
-        using Stream fileStream = File.OpenRead("output/Demo.pfm");
-        var imgMaterial = new Material{Pigment = new ImagePigment(HdrImage.ReadPfm(fileStream))};
-
-        scene.AddShape(new Sphere(radius: .2f, material: imgMaterial));
-
-
-        // Observer e tracer: orbit attorno al centro
-        var observer = new PerspectiveProjection(
-            transform:
-                Transformation.RotationZ(parameters.AngleDeg)
-                * Transformation.Translation(new Vec(-1, 0, 0)));
+        scene.AddShape(new Sphere(
+            radius:0.1f,
+            transformation: Transformation.Translation(new Vec(0f,0.5f,0f)),
+            material: yellowCheckered));
+        
+        //scene.AddShape(new Plane(
+        //    material: greenCheckered));
+        
         */
 
         var image  = new HdrImage(parameters.Width, parameters.Height);

@@ -72,51 +72,26 @@ internal static class Program
         // Costruzione della scena
         var scene = new World();
             
-        var yellowMaterial = new Material
+        var greenCheck = new Material
         {
-            Pigment = new UniformPigment(Color.Yellow)  
+            Pigment = new CheckeredPigment(Color.Yellow, Color.Black)  
         };
         var checkeredMaterial = new Material
         {
             Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
         };
-            
-        // Spheres at the corners (yellow)
-        var corners = new[]
-        {
-            new Vec(+0.5f, +0.5f, +0.5f),
-            new Vec(-0.5f, +0.5f, +0.5f),
-            new Vec(-0.5f, -0.5f, +0.5f),
-            new Vec(+0.5f, -0.5f, +0.5f),
-            new Vec(+0.5f, +0.5f, -0.5f),
-            new Vec(-0.5f, +0.5f, -0.5f),
-            new Vec(-0.5f, -0.5f, -0.5f),
-            new Vec(+0.5f, -0.5f, -0.5f),
-        };
-        foreach (var v in corners)
-        {
-            scene.AddShape(new Sphere(
-                radius: 0.1f,
-                transformation: Transformation.Translation(v),
-                material: yellowMaterial));
-        }
+        
 
         // Two face-centers (checkered)
         scene.AddShape(new Sphere(
             radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(0, 0, -0.5f)),
-            material: checkeredMaterial));
-        scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
+            transformation: Transformation.Translation(new Vec(-1.5f, 0, 0f)),
             material: checkeredMaterial));
         
-        /*
-        using Stream fileStream = File.OpenRead("output/Demo.pfm");
-        var imgMaterial = new Material{Pigment = new ImagePigment(HdrImage.ReadPfm(fileStream))};
-
-        scene.AddShape(new Sphere(radius: .2f, material: imgMaterial));
-        */
+        
+        scene.AddShape(new Plane(
+            transformation:Transformation.Translation(new Vec(0f, 0, -0.2f)),
+            material:greenCheck));
 
         var image  = new HdrImage(parameters.Width, parameters.Height);
         var tracer = new ImageTracer(image, parameters.Camera);

@@ -57,8 +57,8 @@ namespace Myraytracer
         public int Height { get; private set; } = 768;
         public float AngleDeg { get; private set; }
         public Camera Camera { get; private set; } = 
-            new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
-        public string OutputLdrFileName { get; private set; } = "Demo.png";
+            new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)), aspectRatio: 16/9f);
+        public string OutputLdrFileName { get; private set; } = "demo.png";
         public string OutputPfmFileName { get; private set; } = "Demo.pfm";
 
         
@@ -89,11 +89,11 @@ namespace Myraytracer
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
+                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0)), aspectRatio: 16/9f);
                     }
                     else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0)));
+                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0)), aspectRatio: 16/9f);
                     }
                     else
                     {
@@ -119,11 +119,11 @@ namespace Myraytracer
                     var input = args[1].Trim();
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new PerspectiveProjection(transform: Transformation.RotationX(value) * Transformation.Translation(new Vec(-1, 0,0)));
+                        Camera = new PerspectiveProjection(transform: Transformation.RotationZ(value) * Transformation.Translation(new Vec(-1, 0,0)), aspectRatio:16/9f);
                     }
                     else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new OrthogonalProjection(transform: Transformation.RotationX(value) * Transformation.Translation(new Vec(-1, 0,0)));
+                        Camera = new OrthogonalProjection(transform: Transformation.RotationZ(value) * Transformation.Translation(new Vec(-1, 0,0)), aspectRatio:16/9f);
                     }
                     else
                     {
@@ -185,11 +185,11 @@ namespace Myraytracer
                     var input = args[1];
                     if (input.Equals("PerspectiveProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(AngleDeg), aspectRatio: 16/9f );
+                        Camera = new PerspectiveProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationZ(AngleDeg), aspectRatio: 16/9f );
                     }
                     else if (input.Equals("OrthogonalProjection", StringComparison.OrdinalIgnoreCase))
                     {
-                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationX(AngleDeg), aspectRatio: 16/9f);
+                        Camera = new OrthogonalProjection(transform: Transformation.Translation(new Vec(-1, 0,0))*Transformation.RotationZ(AngleDeg), aspectRatio: 16/9f);
                     }
                     else
                     {

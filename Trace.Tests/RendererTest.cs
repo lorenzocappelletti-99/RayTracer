@@ -12,7 +12,7 @@ namespace Trace.Tests;
 public class RendererTest
 {
     private static readonly HdrImage Image = new HdrImage(width: 3, height: 3);
-    private static readonly OrthogonalProjection Camera = new OrthogonalProjection();
+    private static readonly OrthogonalProjection? Camera = new OrthogonalProjection();
     private readonly ImageTracer _tracer = new ImageTracer(Image, Camera);
     
     [Fact]

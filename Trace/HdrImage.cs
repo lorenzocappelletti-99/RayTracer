@@ -321,9 +321,19 @@ public class HdrImage
                 }
             }
 
-            if(filePath.Contains("JPG", StringComparison.OrdinalIgnoreCase)) image.SaveAsJpeg(filePath);
-            if(filePath.Contains("PNG", StringComparison.OrdinalIgnoreCase)) image.SaveAsPng(filePath);
-            
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".jpg":
+                case ".jpeg":
+                    image.SaveAsJpeg(filePath);
+                    break;
+                case ".png":
+                    image.SaveAsPng(filePath);
+                    break;
+                default:
+                    throw new NotSupportedException($"Formato {extension} non supportato");
+            }
 
             Console.WriteLine($"Conversion complete: {filePath}");
         }

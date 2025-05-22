@@ -24,13 +24,19 @@ public abstract class Renderer
 
 public class OnOffRenderer : Renderer
 {
-    public Color OnColor;
+    public Color OnColor = Color.White;
     
     public OnOffRenderer(World world, Color onColor) : base(world) { OnColor = onColor; }
+    
+    public OnOffRenderer(World world) : base(world) {}
+    
+    public OnOffRenderer(World world, Color backgroundColor, Color onColor) : 
+        base(world, backgroundColor) 
+            { OnColor = onColor; }
 
     public override Color Render(Ray ray)
     {
-        return World.ray_intersection(ray) != null ? Color.White : Color.Black;
+        return World.ray_intersection(ray) != null ? OnColor : BackgroundColor;
     }
 }
 
@@ -38,12 +44,17 @@ public class OnOffRenderer : Renderer
 public class FlatRenderer : Renderer{
     
     public FlatRenderer(World world, Color backgroundColor) : base(world, backgroundColor){}
-    
+    public FlatRenderer(World world) : base(world)
+    {
+    }
+
+
     public override Color Render(Ray ray){
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
-        var material = hit.Material;
-        return material != null ? material.Brdf.Pigment.GetColor(hit.SurfacePoint) : BackgroundColor;
-        //return (material.Brdf.Pigment.GetColor(hit.SurfacePoint)) + material.EmittedRadiance.GetColor(hit.SurfacePoint));
+        var material = hit.Material!;
+        var pigmentColor = material.Pigment.GetColor(hit.SurfacePoint); 
+        return pigmentColor;
+
     }
 }

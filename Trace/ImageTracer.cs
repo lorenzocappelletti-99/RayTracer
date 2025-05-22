@@ -56,6 +56,25 @@ public class ImageTracer
         }
     }
     
+    public void FireAllRays(World? scene, Func <Ray, Color> func)
+    {
+        if (scene == null)
+        {
+            Image.SetAllPixels(Color.Black);
+            return;
+        }
+        
+        for (var row = 0; row < Image.Height; row++)
+        {
+            for (var col = 0; col < Image.Width; col++)
+            {
+                var ray = FireRay(col, row);
+                var color = func(ray);
+                Image.SetPixel(col, row, color);
+            }
+        }
+    }
+    /*
     public void FireAllRaysBw(World? scene)
     {
         if (scene == null)
@@ -112,4 +131,5 @@ public class ImageTracer
 
         return pigmentColor;
     }
+    */
 }

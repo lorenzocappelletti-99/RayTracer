@@ -72,17 +72,6 @@ internal static class Program
         // Costruzione della scena
         var scene = new World();
             
-        /*
-        var yellowCheckered = new Material
-        {
-            Pigment = new CheckeredPigment(Color.Yellow, Color.Black, 5)  
-        };
-        var greenCheckered = new Material
-        {
-            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
-        };
-        */
-        
         var yellowMaterial = new Material
         {
             Pigment = new UniformPigment(Color.Yellow)  
@@ -92,8 +81,6 @@ internal static class Program
             Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
         };
             
-        
-        
         // Spheres at the corners (yellow)
         var corners = new[]
         {
@@ -124,21 +111,17 @@ internal static class Program
             transformation: Transformation.Translation(new Vec(0, 0.5f,  0)),
             material: checkeredMaterial));
         
-        
         /*
-        scene.AddShape(new Sphere(
-            radius:0.1f,
-            transformation: Transformation.Translation(new Vec(0f,0.5f,0f)),
-            material: yellowCheckered));
-        
-        //scene.AddShape(new Plane(
-        //    material: greenCheckered));
-        
+        using Stream fileStream = File.OpenRead("output/Demo.pfm");
+        var imgMaterial = new Material{Pigment = new ImagePigment(HdrImage.ReadPfm(fileStream))};
+
+        scene.AddShape(new Sphere(radius: .2f, material: imgMaterial));
         */
 
         var image  = new HdrImage(parameters.Width, parameters.Height);
         var tracer = new ImageTracer(image, parameters.Camera);
-        tracer.FireAllRaysFlat(scene);
+        var render = new FlatRenderer(scene);
+        tracer.FireAllRays(scene, render.Render);
 
         // --- OUTPUT PATHS DA PARAMETRI ---
         var ldrPath = parameters.OutputLdrFileName;

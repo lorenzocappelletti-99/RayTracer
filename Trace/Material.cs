@@ -172,4 +172,5 @@ public class Material
 {
     public Pigment Pigment = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
+    
 }

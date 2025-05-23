@@ -85,7 +85,8 @@ public class DemoCommand : ICommand
         
         var yellowCheck = new Material
         {
-            Pigment = new CheckeredPigment(Color.Yellow, Color.Black)  
+            Pigment = new UniformPigment(Color.White),
+            Brdf = new SpecularBrdf()
         };
         var red = new Material
         {
@@ -93,22 +94,24 @@ public class DemoCommand : ICommand
         };
         var checkeredMaterial = new Material
         {
-            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
+            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  ,
+            Brdf = new DiffusiveBrdf()
         };
 
         var bluecheck = new Material()
         {
-            Pigment = new CheckeredPigment(Color.Blue,Color.Black)
+            Pigment = new CheckeredPigment(Color.Blue,Color.Black),
+            Brdf = new DiffusiveBrdf()
         };
 
         scene.AddShape(new Sphere(
-            radius: 0.1f,
+            radius: 0.2f,
             transformation: Transformation.Translation(new Vec(-1.5f, 0, 0f)),
             material: checkeredMaterial));
         
         scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.9f, 1f, 0.5f)),
+            radius: 0.2f,
+            transformation: Transformation.Translation(new Vec(-1f, 1f, -.2f)),
             material: yellowCheck));
         
         scene.AddShape(new Plane(
@@ -121,8 +124,9 @@ public class DemoCommand : ICommand
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
-        var render = new FlatRenderer(scene);
-        tracer.FireAllRays(scene, render.Render);
+        var renderPath = new PathTracer(scene);
+        //var render = new FlatRenderer(scene);
+        tracer.FireAllRays(scene, renderPath.Render);
 
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);

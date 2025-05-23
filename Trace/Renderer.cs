@@ -87,6 +87,10 @@ public class PathTracer : Renderer
         RussianRouletteLimit = russianRouletteLimit;
         
     }
+
+    public PathTracer(World world) : base(world)
+    {
+    }
     
 
     public override Color Render(Ray ray)
@@ -106,7 +110,7 @@ public class PathTracer : Renderer
         if (ray.Depth >= RussianRouletteLimit)
         {
             var q = Math.Max(0.05f, 1 - hitColorLum);
-            if (this.Pgc.Random() > q) hitColor *= 1.0f / (1.0f - q);
+            if (Pgc.Random() > q) hitColor *= 1.0f / (1.0f - q);
             else return emittedRadiance;
         }
 

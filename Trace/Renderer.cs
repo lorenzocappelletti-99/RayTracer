@@ -88,7 +88,7 @@ public class PathTracer : Renderer
         
     }
     
-/*
+
     public override Color Render(Ray ray)
     {
         if(Ray.Depth > MaxDepth) return Color.Black;
@@ -103,25 +103,30 @@ public class PathTracer : Renderer
         var hitColorLum = Math.Max(hitColor.R, Math.Max(hitColor.G, hitColor.B));
         
         //Russian Roulette
-        if (hitColorLum > 0.0f)
+        if (ray.Depth >= RussianRouletteLimit)
         {
-            for (var rayIndex = 0; rayIndex < NumOfRays; rayIndex++)
-            {
-                var q = Math.Max(0.05f, 1 - hitColorLum);
-                if (this.Pgc.Random() > q) hitColor *= 1.0f / (1.0f - q);
-                else return emittedRadiance;
-            }
+            var q = Math.Max(0.05f, 1 - hitColorLum);
+            if (this.Pgc.Random() > q) hitColor *= 1.0f / (1.0f - q);
+            else return emittedRadiance;
         }
 
         var cumRadiance = new Color(0.0f, 0.0f, 0.0f);
         if (hitColorLum > 0.0f)
         {
-            
+            for (var rayIndex=0; rayIndex < NumOfRays; rayIndex++)
+            {
+                var newRay = hitMaterial.Brdf.ScatterRay(
+                    pcg: this.Pgc,
+                    incomingDir: hitRecord.Ray.Direction,
+                    interactionPoint: hitRecord.WorldPoint,
+                    normal: hitRecord.Normal,
+                    depth: ray.Depth + 1
+                );
+                var newRadiance = Render(newRay);
+                cumRadiance += hitColor * newRadiance;
+            }
         }
-    }*/
-public override Color Render(Ray ray)
-{
-    throw new NotImplementedException();
-}
+        return emittedRadiance + cumRadiance * (1.0f / NumOfRays);
+    }
 }
 

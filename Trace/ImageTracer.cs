@@ -9,14 +9,14 @@ namespace Trace;
 public class ImageTracer
 {
     public HdrImage Image { get; }
-    public Camera Camera { get; }
+    public Camera? Camera { get; }
 
     /// <summary>
     /// Constructs an ImageTracer using the specified HdrImage and camera.
     /// </summary>
     /// <param name="image">The HDR image to work on.</param>
     /// <param name="camera">The camera used to fire rays.</param>
-    public ImageTracer(HdrImage image, Camera camera)
+    public ImageTracer(HdrImage image, Camera? camera)
     {
         Image = image;
         Camera = camera;

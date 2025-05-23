@@ -297,39 +297,41 @@ public class HdrImage
     /// <param name="factor"></param>
     public static void write_ldr_image(Stream pfmPath, string filePath, float gamma=1.0f, float factor=1.0f)
     {
-        try
-        {
-            var img = ReadPfm(pfmPath);
-            img.NormalizeImage(factor);
-            img.ClampImage();
-            using var image = new Image<Rgb24>(img.Width, img.Height);
+        var img = ReadPfm(pfmPath);
+        img.NormalizeImage(factor);
+        img.ClampImage();
+        using var image = new Image<Rgb24>(img.Width, img.Height);
 
-            for (var y = 0; y < img.Height; y++)
+        // Create output directory if needed
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+
+        for (var y = 0; y < img.Height; y++)
+        {
+            for (var x = 0; x < img.Width; x++)
             {
-                for (var x = 0; x < img.Width; x++)
-                {
-                    var col = img.GetPixel(x, y);
-                    //var r = (byte)Math.Clamp(col.R * 255, 0, 255);
-                    //var g = (byte)Math.Clamp(col.G * 255, 0, 255);
-                    //var b = (byte)Math.Clamp(col.B * 255, 0, 255);
-                    var r = (byte)Math.Clamp(Math.Pow(col.R, 1.0f/gamma) * 255, 0, 255);
-                    var g = (byte)Math.Clamp(Math.Pow(col.G, 1.0f/gamma) * 255, 0, 255);
-                    var b = (byte)Math.Clamp(Math.Pow(col.B, 1.0f/gamma) * 255, 0, 255);
-                    
-
-                    image[x, y] = new Rgb24(r, g, b);
-                }
+                var col = img.GetPixel(x, y);
+                var r = (byte)Math.Clamp(Math.Pow(col.R, 1.0 / gamma) * 255, 0, 255);
+                var g = (byte)Math.Clamp(Math.Pow(col.G, 1.0 / gamma) * 255, 0, 255);
+                var b = (byte)Math.Clamp(Math.Pow(col.B, 1.0 / gamma) * 255, 0, 255);
+                
+                image[x, y] = new Rgb24(r, g, b);
             }
-
-            if(filePath.Contains("JPG", StringComparison.OrdinalIgnoreCase)) image.SaveAsJpeg(filePath);
-            if(filePath.Contains("PNG", StringComparison.OrdinalIgnoreCase)) image.SaveAsPng(filePath);
-            
-
-            Console.WriteLine($"Conversion complete: {filePath}");
         }
-        catch (Exception ex)
+
+        var extension = Path.GetExtension(filePath).ToLowerInvariant();
+        switch (extension)
         {
-            Console.WriteLine($"Error during conversion: {ex.Message}");
+            case ".jpg":
+            case ".jpeg":
+                image.SaveAsJpeg(filePath);
+                break;
+            case ".png":
+                image.SaveAsPng(filePath);
+                break;
+            default:
+                throw new NotSupportedException($"Format {extension} is not supported");
         }
     }
     

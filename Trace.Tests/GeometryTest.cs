@@ -36,6 +36,31 @@ public class GeometryTests
         Assert.Equal((double)14.0f, a.SqNorm(), 5);
         Assert.Equal((double)14.0f, MathF.Pow(a.Norm(), 2), 5);
     }
+
+    [Fact]
+    private void TestOnb()
+    {
+        var pcg = new Pcg();
+        for (var i = 0; i < 10000; i++)
+        {
+            var normal = new Vec(pcg.Random(), pcg.Random(), pcg.Random());
+            normal.Normalize();
+            var onb = Vec.CreateOnbFromZ(normal);
+            
+            Assert.True(onb.Item3.IsClose(normal));
+            Assert.True(misc.AreClose(onb.Item1 * onb.Item2, 0));
+            Assert.True(misc.AreClose(onb.Item2 * onb.Item3, 0));
+            Assert.True(misc.AreClose(onb.Item1 * onb.Item3, 0));
+            
+            Assert.True(misc.AreClose(onb.Item1.Norm(), 1));
+            Assert.True(misc.AreClose(onb.Item2.Norm(), 1));
+            Assert.True(misc.AreClose(onb.Item3.Norm(), 1));
+            
+            Assert.True((onb.Item1 % onb.Item2).IsClose(onb.Item3));
+            Assert.True((onb.Item2 % onb.Item3).IsClose(onb.Item1));
+            Assert.True((onb.Item3 % onb.Item1).IsClose(onb.Item2));
+        }
+    }
     
     [Fact]
     public void TestPointOperations()

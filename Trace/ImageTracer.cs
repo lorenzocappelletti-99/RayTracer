@@ -4,6 +4,8 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System.Diagnostics;
+
 namespace Trace;
 
 public class ImageTracer
@@ -34,7 +36,8 @@ public class ImageTracer
     public Ray FireRay(int col, int row, float uPixel = 0.5f, float vPixel = 0.5f)
     {
         var u = (col + uPixel) / Image.Width;  
-        var v = 1.0f - (row + vPixel) / Image.Height; 
+        var v = 1.0f - (row + vPixel) / Image.Height;
+        Debug.Assert(Camera != null, nameof(Camera) + " != null");
         return Camera.FireRay(u, v);
     }
 

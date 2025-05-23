@@ -85,20 +85,20 @@ public class DemoCommand : ICommand
         
         var yellowCheck = new Material
         {
-            Pigment = new CheckeredPigment(Color.Yellow, Color.Black)  
+            EmittedRadiance = new CheckeredPigment(Color.Yellow, Color.Black)  
         };
         var red = new Material
         {
-            Pigment = new UniformPigment(Color.Red)  
+            EmittedRadiance = new UniformPigment(Color.Red)  
         };
         var checkeredMaterial = new Material
         {
-            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
+            EmittedRadiance = new CheckeredPigment(Color.Green, Color.Purple)  
         };
 
         var bluecheck = new Material()
         {
-            Pigment = new CheckeredPigment(Color.Blue,Color.Black)
+            EmittedRadiance = new CheckeredPigment(Color.Blue,Color.Black)
         };
 
         scene.AddShape(new Sphere(

@@ -239,8 +239,7 @@ public struct Vec (float x, float y, float z)
         {
             throw new ArgumentException($"Tried to create ONB from not normalized z vector!");
         }
-        float sign;
-        if (norm.Z > 0.0f) sign = 1.0f; else sign = -1.0f;
+        var sign = MathF.CopySign(1f, norm.Z);
         var a = -1.0f / (sign + norm.Z);
         var b = norm.X * norm.Y * a;
         var e1 = new Vec(1.0f + sign * norm.X * norm.X * a, sign * b, -sign * norm.X);
@@ -545,26 +544,6 @@ public struct Normal(float x, float y, float z)
         return new Vec(X, Y, Z);
     }
 
-}
-
-public struct HomMatrix(float a, float b, float c, float d)
-{
-    public float A = a; // element (0,0)
-    public float B = b; // element (0,1)
-    public float C = c; // element (1,0)
-    public float D = d; // element (1,1)
-
-    public void Display()
-    {
-        Console.WriteLine($"Matrix: \n[{A} {B}]\n[{C} {D}]");
-    } 
-    
-    
-    
-    public override string ToString()
-    {
-        return $"Matrix: \n[{A} {B}]\n[{C} {D}]";
-    }
 }
 
 

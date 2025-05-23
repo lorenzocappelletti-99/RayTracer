@@ -85,33 +85,30 @@ public class DemoCommand : ICommand
         
         var yellowCheck = new Material
         {
-            Pigment = new UniformPigment(Color.White),
-            Brdf = new SpecularBrdf()
+            EmittedRadiance = new CheckeredPigment(Color.Yellow, Color.Black)  
         };
         var red = new Material
         {
-            Pigment = new UniformPigment(Color.Red)  
+            EmittedRadiance = new UniformPigment(Color.Red)  
         };
         var checkeredMaterial = new Material
         {
-            Pigment = new CheckeredPigment(Color.Green, Color.Purple)  ,
-            Brdf = new DiffusiveBrdf()
+            EmittedRadiance = new CheckeredPigment(Color.Green, Color.Purple)  
         };
 
         var bluecheck = new Material()
         {
-            Pigment = new CheckeredPigment(Color.Blue,Color.Black),
-            Brdf = new DiffusiveBrdf()
+            EmittedRadiance = new CheckeredPigment(Color.Blue,Color.Black)
         };
 
         scene.AddShape(new Sphere(
-            radius: 0.2f,
+            radius: 0.1f,
             transformation: Transformation.Translation(new Vec(-1.5f, 0, 0f)),
             material: checkeredMaterial));
         
         scene.AddShape(new Sphere(
-            radius: 0.2f,
-            transformation: Transformation.Translation(new Vec(-1f, 1f, -.2f)),
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(-0.9f, 1f, 0.5f)),
             material: yellowCheck));
         
         scene.AddShape(new Plane(
@@ -124,9 +121,8 @@ public class DemoCommand : ICommand
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
-        var renderPath = new PathTracer(scene);
-        //var render = new FlatRenderer(scene);
-        tracer.FireAllRays(scene, renderPath.Render);
+        var render = new FlatRenderer(scene);
+        tracer.FireAllRays(scene, render.Render);
 
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);

@@ -55,7 +55,7 @@ public class FlatRenderer : Renderer{
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
         var material = hit.Material!;
-        var pigmentColor = material.Pigment.GetColor(hit.SurfacePoint); 
+        var pigmentColor = material.EmittedRadiance.GetColor(hit.SurfacePoint); 
         return pigmentColor;
 
     }
@@ -63,19 +63,24 @@ public class FlatRenderer : Renderer{
 
 public class PathTracer : Renderer
 {
-    public Pcg Pgc;
-    public int NumOfRays;
-    public int MaxDepth;
-    public int RussianRouletteLimit;
-    
-    public PathTracer(World world, Color backgroundColor, Pcg pgc, int numOfRays,
-        int maxDepth, int russianRouletteLimit) : base(world, backgroundColor)
+    public Pcg Pgc { get; }
+    public int NumOfRays { get; }
+    public int MaxDepth { get; }
+    public int RussianRouletteLimit { get; }
+
+    public PathTracer(
+        World world,
+        Color background = default, 
+        Pcg? pcg = null,
+        int numOfRays = 10,
+        int maxDepth = 10,
+        int russianRouletteLimit = 3
+    ) : base(world, background == default ? Color.Black : background)
     {
-        Pgc = pgc;
+        Pgc = pcg ?? new Pcg();
         NumOfRays = numOfRays;
         MaxDepth = maxDepth;
         RussianRouletteLimit = russianRouletteLimit;
-        
     }
     
     public PathTracer(World world, Pcg pgc, int numOfRays,
@@ -101,7 +106,7 @@ public class PathTracer : Renderer
         if(hitRecord == null) return BackgroundColor;
         
         var hitMaterial = hitRecord.Material!;
-        var hitColor = hitMaterial.Pigment.GetColor(hitRecord.SurfacePoint);
+        var hitColor = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
         var emittedRadiance = hitMaterial.Brdf.Pigment.GetColor(hitRecord.SurfacePoint);
         
         var hitColorLum = Math.Max(hitColor.R, Math.Max(hitColor.G, hitColor.B));

@@ -167,10 +167,12 @@ public class DiffusiveBrdf : Brdf
     }
 }
 
-
+/// <summary>
+/// Represents the material properties of a surface, including its <see cref="Pigment"/> (base color/texture) and <see cref="Brdf"/>. 
+/// </summary>
 public class Material
 {
-    public Pigment Pigment = new UniformPigment();
+    public Pigment EmittedRadiance = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
     
 }

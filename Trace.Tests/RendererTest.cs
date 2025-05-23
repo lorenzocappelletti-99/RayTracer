@@ -133,4 +133,36 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
             Assert.True(Approx(expected, color.B));
         }
     }
+
+    [Fact]
+    public void FurnaceTest()
+    {
+        var pcg = new Pcg();
+        for (var i = 0; i < 5; i++)
+        {
+            var emittedRadiance = pcg.Random_float();
+            var reflectance = pcg.Random_float();
+            
+            var world = new World();
+            
+            var enclosureMaterial = new Material
+            {
+                Brdf = new DiffusiveBrdf {
+                    Pigment = new UniformPigment(Color.White * reflectance) 
+                },
+                EmittedRadiance = new UniformPigment(Color.White * emittedRadiance)
+            };
+            
+            world.AddShape(new Sphere(material: enclosureMaterial));
+            var pathTracer = new PathTracer(world: world, pcg: pcg, numOfRays: 1, maxDepth: 100, russianRouletteLimit: 101);
+
+            var ray = new Ray(origin: new Point(0.0f, 0.0f, 0.0f), direction: new Vec(1f, 0f, 0f));
+            var color = pathTracer.Render(ray);
+            var expected = emittedRadiance / (1.0f - reflectance);
+            _testOutputHelper.WriteLine($"expected: {expected}, actual: {color.R}, {color.G}, {color.B}");
+            Assert.True(Approx(expected, color.R));
+            Assert.True(Approx(expected, color.G));
+            Assert.True(Approx(expected, color.B));
+        }
+    }
 }

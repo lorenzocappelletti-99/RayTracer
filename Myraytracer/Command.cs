@@ -85,7 +85,8 @@ public class DemoCommand : ICommand
         
         var yellowCheck = new Material
         {
-            EmittedRadiance = new CheckeredPigment(Color.Yellow, Color.Black)  
+            EmittedRadiance = new UniformPigment(Color.Yellow),
+            Brdf = new SpecularBrdf()
         };
         var red = new Material
         {
@@ -102,13 +103,13 @@ public class DemoCommand : ICommand
         };
 
         scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-1.5f, 0, 0f)),
+            radius: 0.4f,
+            transformation: Transformation.Translation(new Vec(-1f, 0, 0f)),
             material: checkeredMaterial));
         
         scene.AddShape(new Sphere(
-            radius: 0.1f,
-            transformation: Transformation.Translation(new Vec(-0.9f, 1f, 0.5f)),
+            radius: 0.2f,
+            transformation: Transformation.Translation(new Vec(-0.9f, 1f, -0.1f)),
             material: yellowCheck));
         
         scene.AddShape(new Plane(
@@ -121,7 +122,8 @@ public class DemoCommand : ICommand
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
-        var render = new FlatRenderer(scene);
+        var pcg = new Pcg();
+        var render = new PathTracer(world: scene, pcg: pcg, numOfRays: 3, maxDepth: 3, russianRouletteLimit: 4);
         tracer.FireAllRays(scene, render.Render);
 
         using var pfmStream = new MemoryStream();

@@ -149,11 +149,11 @@ public class DiffusiveBrdf : Brdf
     public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
     {
         var onb = Vec.CreateOnbFromZ(Normal.ToVec(normal));
-        var cosThetaSq = pcg.Random();
+        var cosThetaSq = pcg.Random_float();
         var cosTheta = (float)Math.Sqrt(cosThetaSq);
         var sinTheta = (float)Math.Sqrt(1.0f - cosThetaSq);
 
-        var phi = 2.0f * Math.PI * pcg.Random();
+        var phi = 2.0f * Math.PI * pcg.Random_float();
 
         return new Ray(
             origin: interactionPoint,

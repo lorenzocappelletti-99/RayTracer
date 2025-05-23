@@ -97,6 +97,7 @@ public class PathTracer : Renderer
     {
     }
     
+    
 
     public override Color Render(Ray ray)
     {
@@ -106,8 +107,8 @@ public class PathTracer : Renderer
         if(hitRecord == null) return BackgroundColor;
         
         var hitMaterial = hitRecord.Material!;
-        var hitColor = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
-        var emittedRadiance = hitMaterial.Brdf.Pigment.GetColor(hitRecord.SurfacePoint);
+        var hitColor = hitMaterial.Brdf.Pigment.GetColor(hitRecord.SurfacePoint);
+        var emittedRadiance = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
         
         var hitColorLum = Math.Max(hitColor.R, Math.Max(hitColor.G, hitColor.B));
         
@@ -115,7 +116,7 @@ public class PathTracer : Renderer
         if (ray.Depth >= RussianRouletteLimit)
         {
             var q = Math.Max(0.05f, 1 - hitColorLum);
-            if (Pgc.Random() > q) hitColor *= 1.0f / (1.0f - q);
+            if (Pgc.Random_float() > q) hitColor *= 1.0f / (1.0f - q);
             else return emittedRadiance;
         }
 

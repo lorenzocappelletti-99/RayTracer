@@ -58,7 +58,7 @@ public class ImageTracer
             }
         }
     }
-    /*
+    
     public void FireAllRays(World? scene, Func <Ray, Color> func)
     {
         if (scene == null)
@@ -76,107 +76,5 @@ public class ImageTracer
                 Image.SetPixel(col, row, color);
             }
         }
-    }*/
-
-    public void FireAllRays(World? scene, Func<Ray, Color> func)
-    {
-        if (scene == null)
-        {
-            Image.SetAllPixels(Color.Black);
-        }
-
-        for (var row = 0; row < Image.Height; row++)
-        {
-            for (var col = 0; col < Image.Width; col++)
-            {
-                var cumColor = Color.Black;
-                
-                if()
-            }
-        }
-        
     }
-    
-    
-    /*
-     for row in range(self.image.height):
-            for col in range(self.image.width):
-                cum_color = Color(0.0, 0.0, 0.0)
-
-                if self.samples_per_side > 0:
-                    # Run stratified sampling over the pixel's surface
-                    for inter_pixel_row in range(self.samples_per_side):
-                        for inter_pixel_col in range(self.samples_per_side):
-                            u_pixel = (inter_pixel_col + self.pcg.random_float()) / self.samples_per_side
-                            v_pixel = (inter_pixel_row + self.pcg.random_float()) / self.samples_per_side
-                            ray = self.fire_ray(col=col, row=row, u_pixel=u_pixel, v_pixel=v_pixel)
-                            cum_color += func(ray)
-
-                    self.image.set_pixel(col, row, cum_color * (1 / self.samples_per_side**2))
-                else:
-                    ray = self.fire_ray(col=col, row=row)
-                    self.image.set_pixel(col, row, func(ray))
-
-     */
-    
-    
-    
-    /*
-    public void FireAllRaysBw(World? scene)
-    {
-        if (scene == null)
-        {
-            Image.SetAllPixels(Color.Black);
-            return;
-        }
-        
-        for (var row = 0; row < Image.Height; row++)
-        {
-            for (var col = 0; col < Image.Width; col++)
-            {
-                var ray = FireRay(col, row);
-                Image.SetPixel(col, row, Bw(scene, ray));
-            }
-        }
-    }
-    
-    public void FireAllRaysFlat(World? scene)
-    {
-        if (scene == null)
-        {
-            Image.SetAllPixels(Color.Black);
-            return;
-        }
-        
-        for (var row = 0; row < Image.Height; row++)
-        {
-            for (var col = 0; col < Image.Width; col++)
-            {
-                var ray = FireRay(col, row);
-                Image.SetPixel(col, row, Flat(scene, ray, Color.Black));
-            }
-        }
-    }
-
-    private static Color Bw(World scene, Ray ray)
-    {
-        return scene.ray_intersection(ray) != null ? Color.White : Color.Black;
-    }
-    
-    /// <summary>
-    /// Flat shading: returns only the material's pigment
-    /// </summary>
-    public static Color Flat(World scene, Ray ray, Color backgroundColor)
-    {
-        var hit = scene.ray_intersection(ray);
-        if (hit == null)
-            return backgroundColor;
-
-        var material = hit.Material!;
-    
-        var pigmentColor = material.Pigment.GetColor(hit.SurfacePoint);
-
-        return pigmentColor;
-    }
-    */
 }

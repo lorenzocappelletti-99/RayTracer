@@ -43,7 +43,7 @@ public class GeometryTests
         var pcg = new Pcg();
         for (var i = 0; i < 10000; i++)
         {
-            var normal = new Vec(pcg.Random(), pcg.Random(), pcg.Random());
+            var normal = new Vec(pcg.Random_float(), pcg.Random_float(), pcg.Random_float());
             normal.Normalize();
             var onb = Vec.CreateOnbFromZ(normal);
             

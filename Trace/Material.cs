@@ -60,7 +60,7 @@ public class CheckeredPigment : Pigment
     public Color Color2;
     public int N; 
     
-    public CheckeredPigment(Color color1, Color color2, int n = 20)
+    public CheckeredPigment(Color color1, Color color2, int n = 10)
     {
         Color1 = color1;
         Color2 = color2;

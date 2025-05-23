@@ -220,6 +220,7 @@ public class Plane : Shape
             SurfacePoint = ShapePointToUV(localHit),
             T            = -localRay.Origin.Z / localRay.Direction.Z,
             Ray          = ray,
+            Material      = Material
     };
 
     }

@@ -5,6 +5,7 @@
  ===========================================================*/
 
 using CliFx;
+using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
@@ -19,8 +20,8 @@ public class DemoCommand : ICommand
     public string CameraType { get; init; } = "Perspective";
 
     [CommandOption("angle", 'a', Description = "Rotation angle Z (degrees)")]
-    public float AngleDeg => 0;
-
+    public float AngleDeg { get; init; } = 0;
+    
     [CommandOption("width", 'w', Description = "Image width")]
     public int Width { get; init; } = 1366;
 
@@ -82,13 +83,22 @@ public class DemoCommand : ICommand
 
         var scene = new World();
         
-        var greenCheck = new Material
+        var yellowCheck = new Material
         {
             Pigment = new CheckeredPigment(Color.Yellow, Color.Black)  
+        };
+        var red = new Material
+        {
+            Pigment = new UniformPigment(Color.Red)  
         };
         var checkeredMaterial = new Material
         {
             Pigment = new CheckeredPigment(Color.Green, Color.Purple)  
+        };
+
+        var bluecheck = new Material()
+        {
+            Pigment = new CheckeredPigment(Color.Blue,Color.Black)
         };
 
         scene.AddShape(new Sphere(
@@ -96,9 +106,18 @@ public class DemoCommand : ICommand
             transformation: Transformation.Translation(new Vec(-1.5f, 0, 0f)),
             material: checkeredMaterial));
         
+        scene.AddShape(new Sphere(
+            radius: 0.1f,
+            transformation: Transformation.Translation(new Vec(-0.9f, 1f, 0.5f)),
+            material: yellowCheck));
+        
+        scene.AddShape(new Plane(
+            transformation: Transformation.Translation(new Vec(1000f, 0, 0f)) * Transformation.RotationY(90),
+            material: red));
+        
         scene.AddShape(new Plane(
             transformation: Transformation.Translation(new Vec(0f, 0, -0.2f)),
-            material: greenCheck));
+            material: bluecheck));
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
@@ -135,9 +154,14 @@ public class Pfm2LdrCommand : ICommand
 
     public ValueTask ExecuteAsync(IConsole console)
     {
-        // Automatic type validation handled by CliFX
         console.Output.WriteLine($"Converting {InputPfmFileName} to {OutputLdrFileName}");
         console.Output.WriteLine($"Parameters: Factor={Factor}, Gamma={Gamma}");
+
+        // Parameter validation
+        if (Gamma <= 0)
+            throw new CommandException("Gamma value must be greater than zero.");
+        if (Factor <= 0)
+            throw new CommandException("Factor value must be greater than zero.");
 
         try
         {
@@ -148,12 +172,14 @@ public class Pfm2LdrCommand : ICommand
                 Gamma,
                 Factor
             );
-
-            console.Output.WriteLine("Conversion completed successfully.");
+            console.Output.WriteLine($"Conversion completed successfully, image saved in {OutputLdrFileName}.");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // throw new CommandException("Conversion failed: " + ex.Message, ex);
+            throw new CommandException(
+                message: $"Conversion failed: {ex.Message}",
+                innerException: ex 
+            );
         }
 
         return default;

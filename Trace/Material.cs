@@ -115,6 +115,27 @@ public abstract class Brdf
     public abstract Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
 }
 
+public class SpecularBrdf : Brdf
+{
+    
+    public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    {
+        var rayDir = new Vec(incomingDir.X, incomingDir.Y, incomingDir.Z);
+        var vecNormal = normal.ToVec();
+        vecNormal.Normalize();
+        return new Ray(origin: interactionPoint,
+                        direction: rayDir,
+                        tmin: 1e-3f,
+                        tmax: float.PositiveInfinity,
+                        depth: depth);
+    }
+}
+
 /// <summary>
 /// A class representing an ideal diffuse BRDF (also called «Lambertian»)
 /// </summary>
@@ -127,9 +148,23 @@ public class DiffusiveBrdf : Brdf
 
     public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
     {
-        throw new NotImplementedException();
+        var onb = Vec.CreateOnbFromZ(Normal.ToVec(normal));
+        var cosThetaSq = pcg.Random();
+        var cosTheta = (float)Math.Sqrt(cosThetaSq);
+        var sinTheta = (float)Math.Sqrt(1.0f - cosThetaSq);
+
+        var phi = 2.0f * Math.PI * pcg.Random();
+
+        return new Ray(
+            origin: interactionPoint,
+            direction: onb.Item1 * (float)Math.Cos(phi) * cosTheta
+                       + onb.Item2 * (float)Math.Sin(phi) * cosTheta
+                       + onb.Item3 * sinTheta,
+            tmin: 1.0e-3f,
+            tmax: float.PositiveInfinity,
+            depth: depth
+        );
     }
-    
 }
 
 

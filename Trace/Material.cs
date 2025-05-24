@@ -4,6 +4,8 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.Diagnostics;
+
 namespace Trace;
 
 /// <summary>
@@ -60,7 +62,7 @@ public class CheckeredPigment : Pigment
     public Color Color2;
     public int N; 
     
-    public CheckeredPigment(Color color1, Color color2, int n = 20)
+    public CheckeredPigment(Color color1, Color color2, int n = 10)
     {
         Color1 = color1;
         Color2 = color2;
@@ -112,7 +114,30 @@ public abstract class Brdf
     
     public abstract Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv);
     
-    public abstract Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
+    public abstract Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
+}
+
+public class SpecularBrdf : Brdf
+{
+    
+    public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    {
+        var rayDir = new Vec(incomingDir.X, incomingDir.Y, incomingDir.Z);
+        var vecNormal = normal.ToVec();
+        vecNormal.Normalize();
+        var dotProd = vecNormal * rayDir;
+        
+        return new Ray(origin: interactionPoint,
+                        direction: rayDir - 2 * vecNormal * dotProd,
+                        tmin: 1e-3f,
+                        tmax: float.PositiveInfinity,
+                        depth: depth);
+    }
 }
 
 /// <summary>
@@ -125,16 +150,34 @@ public class DiffusiveBrdf : Brdf
         return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);
     }
 
-    public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    public override Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
     {
-        throw new NotImplementedException();
+        var onb = Vec.CreateOnbFromZ(Normal.ToVec(normal));
+        Debug.Assert(pcg != null, nameof(pcg) + " != null");
+        var cosThetaSq = pcg.Random_float();
+        var cosTheta = (float)Math.Sqrt(cosThetaSq);
+        var sinTheta = (float)Math.Sqrt(1.0f - cosThetaSq);
+
+        var phi = 2.0f * Math.PI * pcg.Random_float();
+
+        return new Ray(
+            origin: interactionPoint,
+            direction: onb.Item1 * (float)Math.Cos(phi) * cosTheta
+                       + onb.Item2 * (float)Math.Sin(phi) * cosTheta
+                       + onb.Item3 * sinTheta,
+            tmin: 1.0e-3f,
+            tmax: float.PositiveInfinity,
+            depth: depth
+        );
     }
-    
 }
 
-
+/// <summary>
+/// Represents the material properties of a surface, including its <see cref="Pigment"/> (base color/texture) and <see cref="Brdf"/>. 
+/// </summary>
 public class Material
 {
-    public Pigment Pigment = new UniformPigment();
+    public Pigment EmittedRadiance = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
+    
 }

@@ -5,6 +5,9 @@
  ===========================================================*/
 
 // ReSharper disable InconsistentNaming
+
+using Xunit.Sdk;
+
 namespace Trace;
 
     /***********************************************************
@@ -198,6 +201,53 @@ public struct Vec (float x, float y, float z)
         var t = Transformation.Scaling(v);
         return t * this;
     }
+
+    /// <summary>
+    /// Normalizes Vector and transforms it into a type Normal
+    /// </summary>
+    /// <param name="v"></param>
+    /// <returns></returns>
+    public Normal ToNorm(Vec v)
+    {
+        v.Normalize();
+        return new Normal(v.X, v.Y, v.Z);
+    }
+    
+    /// <summary>
+    /// Normalizes this Vector and transforms it into a type Normal
+    /// </summary>
+    /// <param name="v"></param>
+    /// <returns></returns>
+    public Normal ToNorm()
+    {
+        Normalize();
+        return new Normal(X, Y, Z);
+    }
+
+
+    /// <summary>
+    /// Create an orthonormal basis (ONB) from a vector representing the z axis (normalized)
+    /// Return a tuple containing the three vectors (e1, e2, e3) of the basis. The result is such
+    /// that e3 = normal.
+    /// The vector must be *normalized*, otherwise this method won't work.
+    /// </summary>
+    /// <param name="norm"></param>
+    /// <returns></returns>
+    public static (Vec, Vec, Vec) CreateOnbFromZ(Vec norm)
+    {
+        if (Math.Abs(norm.SqNorm() - 1.0f) > 1e-3f)
+        {
+            throw new ArgumentException($"Tried to create ONB from not normalized z vector!");
+        }
+        var sign = MathF.CopySign(1f, norm.Z);
+        var a = -1.0f / (sign + norm.Z);
+        var b = norm.X * norm.Y * a;
+        var e1 = new Vec(1.0f + sign * norm.X * norm.X * a, sign * b, -sign * norm.X);
+        var e2 = new Vec(b, sign + norm.Y * norm.Y * a, -norm.Y);
+        
+        return (e1, e2, new Vec(norm.X, norm.Y, norm.Z));
+    }
+
 
     
 }
@@ -474,26 +524,26 @@ public struct Normal(float x, float y, float z)
         return t * this;
     }
 
-}
-
-public struct HomMatrix(float a, float b, float c, float d)
-{
-    public float A = a; // element (0,0)
-    public float B = b; // element (0,1)
-    public float C = c; // element (1,0)
-    public float D = d; // element (1,1)
-
-    public void Display()
+    /// <summary>
+    /// Transforms normal into a type Vec
+    /// </summary>
+    /// <param name="n"></param>
+    /// <returns></returns>
+    public static Vec ToVec(Normal n)
     {
-        Console.WriteLine($"Matrix: \n[{A} {B}]\n[{C} {D}]");
-    } 
-    
-    
-    
-    public override string ToString()
-    {
-        return $"Matrix: \n[{A} {B}]\n[{C} {D}]";
+        return new Vec(n.X, n.Y, n.Z);
     }
+    
+    /// <summary>
+    /// Transforms this normal into a type Vec
+    /// </summary>
+    /// <param name="n"></param>
+    /// <returns></returns>
+    public Vec ToVec()
+    {
+        return new Vec(X, Y, Z);
+    }
+
 }
 
 
@@ -522,4 +572,5 @@ public struct Vec2d
         return MathF.Abs(this.u - other.u) <= epsilon
                && MathF.Abs(this.v - other.v) <= epsilon;
     }
+    
 }

@@ -1,3 +1,5 @@
+using System.IO.Pipes;
+
 namespace Trace;
 
 
@@ -24,13 +26,19 @@ public abstract class Renderer
 
 public class OnOffRenderer : Renderer
 {
-    public Color OnColor;
+    public Color OnColor = Color.White;
     
     public OnOffRenderer(World world, Color onColor) : base(world) { OnColor = onColor; }
+    
+    public OnOffRenderer(World world) : base(world) {}
+    
+    public OnOffRenderer(World world, Color backgroundColor, Color onColor) : 
+        base(world, backgroundColor) 
+            { OnColor = onColor; }
 
     public override Color Render(Ray ray)
     {
-        return World.ray_intersection(ray) != null ? Color.White : Color.Black;
+        return World.ray_intersection(ray) != null ? OnColor : BackgroundColor;
     }
 }
 
@@ -38,12 +46,98 @@ public class OnOffRenderer : Renderer
 public class FlatRenderer : Renderer{
     
     public FlatRenderer(World world, Color backgroundColor) : base(world, backgroundColor){}
-    
+    public FlatRenderer(World world) : base(world)
+    {
+    }
+
+
     public override Color Render(Ray ray){
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
-        var material = hit.Material;
-        return material != null ? material.Brdf.Pigment.GetColor(hit.SurfacePoint) : BackgroundColor;
-        //return (material.Brdf.Pigment.GetColor(hit.SurfacePoint)) + material.EmittedRadiance.GetColor(hit.SurfacePoint));
+        var material = hit.Material!;
+        var pigmentColor = material.EmittedRadiance.GetColor(hit.SurfacePoint); 
+        return pigmentColor;
+
     }
 }
+
+public class PathTracer : Renderer
+{
+    public Pcg? Pgc { get; }
+    public int NumOfRays { get; }
+    public int MaxDepth { get; }
+    public int RussianRouletteLimit { get; }
+
+    public PathTracer(
+        World world,
+        Color background = default, 
+        Pcg? pcg = null,
+        int numOfRays = 10,
+        int maxDepth = 10,
+        int russianRouletteLimit = 3
+    ) : base(world, background == default ? Color.Black : background)
+    {
+        Pgc = pcg ?? new Pcg();
+        NumOfRays = numOfRays;
+        MaxDepth = maxDepth;
+        RussianRouletteLimit = russianRouletteLimit;
+    }
+    
+    public PathTracer(World world, Pcg? pgc, int numOfRays,
+        int maxDepth, int russianRouletteLimit) : base(world)
+    {
+        Pgc = pgc;
+        NumOfRays = numOfRays;
+        MaxDepth = maxDepth;
+        RussianRouletteLimit = russianRouletteLimit;
+        
+    }
+
+    public PathTracer(World world) : base(world)
+    {
+    }
+    
+    
+
+    public override Color Render(Ray ray)
+    {
+        if(ray.Depth > MaxDepth) return Color.Black;
+        
+        var hitRecord = World.ray_intersection(ray);
+        if(hitRecord == null) return BackgroundColor;
+        
+        var hitMaterial = hitRecord.Material!;
+        var hitColor = hitMaterial.Brdf.Pigment.GetColor(hitRecord.SurfacePoint);
+        var emittedRadiance = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
+        
+        var hitColorLum = Math.Max(hitColor.R, Math.Max(hitColor.G, hitColor.B));
+        
+        //Russian Roulette
+        if (ray.Depth >= RussianRouletteLimit)
+        {
+            var q = Math.Max(0.05f, 1 - hitColorLum);
+            if (Pgc.Random_float() > q) 
+                hitColor *= 1.0f / (1.0f - q);
+            else return emittedRadiance;
+        }
+
+        var cumRadiance = new Color(0.0f, 0.0f, 0.0f);
+        if (hitColorLum > 0.0f)
+        {
+            for (var rayIndex=0; rayIndex < NumOfRays; rayIndex++)
+            {
+                var newRay = hitMaterial.Brdf.ScatterRay(
+                    pcg: this.Pgc,
+                    incomingDir: hitRecord.Ray.Direction,
+                    interactionPoint: hitRecord.WorldPoint,
+                    normal: hitRecord.Normal,
+                    depth: ray.Depth + 1
+                );
+                var newRadiance = Render(newRay);
+                cumRadiance += hitColor * newRadiance;
+            }
+        }
+        return emittedRadiance + cumRadiance * (1.0f / NumOfRays);
+    }
+}
+

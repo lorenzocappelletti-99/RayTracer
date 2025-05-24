@@ -4,19 +4,21 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System.Diagnostics;
+
 namespace Trace;
 
 public class ImageTracer
 {
     public HdrImage Image { get; }
-    public Camera Camera { get; }
+    public Camera? Camera { get; }
 
     /// <summary>
     /// Constructs an ImageTracer using the specified HdrImage and camera.
     /// </summary>
     /// <param name="image">The HDR image to work on.</param>
     /// <param name="camera">The camera used to fire rays.</param>
-    public ImageTracer(HdrImage image, Camera camera)
+    public ImageTracer(HdrImage image, Camera? camera)
     {
         Image = image;
         Camera = camera;
@@ -34,7 +36,8 @@ public class ImageTracer
     public Ray FireRay(int col, int row, float uPixel = 0.5f, float vPixel = 0.5f)
     {
         var u = (col + uPixel) / Image.Width;  
-        var v = 1.0f - (row + vPixel) / Image.Height; 
+        var v = 1.0f - (row + vPixel) / Image.Height;
+        Debug.Assert(Camera != null, nameof(Camera) + " != null");
         return Camera.FireRay(u, v);
     }
 
@@ -56,7 +59,7 @@ public class ImageTracer
         }
     }
     
-    public void FireAllRaysBw(World? scene)
+    public void FireAllRays(World? scene, Func <Ray, Color> func)
     {
         if (scene == null)
         {
@@ -69,47 +72,9 @@ public class ImageTracer
             for (var col = 0; col < Image.Width; col++)
             {
                 var ray = FireRay(col, row);
-                Image.SetPixel(col, row, Bw(scene, ray));
+                var color = func(ray);
+                Image.SetPixel(col, row, color);
             }
         }
-    }
-    
-    public void FireAllRaysFlat(World? scene)
-    {
-        if (scene == null)
-        {
-            Image.SetAllPixels(Color.Black);
-            return;
-        }
-        
-        for (var row = 0; row < Image.Height; row++)
-        {
-            for (var col = 0; col < Image.Width; col++)
-            {
-                var ray = FireRay(col, row);
-                Image.SetPixel(col, row, Flat(scene, ray, Color.Black));
-            }
-        }
-    }
-
-    private static Color Bw(World scene, Ray ray)
-    {
-        return scene.ray_intersection(ray) != null ? Color.White : Color.Black;
-    }
-    
-    /// <summary>
-    /// Flat shading: returns only the material's pigment
-    /// </summary>
-    public static Color Flat(World scene, Ray ray, Color backgroundColor)
-    {
-        var hit = scene.ray_intersection(ray);
-        if (hit == null)
-            return backgroundColor;
-
-        var material = hit.Material!;
-    
-        var pigmentColor = material.Pigment.GetColor(hit.SurfacePoint);
-
-        return pigmentColor;
     }
 }

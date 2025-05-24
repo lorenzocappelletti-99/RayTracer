@@ -8,7 +8,7 @@ namespace Trace;
 /// <summary>
 /// Represents an RGB color with floating-point components.
 /// </summary>
-public struct Color(float r, float g, float b)
+public record struct Color(float r, float g, float b)
 {
     public float R = r, G = g, B = b;
     
@@ -56,6 +56,13 @@ public struct Color(float r, float g, float b)
     public static bool are_close(float a, float b, float epsilon = 1e-5f)
     {
         return Math.Abs(a - b) <= epsilon;
+    }
+
+    public bool IsClose(Color a, float epsilon = 1e-5f)
+    {
+        return are_close(R, a.R) &&
+               are_close(B, a.B) &&
+               are_close(G, a.G);
     }
 
     public static bool are_close_colors(Color c1, Color c2)

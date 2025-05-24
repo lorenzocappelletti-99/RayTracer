@@ -4,6 +4,8 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.Diagnostics;
+
 namespace Trace;
 
 /// <summary>
@@ -112,7 +114,7 @@ public abstract class Brdf
     
     public abstract Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv);
     
-    public abstract Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
+    public abstract Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
 }
 
 public class SpecularBrdf : Brdf
@@ -123,13 +125,15 @@ public class SpecularBrdf : Brdf
         throw new NotImplementedException();
     }
 
-    public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    public override Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
     {
         var rayDir = new Vec(incomingDir.X, incomingDir.Y, incomingDir.Z);
         var vecNormal = normal.ToVec();
         vecNormal.Normalize();
+        var dotProd = vecNormal * rayDir;
+        
         return new Ray(origin: interactionPoint,
-                        direction: rayDir,
+                        direction: rayDir - 2 * vecNormal * dotProd,
                         tmin: 1e-3f,
                         tmax: float.PositiveInfinity,
                         depth: depth);
@@ -146,9 +150,10 @@ public class DiffusiveBrdf : Brdf
         return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);
     }
 
-    public override Ray ScatterRay(Pcg pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
+    public override Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)
     {
         var onb = Vec.CreateOnbFromZ(Normal.ToVec(normal));
+        Debug.Assert(pcg != null, nameof(pcg) + " != null");
         var cosThetaSq = pcg.Random_float();
         var cosTheta = (float)Math.Sqrt(cosThetaSq);
         var sinTheta = (float)Math.Sqrt(1.0f - cosThetaSq);

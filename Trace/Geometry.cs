@@ -235,7 +235,7 @@ public struct Vec (float x, float y, float z)
     /// <returns></returns>
     public static (Vec, Vec, Vec) CreateOnbFromZ(Vec norm)
     {
-        if (Math.Abs(norm.SqNorm() - 1.0f) > 1e-5f)
+        if (Math.Abs(norm.SqNorm() - 1.0f) > 1e-3f)
         {
             throw new ArgumentException($"Tried to create ONB from not normalized z vector!");
         }

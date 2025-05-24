@@ -45,7 +45,7 @@ public class DemoCommand : ICommand
 
         // Create transformation
         var rotation = Transformation.RotationZ(AngleDeg);
-        var translation = Transformation.Translation(new Vec(-1, 0, 0));
+        var translation = Transformation.Translation(new Vec(-1, 0, 1));
         var transform = rotation * translation;
 
         // Create camera
@@ -83,49 +83,62 @@ public class DemoCommand : ICommand
 
         var scene = new World();
         
-        var yellowCheck = new Material
+        // Create the objects
+        
+        var sky = new Material
         {
-            EmittedRadiance = new UniformPigment(Color.Yellow),
-            Brdf = new SpecularBrdf()
+            EmittedRadiance = new UniformPigment(new Color(1.0f, 0.9f, 0.5f)),
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(Color.Black) 
+            }
         };
-        var red = new Material
+        var ground = new Material
         {
-            EmittedRadiance = new UniformPigment(Color.Red)  
+            Brdf = new DiffusiveBrdf {
+                Pigment = new CheckeredPigment(new Color(0.3f, 0.5f, 0.1f), new Color(0.1f, 0.2f, 0.5f)) 
+            }
         };
-        var checkeredMaterial = new Material
+        var sphere = new Material
         {
-            EmittedRadiance = new CheckeredPigment(Color.Green, Color.Purple)  
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(0.3f, 0.4f, 0.8f))             
+            }        
         };
 
-        var bluecheck = new Material()
+        var mirror = new Material()
         {
-            EmittedRadiance = new CheckeredPigment(Color.Blue,Color.Black)
+            Brdf = new SpecularBrdf() {
+                Pigment = new UniformPigment(new Color(0.6f, 0.2f, 0.3f))             
+            }        
         };
+        
+        // Create the scene
 
         scene.AddShape(new Sphere(
-            radius: 0.4f,
-            transformation: Transformation.Translation(new Vec(-1f, 0, 0f)),
-            material: checkeredMaterial));
+            transformation: Transformation.Translation(new Vec(0f, 0, 1f)),
+            material: sphere));
         
         scene.AddShape(new Sphere(
-            radius: 0.2f,
-            transformation: Transformation.Translation(new Vec(-0.9f, 1f, -0.1f)),
-            material: yellowCheck));
+            transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
+            material: mirror));
         
         scene.AddShape(new Plane(
-            transformation: Transformation.Translation(new Vec(1000f, 0, 0f)) * Transformation.RotationY(90),
-            material: red));
+            material: ground
+            )
+        );
         
         scene.AddShape(new Plane(
-            transformation: Transformation.Translation(new Vec(0f, 0, -0.2f)),
-            material: bluecheck));
+            transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
+            material: sky));
+        
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
         var pcg = new Pcg();
-        var render = new PathTracer(world: scene, pcg: pcg, numOfRays: 3, maxDepth: 3, russianRouletteLimit: 4);
+        var render = new PathTracer(world: scene, pcg: pcg, numOfRays: 10, maxDepth: 3, russianRouletteLimit: 1);
         tracer.FireAllRays(scene, render.Render);
-
+        
+        
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);
         pfmStream.Seek(0, SeekOrigin.Begin);

@@ -82,57 +82,7 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
         Assert.True(Image.GetPixel(1, 1).IsClose(sphereColor));
         
     }
-
-    [Fact]
-    public void TestPathTracer()
-    {
-        var pcg = new Pcg();
-
-        for (int i = 0; i < 5; i++)
-        {
-            var scene = new World();
-
-            var emittedRadiance = pcg.Random_float();
-            var reflectance = pcg.Random_float() * 0.9f;
-            
-            _testOutputHelper.WriteLine($"emittedRadiance: {emittedRadiance}, reflectance: {reflectance}");
-            
-            var enclosureMaterial = new Material
-            {
-                Brdf = new DiffusiveBrdf {
-                    Pigment = new UniformPigment(Color.White * reflectance) 
-                },
-                
-                EmittedRadiance = new UniformPigment(Color.White * emittedRadiance)
-            };
-            
-            scene.AddShape(new Sphere(
-                material: enclosureMaterial)
-            );
-
-            var pathTracer = new PathTracer(
-                world: scene, 
-                pcg: pcg,
-                numOfRays: 1, 
-                maxDepth: 100,   
-                russianRouletteLimit: 101 
-            );
-            
-            var ray = new Ray(
-                origin: new Point(0f, 0f, 0f), 
-                direction: new Vec(1f, 0f, 0f)
-                );
-
-            var color = pathTracer.Render(ray);
-            
-            var expected = emittedRadiance / (1.0f - reflectance);
-            _testOutputHelper.WriteLine($"expected: {expected}, actual: {color.R}, {color.G}, {color.B}");
-            
-            Assert.True(Approx(expected, color.R));
-            Assert.True(Approx(expected, color.G));
-            Assert.True(Approx(expected, color.B));
-        }
-    }
+    
 
     [Fact]
     public void FurnaceTest()
@@ -159,7 +109,7 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
             var ray = new Ray(origin: new Point(0.0f, 0.0f, 0.0f), direction: new Vec(1f, 0f, 0f));
             var color = pathTracer.Render(ray);
             var expected = emittedRadiance / (1.0f - reflectance);
-            _testOutputHelper.WriteLine($"expected: {expected}, actual: {color.R}, {color.G}, {color.B}");
+            //_testOutputHelper.WriteLine($"expected: {expected}, actual: {color.R}, {color.G}, {color.B}");
             Assert.True(Approx(expected, color.R));
             Assert.True(Approx(expected, color.G));
             Assert.True(Approx(expected, color.B));

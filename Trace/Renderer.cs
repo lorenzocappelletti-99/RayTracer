@@ -63,7 +63,7 @@ public class FlatRenderer : Renderer{
 
 public class PathTracer : Renderer
 {
-    public Pcg Pgc { get; }
+    public Pcg? Pgc { get; }
     public int NumOfRays { get; }
     public int MaxDepth { get; }
     public int RussianRouletteLimit { get; }
@@ -83,7 +83,7 @@ public class PathTracer : Renderer
         RussianRouletteLimit = russianRouletteLimit;
     }
     
-    public PathTracer(World world, Pcg pgc, int numOfRays,
+    public PathTracer(World world, Pcg? pgc, int numOfRays,
         int maxDepth, int russianRouletteLimit) : base(world)
     {
         Pgc = pgc;
@@ -101,7 +101,7 @@ public class PathTracer : Renderer
 
     public override Color Render(Ray ray)
     {
-        if(Ray.Depth > MaxDepth) return Color.Black;
+        if(ray.Depth > MaxDepth) return Color.Black;
         
         var hitRecord = World.ray_intersection(ray);
         if(hitRecord == null) return BackgroundColor;
@@ -116,7 +116,8 @@ public class PathTracer : Renderer
         if (ray.Depth >= RussianRouletteLimit)
         {
             var q = Math.Max(0.05f, 1 - hitColorLum);
-            if (Pgc.Random_float() > q) hitColor *= 1.0f / (1.0f - q);
+            if (Pgc.Random_float() > q) 
+                hitColor *= 1.0f / (1.0f - q);
             else return emittedRadiance;
         }
 

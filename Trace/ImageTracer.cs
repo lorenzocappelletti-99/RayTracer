@@ -12,31 +12,29 @@ public class ImageTracer
 {
     public HdrImage Image { get; }
     public Camera? Camera { get; }
-
     public int SamplesPerSide;
-
     public Pcg Pcg;
-    
+
     /// <summary>
-    ///  Construct an ImageTracer object
+    /// Constructs an ImageTracer using the specified HdrImage and camera.
     /// </summary>
-    /// <param name="image">must be a `HdrImage` object that has already been initialized</param>
-    /// <param name="camera">must be a descendant of the `Camera` object.</param>
-    /// <param name="samplesPerSide">If `samples_per_side` is larger than zero, stratified sampling will be applied to each pixel in the image, using the random number generator `pcg`.</param>
+    /// <param name="image">The HDR image to work on.</param>
+    /// <param name="camera">The camera used to fire rays.</param>
+    /// <param name="samplesPerSide"></param>
     /// <param name="pcg"></param>
     public ImageTracer(HdrImage image, Camera? camera, int samplesPerSide, Pcg pcg)
     {
         Image = image;
         Camera = camera;
-        SamplesPerSide = samplesPerSide;
         Pcg = pcg;
+        SamplesPerSide = samplesPerSide;
     }
     
-
     public ImageTracer(HdrImage image, Camera? camera)
     {
         Image = image;
         Camera = camera;
+        Pcg = new Pcg();
         SamplesPerSide = 0;
     }
 
@@ -56,17 +54,33 @@ public class ImageTracer
         Debug.Assert(Camera != null, nameof(Camera) + " != null");
         return Camera.FireRay(u, v);
     }
-    
+
+    /// <summary>
+    /// Fires a ray for each pixel in the image, applies the specified function(rendering) to compute a color,
+    /// and sets the pixel in the image to the computed color.
+    /// </summary>
+    /// <param name="func">A function that, given a Ray, returns a Color (i.e. solving rendering equation).</param>
     public void FireAllRays(Func <Ray, Color> func)
     {
-        /*
+        for (var row = 0; row < Image.Height; row++)
+        {
+            for (var col = 0; col < Image.Width; col++)
+            {
+                var ray = FireRay(col, row);
+                var color = func(ray);
+                Image.SetPixel(col, row, color);
+            }
+        }
+    }
+    
+    public void FireAllRays(World? scene, Func <Ray, Color> func)
+    {
         if (scene == null)
         {
             Image.SetAllPixels(Color.Black);
             return;
         }
-        */
-        
+
         for (var row = 0; row < Image.Height; row++)
         {
             for (var col = 0; col < Image.Width; col++)
@@ -75,17 +89,17 @@ public class ImageTracer
 
                 if (SamplesPerSide > 0)
                 {
-                    for (var intPixelRow = 0; intPixelRow < SamplesPerSide; intPixelRow++)
+                    for (var interPixelRow = 0; interPixelRow < SamplesPerSide; interPixelRow++)
                     {
-                        for (var intPixelCol = 0; intPixelCol < SamplesPerSide; intPixelCol++)
+                        for (var interPixelCol = 0; interPixelCol < SamplesPerSide; interPixelCol++)
                         {
-                            var uPixel = (intPixelCol + Pcg.Random_float());
-                            var vPixel = (intPixelRow + Pcg.Random_float()); 
+                            var uPixel = (interPixelCol + Pcg.Random_float())/SamplesPerSide;
+                            var vPixel = (interPixelRow + Pcg.Random_float())/SamplesPerSide;
                             var ray = FireRay(col, row, uPixel, vPixel);
                             cumColor += func(ray);
                         }
                     }
-                    Image.SetPixel(col, row, cumColor* (1.0f/(SamplesPerSide*SamplesPerSide)));
+                    Image.SetPixel(col, row, cumColor * (1.0f/(SamplesPerSide*SamplesPerSide)));
                 }
                 else
                 {

@@ -133,9 +133,9 @@ public class DemoCommand : ICommand
         
 
         var image = new HdrImage(Width, Height);
-        var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 10, maxDepth: 3, russianRouletteLimit: 1);
-        var tracer = new ImageTracer(image, Camera, 10, new Pcg());
-        tracer.FireAllRays(render.Render);
+        var tracer = new ImageTracer(image, Camera, 4, new Pcg());
+        var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
+        tracer.FireAllRays(scene, render.Render);
         
         
         using var pfmStream = new MemoryStream();

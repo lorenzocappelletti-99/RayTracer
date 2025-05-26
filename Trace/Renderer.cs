@@ -127,7 +127,7 @@ public class PathTracer : Renderer
             for (var rayIndex=0; rayIndex < NumOfRays; rayIndex++)
             {
                 var newRay = hitMaterial.Brdf.ScatterRay(
-                    pcg: this.Pgc,
+                    pcg: Pgc,
                     incomingDir: hitRecord.Ray.Direction,
                     interactionPoint: hitRecord.WorldPoint,
                     normal: hitRecord.Normal,

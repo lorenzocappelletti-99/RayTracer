@@ -62,6 +62,30 @@ public class ImageTracerTest : IDisposable
         }
     }
 
+    [Fact]
+    public void TestAntiAliasing()
+    {
+        var numOfRays = 0;
+        var smallImage = new HdrImage(1, 1);
+        var camera = new OrthogonalProjection(aspectRatio: 1.0f);
+        var tracer = new ImageTracer(smallImage, camera, samplesPerSide: 10, pcg: new Pcg());
+
+        tracer.FireAllRays(TraceRay);
+        Assert.True(Misc.AreClose(100, numOfRays));
+        return;
+
+        Color TraceRay(Ray ray)
+        {
+            var point = ray.PointAt(1.0f);
+            Assert.True(point.IsClose(ray.PointAt(1.0f)));
+            Assert.True(point.Y is >= -1.0f and <= 1.0f);
+            Assert.True(point.Z is >= -1.0f and <= 1.0f);
+
+            numOfRays++;
+            return new Color(0,0,0);
+        }
+    }
+
     public void Dispose()
     {
         // TODO release managed resources here

@@ -116,7 +116,7 @@ public class PathTracer : Renderer
         if (ray.Depth >= RussianRouletteLimit)
         {
             var q = Math.Max(0.05f, 1 - hitColorLum);
-            if (Pgc.Random_float() > q) 
+            if (Pgc != null && Pgc.Random_float() > q) 
                 hitColor *= 1.0f / (1.0f - q);
             else return emittedRadiance;
         }

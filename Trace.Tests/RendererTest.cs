@@ -39,7 +39,7 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
         var world = new World();
         world.AddShape(sphere);
         var renderer = new OnOffRenderer(world);
-        _tracer.FireAllRays(world, renderer.Render);
+        _tracer.FireAllRays(renderer.Render);
         
         
         Assert.True(Image.GetPixel(0, 0).IsClose(Color.Black));
@@ -69,7 +69,7 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
         var world = new World();
         world.AddShape(sphere);
         var renderer = new FlatRenderer(world);
-        _tracer.FireAllRays(world, renderer.Render);
+        _tracer.FireAllRays(renderer.Render);
 
         Assert.True(Image.GetPixel(0, 0).IsClose(Color.Black));
         Assert.True(Image.GetPixel(1, 0).IsClose(Color.Black));

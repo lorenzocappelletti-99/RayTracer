@@ -48,13 +48,13 @@ public class GeometryTests
             var onb = Vec.CreateOnbFromZ(normal);
             
             Assert.True(onb.Item3.IsClose(normal));
-            Assert.True(misc.AreClose(onb.Item1 * onb.Item2, 0));
-            Assert.True(misc.AreClose(onb.Item2 * onb.Item3, 0));
-            Assert.True(misc.AreClose(onb.Item1 * onb.Item3, 0));
+            Assert.True(Misc.AreClose(onb.Item1 * onb.Item2, 0));
+            Assert.True(Misc.AreClose(onb.Item2 * onb.Item3, 0));
+            Assert.True(Misc.AreClose(onb.Item1 * onb.Item3, 0));
             
-            Assert.True(misc.AreClose(onb.Item1.Norm(), 1));
-            Assert.True(misc.AreClose(onb.Item2.Norm(), 1));
-            Assert.True(misc.AreClose(onb.Item3.Norm(), 1));
+            Assert.True(Misc.AreClose(onb.Item1.Norm(), 1));
+            Assert.True(Misc.AreClose(onb.Item2.Norm(), 1));
+            Assert.True(Misc.AreClose(onb.Item3.Norm(), 1));
             
             Assert.True((onb.Item1 % onb.Item2).IsClose(onb.Item3));
             Assert.True((onb.Item2 % onb.Item3).IsClose(onb.Item1));

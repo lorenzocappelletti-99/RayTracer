@@ -1,6 +1,6 @@
 namespace Trace;
 
-public class misc
+public static class Misc
 {
     /// <summary>
     /// Verify that 2 floats are equal within a specified tolerance (epsilon)

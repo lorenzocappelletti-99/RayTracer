@@ -92,12 +92,12 @@ public class DemoCommand : ICommand
         Console.WriteLine("Running demo scene and writing PFM file...");
 
         var scene = new World();
-        
+        //scene 1
         // Create the objects
         
         var sky = new Material
         {
-            EmittedRadiance = new UniformPigment(new Color(1.0f, 0.9f, 0.5f)),
+            EmittedRadiance = new UniformPigment(new Color(.05f, 0.05f, 0.05f)),
             Brdf = new DiffusiveBrdf {
                 Pigment = new UniformPigment(Color.Black) 
             }
@@ -130,10 +130,10 @@ public class DemoCommand : ICommand
         
         scene.AddShape(new Sphere(
             transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: mirror));
+            material: sphere));
         
         scene.AddShape(new Plane(
-            material: ground
+                material: ground
             )
         );
         
@@ -141,16 +141,13 @@ public class DemoCommand : ICommand
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
         
-        //world.add_light(PointLight(position=Point(-30, 30, 30), color=Color(1.0, 1.0, 1.0))
+        scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
         
-        scene.AddLight(new PointLight(new Point(-30, 30, 30), new Color(1, 1, 1)));
-
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
         if (AntiAliasing) tracer.SamplesPerSide = 4;
-        //var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
-        var render = new PathTracer.PointLightRenderer(scene, Color.Black);
-        tracer.FireAllRays(scene, render.Render);
+        var render = new PointLightRenderer(scene, Color.Black);
+        tracer.FireAllRays(render.Render);
         
         
         using var pfmStream = new MemoryStream();

@@ -30,6 +30,12 @@ public class DemoCommand : ICommand
 
     [CommandOption("output", 'o', Description = "Output file name (LDR)")]
     public string OutputLdrFileName { get; init; } = "demo.png";
+    
+    [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
+    public bool AntiAliasing { get; init; } = false;
+    
+    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
+    public int RaysPerPixel { get; init; } = 0;
 
     public Camera? Camera { get; private set; }
     public string OutputPfmFileName => Path.ChangeExtension(OutputLdrFileName, ".pfm");
@@ -69,7 +75,8 @@ public class DemoCommand : ICommand
             $"Generating PFM file with: Camera={CameraType}, " +
             $"AngleDeg={AngleDeg.ToString(CultureInfo.InvariantCulture)}, " +
             $"Width={Width}, Height={Height}, " +
-            $"Output={OutputLdrFileName}"
+            $"Output={OutputLdrFileName}, "+
+            $"AntiAliasing={AntiAliasing}"
         );
 
         RunDemoScene();
@@ -133,7 +140,8 @@ public class DemoCommand : ICommand
         
 
         var image = new HdrImage(Width, Height);
-        var tracer = new ImageTracer(image, Camera, 4, new Pcg());
+        var tracer = new ImageTracer(image, Camera);
+        if (AntiAliasing) tracer.SamplesPerSide = 4;
         var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
         tracer.FireAllRays(scene, render.Render);
         

@@ -4,6 +4,9 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.Data;
+using Xunit;
+
 namespace Trace;
 
 public abstract class Shape
@@ -29,7 +32,7 @@ public abstract class Shape
     public abstract Vec2d ShapePointToUV(Point p);
     public abstract bool QuickRayIntersection(Ray ray);
     public abstract HitRecord? RayIntersection(Ray ray);
-    public abstract bool IsPointInternals(Point p, Ray ray);
+    public abstract bool IsPointInternal(Point p);
 }
 
 public class Sphere : Shape
@@ -149,13 +152,9 @@ public class Sphere : Shape
         };
     }
 
-    public override bool IsPointInternals(Point p, Ray ray)
+    public override bool IsPointInternal(Point p)
     {
-        if(!QuickRayIntersection(ray))
-        {
-            //throw new Exception("ray does not intersect sphere");
-            return false;
-        }
+        var ray = new Ray(p, Vec.VEC_X);
         var localRay = ray.Transform(Transformation.Inverse());
 
         var origin    = localRay.Origin.to_vec();
@@ -164,18 +163,17 @@ public class Sphere : Shape
         var a = direction.SqNorm();
         var b = 2 * origin * direction;
         var c = origin.SqNorm() - Radius * Radius;
-
+        
         var delta = b * b - 4 * a * c;
-        if (delta < 0)
-            return false;
-
+        if (p.AreClose(delta, 0)) return true;
+        
         var sqrtDelta = MathF.Sqrt(delta);
         var tMin       = (-b - sqrtDelta) / (2 * a);
         var tMax     = (-b + sqrtDelta) / (2 * a);
-
-        return Math.Abs(ray.PointAt(tMin).X) < Math.Abs(p.X) && Math.Abs(ray.PointAt(tMax).X) > Math.Abs(p.X) &&
-               Math.Abs(ray.PointAt(tMin).Y) < Math.Abs(p.Y) && Math.Abs(ray.PointAt(tMax).Y) > Math.Abs(p.Y) &&
-               Math.Abs(ray.PointAt(tMin).Z) < Math.Abs(p.Z) && Math.Abs(ray.PointAt(tMax).Z) > Math.Abs(p.Z);
+        
+        return ray.PointAt(tMin).X <= p.X && ray.PointAt(tMax).X >= p.X &&
+               ray.PointAt(tMin).Y <= p.Y && ray.PointAt(tMax).Y >= p.Y &&
+               ray.PointAt(tMin).Z <= p.Z && ray.PointAt(tMax).Z >= p.Z;
     }
 }
 
@@ -231,44 +229,63 @@ public class Plane : Shape
 
     }
     
-    public override bool IsPointInternals(Point p, Ray ray)
+    public override bool IsPointInternal(Point p)
     {
-        
-        return true;
+        return false;
     }
 }
 
 public class Composition
 {
-    public List<Shape> Shapes { get; set; } = [];
+    public List<Shape> ShapesAdd { get; } = [];
+    public List<Shape> ShapesDif { get; } = [];
 
-    public void AddShape(Shape shape)
+    public void AddShapeAdd(Shape shape)
     {
-        Shapes.Add(shape);
+        ShapesAdd.Add(shape);
+    }
+    public void AddShapeDif(Shape shape)
+    {
+        ShapesDif.Add(shape);
     }
 
     public HitRecord Union(Ray ray)
     {
         var closest = new HitRecord();
-        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.t < closest.t))
+        foreach (var intersection in ShapesAdd.Select(shape => shape.RayIntersection(ray))
+                     .OfType<HitRecord>()
+                     .Where(intersection => closest == null || intersection.t < closest.t))
         {
             closest = intersection;
         }
         return closest;
     }
     
-    /*
+    
     public HitRecord Difference(Ray ray)
     {
-        var intersections = (from t in Shapes where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+        var intersectionsAdd = (from t in ShapesAdd where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+        var intersectionsDif = (from t in ShapesDif where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
 
-        var T = .0f;
-        for (var i = 0; i < intersections.Count; i++)
+        var myHits = new List<HitRecord>();
+        
+        foreach (var interDif in intersectionsDif)
         {
-            if(intersections[i].t  T) continue;
+            foreach (var shapeAdd in ShapesAdd)
+            {
+                if (shapeAdd.IsPointInternal(interDif.WorldPoint)) myHits.Add(interDif);
+            }
         }
 
-        return intersection;
+        foreach (var interAdd in intersectionsAdd)
+        {
+            foreach (var shapeAdd in ShapesDif)
+            {
+                if (!shapeAdd.IsPointInternal(interAdd.WorldPoint)) myHits.Add(interAdd);
+            }
+        }
+        
+        return myHits.OrderBy(h => h.t).First();
     }
-    */
+    /**/
 }

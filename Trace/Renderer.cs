@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 
 namespace Trace;
 
@@ -138,6 +139,54 @@ public class PathTracer : Renderer
             }
         }
         return emittedRadiance + cumRadiance * (1.0f / NumOfRays);
+    }
+
+    public class PointLightRenderer : Renderer
+    {
+        public Color AmbientColor = new Color(0.1f, 0.1f, 0.1f);
+        public PointLightRenderer(World world, Color backgroundColor) : base(world, backgroundColor){}
+        
+
+        public PointLightRenderer(World world, Color backgroundColor, Color ambientColor) : base(world, backgroundColor)
+        {
+            AmbientColor = ambientColor;
+        }
+
+        public override Color Render(Ray ray)
+        {
+            var hitRecord = World.ray_intersection(ray);
+            if(hitRecord == null) return BackgroundColor;
+            
+            var hitMaterial = hitRecord.Material!;
+
+            var resultColor = AmbientColor;
+            foreach (var curLight in World.PointLights)
+            {
+                if (World.IsPointVisible(curLight.Position, hitRecord.WorldPoint))
+                {
+                    float distanceFactor;
+                    var distanceVec = hitRecord.WorldPoint - curLight.Position;
+                    var distance = distanceVec.Norm();
+                    var inDir = distanceVec * (1.0f / distanceVec.Norm());
+                    var cosTheta = Math.Max(0, Vec.NormalizedDot(-ray.Direction, hitRecord.Normal.ToVec()));
+                    if (curLight.LinearRadius > 0)
+                    {
+                        distanceFactor = (curLight.LinearRadius / distance) * (curLight.LinearRadius / distance);
+                    }
+                    else distanceFactor = 0;
+
+                    var emittedColor = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
+                    var brdfColor = hitMaterial.Brdf.Eval(
+                        normal: hitRecord.Normal,
+                        incomingDir: inDir,
+                        outgoingDir: -ray.Direction,
+                        uv: hitRecord.SurfacePoint);
+                    resultColor += (emittedColor + brdfColor) * curLight.Color * cosTheta * distanceFactor;
+                }
+            }
+            return resultColor;
+        }
+        
     }
 }
 

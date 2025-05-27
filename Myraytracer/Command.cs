@@ -36,6 +36,9 @@ public class DemoCommand : ICommand
     
     [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
     public int RaysPerPixel { get; init; } = 0;
+    
+    [CommandOption("Renderer", 'r', Description = "Renderer type")]
+    public string Renderer { get; init; } = "PathTracer";
 
     public Camera? Camera { get; private set; }
     public string OutputPfmFileName => Path.ChangeExtension(OutputLdrFileName, ".pfm");
@@ -138,11 +141,15 @@ public class DemoCommand : ICommand
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
         
+        //world.add_light(PointLight(position=Point(-30, 30, 30), color=Color(1.0, 1.0, 1.0))
+        
+        scene.AddLight(new PointLight(new Point(-30, 30, 30), new Color(1, 1, 1)));
 
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
         if (AntiAliasing) tracer.SamplesPerSide = 4;
-        var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
+        //var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
+        var render = new PathTracer.PointLightRenderer(scene, Color.Black);
         tracer.FireAllRays(scene, render.Render);
         
         

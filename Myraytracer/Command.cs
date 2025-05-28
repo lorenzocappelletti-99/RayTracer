@@ -150,7 +150,7 @@ public class DemoCommand : ICommand
             var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PointLightRenderer(scene, Color.Black);
-            tracer.FireAllRays(scene, render.Render);
+            tracer.FireAllRays(render.Render);
             using var pfmStream = new MemoryStream();
             image.WritePfm(pfmStream);
             pfmStream.Seek(0, SeekOrigin.Begin);
@@ -166,7 +166,7 @@ public class DemoCommand : ICommand
             var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PathTracer(scene, Color.Black, new Pcg(), 5, 3, 1);
-            tracer.FireAllRays(scene, render.Render);
+            tracer.FireAllRays(render.Render);
             using var pfmStream = new MemoryStream();
             image.WritePfm(pfmStream);
             pfmStream.Seek(0, SeekOrigin.Begin);

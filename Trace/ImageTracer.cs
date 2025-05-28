@@ -73,14 +73,8 @@ public class ImageTracer
         }
     }*/
     
-    public void FireAllRays(World? scene, Func <Ray, Color> func)
+    public void FireAllRays(Func <Ray, Color> func)
     {
-        if (scene == null)
-        {
-            Image.SetAllPixels(Color.Black);
-            return;
-        }
-
         for (var row = 0; row < Image.Height; row++)
         {
             for (var col = 0; col < Image.Width; col++)

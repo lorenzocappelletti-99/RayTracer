@@ -3,10 +3,17 @@ namespace Trace;
 public class World
 {
     public List<Shape> Shapes { get; set; } = [];
+    public List<PointLight> PointLights { get; set; } = [];
+
 
     public void AddShape(Shape shape)
     {
         Shapes.Add(shape);
+    }
+
+    public void AddLight(PointLight light)
+    {
+        PointLights.Add(light);
     }
 
     
@@ -24,19 +31,14 @@ public class World
             closest = intersection;
         }
         return closest;
-
     }
     
     public bool IsPointVisible(Point p, Point observerPoint)
     {
         var dir = p - observerPoint;
-        var dirNorm = dir.SqNorm();
+        var dirNorm = dir.Norm();
 
         var ray = new Ray(origin: observerPoint, direction: dir, tmin: 1e-2f / dirNorm, tmax:1.0f);
-        foreach (var shape in Shapes)
-        {
-            if (shape.QuickRayIntersection(ray) == true) return false;
-        }
-        return true;
+        return Shapes.All(shape => !shape.QuickRayIntersection(ray));
     }
 }

@@ -122,7 +122,9 @@ public class SpecularBrdf : Brdf
     
     public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
-        throw new NotImplementedException();
+        var thetaIn = (float)Math.Acos(Vec.NormalizedDot(normal.ToVec(), incomingDir));
+        var thetaOut= (float)Math.Acos(Vec.NormalizedDot(normal.ToVec(), outgoingDir));
+        return Math.Abs(thetaIn - thetaOut) < 0.0001 ? Pigment.GetColor(uv) : Color.Black;
     }
 
     public override Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth)

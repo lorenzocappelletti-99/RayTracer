@@ -247,6 +247,22 @@ public struct Vec (float x, float y, float z)
         
         return (e1, e2, new Vec(norm.X, norm.Y, norm.Z));
     }
+    
+    /// <summary>
+    /// Applly dot product to two arguments after having
+    /// normalized them
+    /// Result is cosine of angle between the two vectors
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <returns></returns>
+    public static float NormalizedDot(Vec v1, Vec v2)
+    {
+        var mag1 = v1.SqNorm();
+        var mag2 = v2.SqNorm();
+        if (mag1 == 0 || mag2 == 0) return 0;
+        return (v1 * v2) / (mag1 * mag2);
+    }
 
 
     
@@ -572,5 +588,7 @@ public struct Vec2d
         return MathF.Abs(this.u - other.u) <= epsilon
                && MathF.Abs(this.v - other.v) <= epsilon;
     }
+
+
     
 }

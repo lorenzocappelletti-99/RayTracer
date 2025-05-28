@@ -36,6 +36,9 @@ public class DemoCommand : ICommand
     
     [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
     public int RaysPerPixel { get; init; } = 0;
+    
+    [CommandOption("Renderer", 'r', Description = "Renderer type")]
+    public string Renderer { get; init; } = "PathTracer";
 
     public Camera? Camera { get; private set; }
     public string OutputPfmFileName => Path.ChangeExtension(OutputLdrFileName, ".pfm");
@@ -89,12 +92,12 @@ public class DemoCommand : ICommand
         Console.WriteLine("Running demo scene and writing PFM file...");
 
         var scene = new World();
-        
+        //scene 1
         // Create the objects
         
         var sky = new Material
         {
-            EmittedRadiance = new UniformPigment(new Color(1.0f, 0.9f, 0.5f)),
+            EmittedRadiance = new UniformPigment(new Color(.05f, 0.05f, 0.05f)),
             Brdf = new DiffusiveBrdf {
                 Pigment = new UniformPigment(Color.Black) 
             }
@@ -127,10 +130,10 @@ public class DemoCommand : ICommand
         
         scene.AddShape(new Sphere(
             transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: mirror));
+            material: sphere));
         
         scene.AddShape(new Plane(
-            material: ground
+                material: ground
             )
         );
         
@@ -138,12 +141,13 @@ public class DemoCommand : ICommand
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
         
-
+        scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+        
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera);
         if (AntiAliasing) tracer.SamplesPerSide = 4;
-        var render = new PathTracer(world: scene, pcg: new Pcg(), numOfRays: 5, maxDepth: 3, russianRouletteLimit: 1);
-        tracer.FireAllRays(scene, render.Render);
+        var render = new PointLightRenderer(scene, Color.Black);
+        tracer.FireAllRays(render.Render);
         
         
         using var pfmStream = new MemoryStream();

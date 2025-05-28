@@ -3,11 +3,13 @@
  |             Released under EUPL-1.2 License
  |                       See LICENSE
  ===========================================================*/
+using System;
+using System.Collections.Generic;
+using System.Linq; 
 
-using System.Data;
-using Xunit;
 
 namespace Trace;
+
 
 public abstract class Shape
 {
@@ -259,6 +261,118 @@ public class Plane : Shape
     }
 }
 
+public enum CsgOperation
+{
+    Union,
+    Intersection,
+    Difference
+}
+
+public class Csg : Shape
+    {
+        public readonly Shape First;
+        public readonly Shape Second;
+        public readonly CsgOperation Op;
+
+        public Csg(Shape first, Shape second, CsgOperation operation)
+            : base(material: null, transformation: null)
+        {
+            First  = first;
+            Second = second;
+            Op     = operation;
+        }
+
+        public override Vec2d ShapePointToUV(Point p)
+        {
+            // UV is taken from whichever shape provided the hit;
+            // handled in RayIntersection
+            return new Vec2d();
+        }
+
+        public override bool QuickRayIntersection(Ray ray)
+        {
+            // If either child might intersect, we consider there might be a hit.
+            return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
+        }
+
+        public override HitRecord? RayIntersection(Ray ray)
+        {
+            if (!QuickRayIntersection(ray))
+                return null;
+            
+            // Gather all hits from both children
+            var firstHits  = First.RayIntersection(ray);
+            var secondHits = Second.RayIntersection(ray);
+
+            // Merge and sort by t
+            var events = new List<(float T, HitRecord Hit, bool IsFirst)>();
+
+            var h1 = First.RayIntersection(ray);
+            if (h1 != null) events.Add((h1.T, h1, true));
+
+            var h2 = Second.RayIntersection(ray);
+            if (h2 != null) events.Add((h2.T, h2, false));
+
+            events.Sort((a, b) => a.T.CompareTo(b.T));
+            
+
+            // Determine initial inside-state just before first event
+            float epsilon = 1e-4f;
+            float t0 = (events.Count > 0 ? events[0].T : float.MaxValue) - epsilon;
+            var p0 = ray.PointAt(t0);
+            bool inFirst  = First.IsPointInternal(p0);
+            bool inSecond = Second.IsPointInternal(p0);
+
+            // Sweep through events to find first intersection according to operation
+            foreach (var (t, hit, isFirst) in events)
+            {
+                // Toggle state for the shape that generated this event
+                if (isFirst) inFirst = !inFirst;
+                else         inSecond = !inSecond;
+
+                bool inside = Op switch
+                {
+                    CsgOperation.Union        => inFirst || inSecond,
+                    CsgOperation.Intersection => inFirst && inSecond,
+                    CsgOperation.Difference   => inFirst && !inSecond,
+                    _                          => false
+                };
+
+                if (inside)
+                {
+                    // Return the corresponding hit record
+                    return hit;
+                }
+            }
+
+            return null;
+        }
+
+        public override bool IsPointInternal(Point p)
+        {
+            var insideFirst  = First.IsPointInternal(p);
+            var insideSecond = Second.IsPointInternal(p);
+
+            return Op switch
+            {
+                CsgOperation.Union        => insideFirst || insideSecond,
+                CsgOperation.Intersection => insideFirst && insideSecond,
+                CsgOperation.Difference   => insideFirst && !insideSecond,
+                _                          => false
+            };
+        }
+
+        private static HitRecord? PickNearest(HitRecord? a, HitRecord? b)
+        {
+            if (a == null) return b;
+            if (b == null) return a;
+            return a.T < b.T ? a : b;
+        }
+    }
+
+
+
+/*
 public class Composition
 {
     public List<Shape> ShapesAdd { get; } = [];
@@ -278,7 +392,7 @@ public class Composition
         var closest = new HitRecord();
         foreach (var intersection in ShapesAdd.Select(shape => shape.RayIntersection(ray))
                      .OfType<HitRecord>()
-                     .Where(intersection => closest == null || intersection.t < closest.t))
+                     .Where(intersection => closest == null || intersection.T < closest.T))
         {
             closest = intersection;
         }
@@ -309,7 +423,7 @@ public class Composition
             }
         }
         
-        return myHits.OrderBy(h => h.t).First();
+        return myHits.OrderBy(h => h.T).First();
     }
-    /**/
 }
+*/

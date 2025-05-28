@@ -9,6 +9,7 @@ using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
+using System.Net.Sockets;
 using Trace;
 
 namespace Myraytracer;
@@ -125,23 +126,46 @@ public class DemoCommand : ICommand
         };
         
         // Create the scene
-
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(0f, 0, 1f)),
-            material: sphere));
         
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: mirror));
+        var sphere1 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0f, 0, 1f)),
+            material: mirror);
+        
+        var sphere2 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0f, 0, 1.3f)),
+            material: mirror);
+        
+        var union = new Csg(sphere1, sphere2, CsgOperation.Union);
+        var difference = new Csg(sphere1, sphere2, CsgOperation.Difference);
+        var intersection = new Csg(sphere1, sphere2, CsgOperation.Intersection);
+        
+        scene.AddShape(union);
+        //scene.AddShape(difference);
+        //scene.AddShape(intersection);
+        
+        /*
+        scene.AddShape( new Sphere(
+            transformation: Transformation.Translation(new Vec(5f,-2f , 1f)),
+            material: mirror)
+            );
+        
+        scene.AddShape( new Sphere(
+            transformation: Transformation.Translation(new Vec(1f, 1f, 1f)),
+            material: sphere)
+        );
+        */
+        
+        
+        scene.AddShape(new Plane(
+            transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
+            material: sky));
         
         scene.AddShape(new Plane(
                 material: ground
             )
         );
         
-        scene.AddShape(new Plane(
-            transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
-            material: sky));
+        
         
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
         {

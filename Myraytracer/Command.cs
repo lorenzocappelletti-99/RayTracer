@@ -9,6 +9,7 @@ using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
+using System.Net.Sockets;
 using Trace;
 
 namespace Myraytracer;
@@ -110,10 +111,32 @@ public class DemoCommand : ICommand
                 Pigment = new CheckeredPigment(new Color(0.3f, 0.5f, 0.1f), new Color(0.1f, 0.2f, 0.5f)) 
             }
         };
-        var sphere = new Material
+        
+        var blue = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(0.3f, 0.4f, 0.8f))             
+                Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
+            }        
+        };
+        
+        var red = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(0.7f, 0.2f, 0.2f))             
+            }        
+        };
+        
+        var green = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(0.7f, 1.0f, 0.7f))             
+            }        
+        };
+        
+        var yellow = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(1.0f, 0.93f, 0.7f))             
             }        
         };
 
@@ -125,23 +148,49 @@ public class DemoCommand : ICommand
         };
         
         // Create the scene
+        
+        var s1 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.3f, 1.4f)),
+            material: red);
+        
+        var s2 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.3f, 1f)),
+            material: blue);
+        
+        var s3 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.5f, 1.2f)),
+            material: green);
+        
+        var s4 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.1f, 1.2f)),
+            material: yellow);
+        
+        var s5 = new Sphere(
+            transformation: Transformation.Translation(new Vec(1.5f, 3f, 0f)),
+            material: mirror);
 
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(0f, 0, 1f)),
-            material: sphere));
         
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: mirror));
+
+        //var difference = new Csg(sphere1, sphere2, CsgOperation.Difference);
+        //var intersection = new Csg(sphere1, sphere2, CsgOperation.Intersection);
+
+        var u1 = new Csg(s1, s2, CsgOperation.Union);
+        var u2 = new Csg(u1, s3, CsgOperation.Union);
+        var union = new Csg(u2, s4, CsgOperation.Union);
         
-        scene.AddShape(new Plane(
-                material: ground
-            )
-        );
+        scene.AddShape(union);
+        scene.AddShape(s5);
+        
         
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
+        
+        scene.AddShape(new Plane(
+            material: ground)
+        );
+        
+        
         
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
         {

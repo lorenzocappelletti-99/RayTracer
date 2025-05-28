@@ -9,8 +9,8 @@ public abstract class Renderer
     public World World;
     public Color BackgroundColor;
     public Ray Ray;
-
-    protected Renderer(World world, Color backgroundColor)
+    
+    public Renderer(World world, Color backgroundColor)
     {
         World = world;
         BackgroundColor = backgroundColor;

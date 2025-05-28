@@ -16,7 +16,7 @@ namespace Myraytracer;
 [Command("demo", Description = "Generate images with different projections")]
 public class DemoCommand : ICommand
 {
-    [CommandParameter(0, Name = "camera", Description = "Projection type (Perspective/Orthogonal)")]
+    [CommandOption("camera", 'c', Description = "Projection type (Perspective/Orthogonal)")]
     public string CameraType { get; init; } = "Perspective";
 
     [CommandOption("angle", 'a', Description = "Rotation angle Z (degrees)")]
@@ -39,6 +39,7 @@ public class DemoCommand : ICommand
     
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
     public string Renderer { get; init; } = "PathTracer";
+    
 
     public Camera? Camera { get; private set; }
     public string OutputPfmFileName => Path.ChangeExtension(OutputLdrFileName, ".pfm");
@@ -79,7 +80,8 @@ public class DemoCommand : ICommand
             $"AngleDeg={AngleDeg.ToString(CultureInfo.InvariantCulture)}, " +
             $"Width={Width}, Height={Height}, " +
             $"Output={OutputLdrFileName}, "+
-            $"AntiAliasing={AntiAliasing}"
+            $"AntiAliasing={AntiAliasing}, "+
+            $"RendererType={Renderer}"
         );
 
         RunDemoScene();
@@ -130,7 +132,7 @@ public class DemoCommand : ICommand
         
         scene.AddShape(new Sphere(
             transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: sphere));
+            material: mirror));
         
         scene.AddShape(new Plane(
                 material: ground
@@ -141,23 +143,43 @@ public class DemoCommand : ICommand
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
         
-        scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+        if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
+        {
+            scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+            var image = new HdrImage(Width, Height);
+            var tracer = new ImageTracer(image, Camera);
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PointLightRenderer(scene, Color.Black);
+            tracer.FireAllRays(scene, render.Render);
+            using var pfmStream = new MemoryStream();
+            image.WritePfm(pfmStream);
+            pfmStream.Seek(0, SeekOrigin.Begin);
+            HdrImage.write_ldr_image(
+                pfmStream,
+                OutputLdrFileName
+            );
+        }
         
-        var image = new HdrImage(Width, Height);
-        var tracer = new ImageTracer(image, Camera);
-        if (AntiAliasing) tracer.SamplesPerSide = 4;
-        var render = new PointLightRenderer(scene, Color.Black);
-        tracer.FireAllRays(render.Render);
-        
-        
-        using var pfmStream = new MemoryStream();
-        image.WritePfm(pfmStream);
-        pfmStream.Seek(0, SeekOrigin.Begin);
+        if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
+        {
+            var image = new HdrImage(Width, Height);
+            var tracer = new ImageTracer(image, Camera);
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PathTracer(scene, Color.Black, new Pcg(), 5, 3, 1);
+            tracer.FireAllRays(scene, render.Render);
+            using var pfmStream = new MemoryStream();
+            image.WritePfm(pfmStream);
+            pfmStream.Seek(0, SeekOrigin.Begin);
+            HdrImage.write_ldr_image(
+                pfmStream,
+                OutputLdrFileName
+            );
+        }
 
-        HdrImage.write_ldr_image(
-            pfmStream,
-            OutputLdrFileName
-        );
+        
+        
+
+        
 
         Console.WriteLine($"Generated LDR: {OutputLdrFileName}");
     }

@@ -54,7 +54,7 @@ public class ImageTracer
         Debug.Assert(Camera != null, nameof(Camera) + " != null");
         return Camera.FireRay(u, v);
     }
-
+/*
     /// <summary>
     /// Fires a ray for each pixel in the image, applies the specified function(rendering) to compute a color,
     /// and sets the pixel in the image to the computed color.
@@ -71,7 +71,7 @@ public class ImageTracer
                 Image.SetPixel(col, row, color);
             }
         }
-    }
+    }*/
     
     public void FireAllRays(World? scene, Func <Ray, Color> func)
     {

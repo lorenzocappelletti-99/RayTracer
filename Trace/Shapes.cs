@@ -5,6 +5,7 @@
  ===========================================================*/
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq; 
 
 
@@ -299,54 +300,54 @@ public class Csg : Shape
         {
             if (!QuickRayIntersection(ray))
                 return null;
-            
-            // Gather all hits from both children
-            var firstHits  = First.RayIntersection(ray);
-            var secondHits = Second.RayIntersection(ray);
 
-            // Merge and sort by t
-            var events = new List<(float T, HitRecord Hit, bool IsFirst)>();
-
+            // 1) Calcola solo una volta le due intersezioni
             var h1 = First.RayIntersection(ray);
-            if (h1 != null) events.Add((h1.T, h1, true));
-
             var h2 = Second.RayIntersection(ray);
-            if (h2 != null) events.Add((h2.T, h2, false));
 
-            events.Sort((a, b) => a.T.CompareTo(b.T));
-            
+            // Se nessuna, esci subito
+            if (h1 == null && h2 == null)
+                return null;
 
-            // Determine initial inside-state just before first event
-            float epsilon = 1e-4f;
-            float t0 = (events.Count > 0 ? events[0].T : float.MaxValue) - epsilon;
+            // 2) Determina l’ordine dei due eventi
+            //   - Primo evento (tMin) e secondo evento (tMax)
+            var (hitMin, isFirstMin) = 
+                (h1 != null && (h2 == null || h1.T < h2.T)) ? (h1, true)
+                    : (h2, false);
+
+            var (hitMax, isFirstMax) =
+                (hitMin == h1) ? (h2, false) : (h1, true);
+
+            // 3) Calcola stato “inside” all’inizio (just before tMin)
+            Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
+            float t0 = hitMin.T - 1e-4f;
             var p0 = ray.PointAt(t0);
-            bool inFirst  = First.IsPointInternal(p0);
-            bool inSecond = Second.IsPointInternal(p0);
+            bool inF = First.IsPointInternal(p0);
+            bool inS = Second.IsPointInternal(p0);
 
-            // Sweep through events to find first intersection according to operation
-            foreach (var (t, hit, isFirst) in events)
-            {
-                // Toggle state for the shape that generated this event
-                if (isFirst) inFirst = !inFirst;
-                else         inSecond = !inSecond;
-
-                bool inside = Op switch
-                {
-                    CsgOperation.Union        => inFirst || inSecond,
-                    CsgOperation.Intersection => inFirst && inSecond,
-                    CsgOperation.Difference   => inFirst && !inSecond,
+            // 4) Processa il primo evento
+            if (isFirstMin) inF = !inF; else inS = !inS;
+            if (Op switch {
+                    CsgOperation.Union        => inF || inS,
+                    CsgOperation.Intersection => inF && inS,
+                    CsgOperation.Difference   => inF && !inS,
                     _                          => false
-                };
+                })
+                return hitMin;
 
-                if (inside)
-                {
-                    // Return the corresponding hit record
-                    return hit;
-                }
-            }
+            // 5) Processa il secondo evento
+            if (isFirstMax) inF = !inF; else inS = !inS;
+            if (Op switch {
+                    CsgOperation.Union        => inF || inS,
+                    CsgOperation.Intersection => inF && inS,
+                    CsgOperation.Difference   => inF && !inS,
+                    _                          => false
+                })
+                return hitMax;
 
             return null;
         }
+
 
         public override bool IsPointInternal(Point p)
         {

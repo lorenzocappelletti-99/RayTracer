@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace Trace;
 
 /*
@@ -14,9 +16,18 @@ SYMBOLS = "()<>[],*"
 /// </summary>
 public class SourceLocation
 {
-    public string FileName = "";
-    public int LineNum = 0;
-    public int ColNum = 0;
+    public char FileName;
+    public int LineNum;
+    public int ColNum;
+
+    public SourceLocation(char fileName, int lineNum, int colNum)
+    {
+        FileName = fileName;
+        LineNum = lineNum;
+        ColNum = colNum;
+    }
+    
+    public SourceLocation() {}
 }
 
 /// <summary>
@@ -102,17 +113,33 @@ public class KeywordToken : Token
 
 public class IdentifierToken : Token
 {
-    public string Identifier;
+    public char Identifier;
 
-    public IdentifierToken(SourceLocation location, string identifier)
+    public IdentifierToken(SourceLocation location, char identifier)
     {
         Location = location;
         Identifier = identifier;
     }
 
-    public string IdentifierText()
+    public char IdentifierText()
     {
         return Identifier;
+    }
+}
+
+public class StringToken : Token
+{
+    public readonly string Value;
+
+    public StringToken(SourceLocation location, string value)
+    {
+        Location = location;
+        Value = value;
+    }
+
+    public string ValueText()
+    {
+        return Value;
     }
 }
 
@@ -129,9 +156,9 @@ public class LiteralNumberToken : Token
 
 public class SymbolToken : Token
 {
-    public string Symbol;
+    public char Symbol;
     
-    public SymbolToken(SourceLocation location, string symbol)
+    public SymbolToken(SourceLocation location, char symbol)
     {
         Location = location;
         Symbol = symbol;
@@ -142,10 +169,113 @@ public class SymbolToken : Token
 public class GrammarError
 {
     public SourceLocation Location;
-    public string Message;
+    public char Message;
 }
 
 public class InputStream
 {
-    private int Tabulations = 8;
+    private const string Whitespace = " \t\n\r";
+    private const string Symbols = "()<>[],*";
+    
+    public StreamReader Stream;
+    public SourceLocation Location;
+
+    public int Tabulations;
+    public SourceLocation SavedLocation;
+    public Token[] SavedTokens;
+    public char SavedChar;
+    
+
+    public InputStream(StreamReader stream, char fileName, int tabulations = 8)
+    {
+        Stream = stream;
+        
+        Location = new SourceLocation(fileName: fileName, lineNum: 1, colNum: 1);
+
+        SavedChar = '\0';
+        SavedLocation = Location;
+        Tabulations = tabulations;
+        /////////////////////////////////////
+    }
+
+    public void UpdatePos(char ch)
+    {
+        switch (ch)
+        {
+            case '\0':
+                return;
+            case '\n':
+                Location.LineNum++;
+                Location.ColNum++;
+                break;
+            case '\t':
+                Location.ColNum+=Tabulations;
+                break;
+            default:
+                Location.ColNum ++;
+                break;
+        }
+    }
+
+    public char ReadChar()
+    {
+        char ch;
+        
+        if (SavedChar != '\0')
+        {
+            ch = SavedChar;
+            SavedChar = '\0';
+        }
+        else
+        {
+            using (var stream = Stream)
+            {
+                ch = (char)stream.Read();
+            }
+        }
+        
+        SavedLocation = Location;
+        UpdatePos(ch);
+        
+        return ch;
+    }
+
+    public void UnreadChar(char ch)
+    {
+        Assert.True(SavedChar == '\0');
+        SavedChar = ch;
+        Location = SavedLocation;
+    }
+
+    public void SkipWhitespacesAndComments()
+    {
+        var ch = ReadChar();
+        while (Whitespace.Contains(ch) || ch == '#')
+        {
+            if (ch != '#') continue;
+            while("\r\n\0".Contains(ch));
+            ch = ReadChar();
+            if (ch == '\0') return;
+        }
+        
+        // Put non-whitespace char back
+        UnreadChar(ch);
+    }
+
+    public StringToken ParseStringToken(SourceLocation tokenLocation)
+    {
+        var token = "";
+        while (true)
+        {
+            var ch = ReadChar();
+            
+            if (ch == '"') break;
+            // if(ch == '\0') 
+            
+            token += ch;
+        }
+        return new StringToken(tokenLocation, token);
+    }
+    
+   // public 
 }

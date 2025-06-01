@@ -130,7 +130,7 @@ public struct Vec (float x, float y, float z)
     public float SqNorm() => this.X * this.X + this.Y * this.Y + this.Z * this.Z;
 
     /// <summary>
-    /// Calculates the norm ||v||^2 of a Vec type
+    /// Calculates the norm ||v|| of a Vec type
     /// </summary>
     /// <returns></returns>
     public float Norm() => MathF.Sqrt(this.SqNorm());
@@ -235,10 +235,8 @@ public struct Vec (float x, float y, float z)
     /// <returns></returns>
     public static (Vec, Vec, Vec) CreateOnbFromZ(Vec norm)
     {
-        if (Math.Abs(norm.SqNorm() - 1.0f) > 1e-1f)
-        {
-            throw new ArgumentException($"Tried to create ONB from not normalized z vector!");
-        }
+        norm.Normalize();
+        
         var sign = MathF.CopySign(1f, norm.Z);
         var a = -1.0f / (sign + norm.Z);
         var b = norm.X * norm.Y * a;

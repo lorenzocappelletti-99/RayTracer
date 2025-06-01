@@ -129,21 +129,21 @@ public class DemoCommand : ICommand
         var green = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(0.7f, 1.0f, 0.7f))             
+                Pigment = new UniformPigment(new Color(0.5f, 1.0f, 0.5f))             
             }        
         };
         
         var yellow = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(1.0f, 0.93f, 0.7f))             
+                Pigment = new UniformPigment(new Color(1.0f, 0.9f, 0f))             
             }        
         };
 
         var mirror = new Material()
         {
             Brdf = new SpecularBrdf() {
-                Pigment = new UniformPigment(new Color(0.6f, 0.2f, 0.3f))             
+                Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
             }        
         };
         
@@ -158,11 +158,11 @@ public class DemoCommand : ICommand
             material: blue);
         
         var s3 = new Sphere(
-            transformation: Transformation.Translation(new Vec(0.7f, -0.5f, 1.2f)),
+            transformation: Transformation.Scaling(new Vec(1f,1.08f,1f)) * Transformation.Translation(new Vec(0.7f, -0.5f, 1.2f)),
             material: green);
         
         var s4 = new Sphere(
-            transformation: Transformation.Translation(new Vec(0.7f, -0.1f, 1.2f)),
+            transformation: Transformation.Scaling(new Vec(1f,1.2f,1f)) * Transformation.Translation(new Vec(0.7f, -0.1f, 1.2f)),
             material: yellow);
         
         var s5 = new Sphere(
@@ -214,7 +214,7 @@ public class DemoCommand : ICommand
             var image = new HdrImage(Width, Height);
             var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), 5, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(), 3, 3, 1);
             tracer.FireAllRays(render.Render);
             using var pfmStream = new MemoryStream();
             image.WritePfm(pfmStream);

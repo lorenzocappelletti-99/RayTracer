@@ -4,6 +4,7 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System;
 using System.Text;
 
 namespace Trace

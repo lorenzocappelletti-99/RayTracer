@@ -4,6 +4,8 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System;
+
 namespace Trace;
 
 public abstract class Shape

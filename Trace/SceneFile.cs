@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace Trace;
@@ -16,11 +20,11 @@ SYMBOLS = "()<>[],*"
 /// </summary>
 public class SourceLocation
 {
-    public char FileName;
+    public string FileName;
     public int LineNum;
     public int ColNum;
 
-    public SourceLocation(char fileName, int lineNum, int colNum)
+    public SourceLocation(string fileName, int lineNum, int colNum)
     {
         FileName = fileName;
         LineNum = lineNum;
@@ -113,15 +117,15 @@ public class KeywordToken : Token
 
 public class IdentifierToken : Token
 {
-    public char Identifier;
+    public string Identifier;
 
-    public IdentifierToken(SourceLocation location, char identifier)
+    public IdentifierToken(SourceLocation location, string identifier)
     {
         Location = location;
         Identifier = identifier;
     }
 
-    public char IdentifierText()
+    public string IdentifierText()
     {
         return Identifier;
     }
@@ -156,20 +160,28 @@ public class LiteralNumberToken : Token
 
 public class SymbolToken : Token
 {
-    public char Symbol;
+    public string Symbol;
     
-    public SymbolToken(SourceLocation location, char symbol)
+    public SymbolToken(SourceLocation location, string symbol)
     {
         Location = location;
         Symbol = symbol;
     }
 }
 
-
-public class GrammarError
+/// <summary>
+/// 
+/// </summary>
+public class GrammarError : Exception
 {
     public SourceLocation Location;
-    public char Message;
+    public string Message;
+
+    public GrammarError(SourceLocation location, string message)
+    {
+        Location = location;
+        Message = message;
+    }
 }
 
 public class InputStream
@@ -182,33 +194,34 @@ public class InputStream
 
     public int Tabulations;
     public SourceLocation SavedLocation;
-    public Token[] SavedTokens;
-    public char SavedChar;
+    public string Savedstring;
+    
+    public Token SavedToken;
     
 
-    public InputStream(StreamReader stream, char fileName, int tabulations = 8)
+    public InputStream(StreamReader stream, string fileName, Token token, int tabulations = 8)
     {
         Stream = stream;
         
         Location = new SourceLocation(fileName: fileName, lineNum: 1, colNum: 1);
 
-        SavedChar = '\0';
+        Savedstring = "";
         SavedLocation = Location;
         Tabulations = tabulations;
-        /////////////////////////////////////
+        SavedToken = token;
     }
 
-    public void UpdatePos(char ch)
+    public void UpdatePos(string ch)
     {
         switch (ch)
         {
-            case '\0':
+            case "":
                 return;
-            case '\n':
+            case "\n":
                 Location.LineNum++;
-                Location.ColNum++;
+                Location.ColNum=1;
                 break;
-            case '\t':
+            case "\t":
                 Location.ColNum+=Tabulations;
                 break;
             default:
@@ -217,21 +230,19 @@ public class InputStream
         }
     }
 
-    public char ReadChar()
+    public string ReadChar()
     {
-        char ch;
+        string ch;
         
-        if (SavedChar != '\0')
+        if (Savedstring != "")
         {
-            ch = SavedChar;
-            SavedChar = '\0';
+            ch = Savedstring;
+            Savedstring = "";
         }
         else
         {
-            using (var stream = Stream)
-            {
-                ch = (char)stream.Read();
-            }
+            using var stream = Stream;
+            ch = stream.Read().ToString();
         }
         
         SavedLocation = Location;
@@ -240,25 +251,23 @@ public class InputStream
         return ch;
     }
 
-    public void UnreadChar(char ch)
+    public void UnreadChar(string ch)
     {
-        Assert.True(SavedChar == '\0');
-        SavedChar = ch;
+        Assert.True(Savedstring == "");
+        Savedstring = ch;
         Location = SavedLocation;
     }
 
     public void SkipWhitespacesAndComments()
     {
         var ch = ReadChar();
-        while (Whitespace.Contains(ch) || ch == '#')
+        while (Whitespace.Contains(ch) || ch == "#")
         {
-            if (ch != '#') continue;
-            while("\r\n\0".Contains(ch));
+            if (ch != "#") continue;
+            while("\r\n".Contains(ch));
             ch = ReadChar();
-            if (ch == '\0') return;
+            if (ch == "") return;
         }
-        
-        // Put non-whitespace char back
         UnreadChar(ch);
     }
 
@@ -269,13 +278,77 @@ public class InputStream
         {
             var ch = ReadChar();
             
-            if (ch == '"') break;
-            // if(ch == '\0') 
+            if (ch == "") break;
+            // if(ch == "") 
             
             token += ch;
         }
         return new StringToken(tokenLocation, token);
     }
-    
-   // public 
+
+    public LiteralNumberToken ParseLiteralNumberToken(string firststring, SourceLocation tokenLocation)
+    {
+        var token = firststring;
+        while (true)
+        {
+            var ch = ReadChar();
+            if (!ch.All(char.IsDigit) || ch == "." || ch == "e" || ch == "E")
+            {
+                UnreadChar(ch);
+                break;
+            }
+            token += ch;
+        }
+        try
+        {
+            var value = float.Parse(token); // or float.Parse(token) if you want single-precision
+            return new LiteralNumberToken(tokenLocation, value);
+        }
+        catch(FormatException)
+        {
+            throw new GrammarError(tokenLocation, $"'{token}' is an invalid floating-point number");
+        }
+    }
+
+    public Token ParseKeywordOrIdentifier(string firstChar, SourceLocation tokenLocation)
+    {
+        var token = firstChar;
+        while (true)
+        {
+            var ch = ReadChar();
+            if (ch.All(char.IsLetterOrDigit) || ch == "_")
+            {
+                UnreadChar(ch);
+                break;
+            }
+            token += ch;
+        }
+        if (KeywordMap.Keywords.TryGetValue(token, out var keywordEnum))
+        {
+            return new KeywordToken(tokenLocation, keywordEnum);
+        }
+        return new IdentifierToken(tokenLocation, token);
+
+    }
+
+    public Token ReadToken()
+    {
+        SkipWhitespacesAndComments();
+        var ch = ReadChar();
+        if (ch == "")
+        {
+            return new StopToken(location: Location);
+        }
+        
+        var tokenLocation = Location;
+
+        if (Symbols.Contains(ch))
+        {
+            return new SymbolToken(tokenLocation, ch);
+        }
+        if(ch == "'" )
+        {
+           return ParseStringToken(tokenLocation); 
+        }
+    }
 }

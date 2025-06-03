@@ -1,10 +1,11 @@
+using System.Globalization;
 using Xunit;
 
 namespace Trace;
 
 /*
 WHITESPACE = " \t\n\r"
-SYMBOLS = "()<>[],*"
+SYMBOLS = "()<>[],*,="
 */
 
 /// <summary>
@@ -113,15 +114,15 @@ public class KeywordToken : Token
 
 public class IdentifierToken : Token
 {
-    public char Identifier;
+    public string Identifier;
 
-    public IdentifierToken(SourceLocation location, char identifier)
+    public IdentifierToken(SourceLocation location, string identifier)
     {
         Location = location;
         Identifier = identifier;
     }
 
-    public char IdentifierText()
+    public string IdentifierText()
     {
         return Identifier;
     }
@@ -166,23 +167,28 @@ public class SymbolToken : Token
 }
 
 
-public class GrammarError
+public class GrammarError : Exception
 {
-    public SourceLocation Location;
-    public char Message;
+    public SourceLocation Location { get; }
+
+    public GrammarError(SourceLocation location, string message)
+        : base(message)
+    {
+        Location = location;
+    }
 }
 
 public class InputStream
 {
     private const string Whitespace = " \t\n\r";
-    private const string Symbols = "()<>[],*";
+    private const string Symbols = "()<>[],*,=";
     
     public StreamReader Stream;
     public SourceLocation Location;
 
     public int Tabulations;
     public SourceLocation SavedLocation;
-    public Token[] SavedTokens;
+    public Token[]? SavedTokens;
     public char SavedChar;
     
 
@@ -276,6 +282,68 @@ public class InputStream
         }
         return new StringToken(tokenLocation, token);
     }
+
+    public LiteralNumberToken ParseFloatToken(char firstChar, SourceLocation tokenLocation)
+    {
+        // Inizializziamo la stringa del token col primo carattere già letto
+        var token = firstChar.ToString();
+
+        while (true)
+        {
+            char ch = ReadChar();
+
+            // Se il carattere non è cifra, '.' o 'e'/'E', lo rimettiamo indietro e usciamo
+            if (!(char.IsDigit(ch) || ch == '.' || ch == 'e' || ch == 'E'))
+            {
+                UnreadChar(ch);
+                break;
+            }
+
+            token += ch;
+        }
+
+        float value;
+        try
+        {
+            // Provo a convertire la stringa 'token' in float, usando la cultura Invariant
+            value = float.Parse(token, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            // Se il parsing fallisce, rilancio l’errore di grammatica
+            throw new GrammarError(tokenLocation, $"'{token}' is an invalid floating-point number");
+        }
+
+        return new LiteralNumberToken(tokenLocation, value);
+    }
     
-   // public 
+    public Token ParseKeywordOrIdentifierToken(char firstChar, SourceLocation tokenLocation)
+    {
+        // Accumuliamo il lexeme a partire dal primo carattere
+        var token = firstChar.ToString();
+
+        while (true)
+        {
+            char ch = ReadChar();
+
+            // Se il carattere non è lettera, cifra o underscore, lo rimetto indietro e interrompo
+            if (!(char.IsLetterOrDigit(ch) || ch == '_'))
+            {
+                UnreadChar(ch);
+                break;
+            }
+
+            token += ch;
+        }
+
+        // Proviamo a vedere se 'token' è una keyword
+        if (KeywordMap.Keywords.TryGetValue(token, out KeywordEnum kw))
+        {
+            return new KeywordToken(tokenLocation, kw);
+        }
+        else
+        {
+            return new IdentifierToken(tokenLocation, token);
+        }
+    }
 }

@@ -131,7 +131,7 @@ public struct Vec (float x, float y, float z)
     public float SqNorm() => this.X * this.X + this.Y * this.Y + this.Z * this.Z;
 
     /// <summary>
-    /// Calculates the norm ||v||^2 of a Vec type
+    /// Calculates the norm ||v|| of a Vec type
     /// </summary>
     /// <returns></returns>
     public float Norm() => MathF.Sqrt(this.SqNorm());
@@ -236,10 +236,8 @@ public struct Vec (float x, float y, float z)
     /// <returns></returns>
     public static (Vec, Vec, Vec) CreateOnbFromZ(Vec norm)
     {
-        if (Math.Abs(norm.SqNorm() - 1.0f) > 1e-3f)
-        {
-            throw new ArgumentException($"Tried to create ONB from not normalized z vector!");
-        }
+        norm.Normalize();
+        
         var sign = MathF.CopySign(1f, norm.Z);
         var a = -1.0f / (sign + norm.Z);
         var b = norm.X * norm.Y * a;
@@ -292,6 +290,11 @@ public struct Point(float x, float y, float z)
                Math.Abs(this.Z - p.Z) <= sigma;
     }
 
+    public bool AreClose(float x, float y, float sigma = 1e-5f)
+    {
+        return Math.Abs(x - y) <= sigma;
+    }
+    
     /// <summary>
     /// Sum of a Point type with Vec type. Returns a Point type.
     /// </summary>
@@ -322,6 +325,7 @@ public struct Point(float x, float y, float z)
     /// </summary>
     /// <returns></returns>
     public Vec to_vec() => new Vec(this.X, this.Y, this.Z);    
+    
     /// <summary>
     /// Applies a translation transformation to the current point using the specified translation vector.
     /// </summary>

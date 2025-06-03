@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Globalization;
 using Xunit;
 
 namespace Trace;
 
 /*
 WHITESPACE = " \t\n\r"
-SYMBOLS = "()<>[],*"
+SYMBOLS = "()<>[],*,="
 */
 
 /// <summary>
@@ -20,11 +17,11 @@ SYMBOLS = "()<>[],*"
 /// </summary>
 public class SourceLocation
 {
-    public string FileName;
+    public char FileName;
     public int LineNum;
     public int ColNum;
 
-    public SourceLocation(string fileName, int lineNum, int colNum)
+    public SourceLocation(char fileName, int lineNum, int colNum)
     {
         FileName = fileName;
         LineNum = lineNum;
@@ -160,68 +157,64 @@ public class LiteralNumberToken : Token
 
 public class SymbolToken : Token
 {
-    public string Symbol;
+    public char Symbol;
     
-    public SymbolToken(SourceLocation location, string symbol)
+    public SymbolToken(SourceLocation location, char symbol)
     {
         Location = location;
         Symbol = symbol;
     }
 }
 
-/// <summary>
-/// 
-/// </summary>
+
 public class GrammarError : Exception
 {
-    public SourceLocation Location;
-    public string Message;
+    public SourceLocation Location { get; }
 
     public GrammarError(SourceLocation location, string message)
+        : base(message)
     {
         Location = location;
-        Message = message;
     }
 }
 
 public class InputStream
 {
     private const string Whitespace = " \t\n\r";
-    private const string Symbols = "()<>[],*";
+    private const string Symbols = "()<>[],*,=";
     
     public StreamReader Stream;
     public SourceLocation Location;
 
     public int Tabulations;
     public SourceLocation SavedLocation;
-    public string Savedstring;
-    
-    public Token SavedToken;
+    public Token[]? SavedTokens;
+    public char SavedChar;
     
 
-    public InputStream(StreamReader stream, string fileName, Token token, int tabulations = 8)
+    public InputStream(StreamReader stream, char fileName, int tabulations = 8)
     {
         Stream = stream;
         
         Location = new SourceLocation(fileName: fileName, lineNum: 1, colNum: 1);
 
-        Savedstring = "";
+        SavedChar = '\0';
         SavedLocation = Location;
         Tabulations = tabulations;
-        SavedToken = token;
+        /////////////////////////////////////
     }
 
-    public void UpdatePos(string ch)
+    public void UpdatePos(char ch)
     {
         switch (ch)
         {
-            case "":
+            case '\0':
                 return;
-            case "\n":
+            case '\n':
                 Location.LineNum++;
-                Location.ColNum=1;
+                Location.ColNum++;
                 break;
-            case "\t":
+            case '\t':
                 Location.ColNum+=Tabulations;
                 break;
             default:
@@ -230,19 +223,21 @@ public class InputStream
         }
     }
 
-    public string ReadChar()
+    public char ReadChar()
     {
-        string ch;
+        char ch;
         
-        if (Savedstring != "")
+        if (SavedChar != '\0')
         {
-            ch = Savedstring;
-            Savedstring = "";
+            ch = SavedChar;
+            SavedChar = '\0';
         }
         else
         {
-            using var stream = Stream;
-            ch = stream.Read().ToString();
+            using (var stream = Stream)
+            {
+                ch = (char)stream.Read();
+            }
         }
         
         SavedLocation = Location;
@@ -251,23 +246,25 @@ public class InputStream
         return ch;
     }
 
-    public void UnreadChar(string ch)
+    public void UnreadChar(char ch)
     {
-        Assert.True(Savedstring == "");
-        Savedstring = ch;
+        Assert.True(SavedChar == '\0');
+        SavedChar = ch;
         Location = SavedLocation;
     }
 
     public void SkipWhitespacesAndComments()
     {
         var ch = ReadChar();
-        while (Whitespace.Contains(ch) || ch == "#")
+        while (Whitespace.Contains(ch) || ch == '#')
         {
-            if (ch != "#") continue;
-            while("\r\n".Contains(ch));
+            if (ch != '#') continue;
+            while("\r\n\0".Contains(ch));
             ch = ReadChar();
-            if (ch == "") return;
+            if (ch == '\0') return;
         }
+        
+        // Put non-whitespace char back
         UnreadChar(ch);
     }
 
@@ -278,77 +275,75 @@ public class InputStream
         {
             var ch = ReadChar();
             
-            if (ch == "") break;
-            // if(ch == "") 
+            if (ch == '"') break;
+            // if(ch == '\0') 
             
             token += ch;
         }
         return new StringToken(tokenLocation, token);
     }
 
-    public LiteralNumberToken ParseLiteralNumberToken(string firststring, SourceLocation tokenLocation)
+    public LiteralNumberToken ParseFloatToken(char firstChar, SourceLocation tokenLocation)
     {
-        var token = firststring;
+        // Inizializziamo la stringa del token col primo carattere già letto
+        var token = firstChar.ToString();
+
         while (true)
         {
-            var ch = ReadChar();
-            if (!ch.All(char.IsDigit) || ch == "." || ch == "e" || ch == "E")
+            char ch = ReadChar();
+
+            // Se il carattere non è cifra, '.' o 'e'/'E', lo rimettiamo indietro e usciamo
+            if (!(char.IsDigit(ch) || ch == '.' || ch == 'e' || ch == 'E'))
             {
                 UnreadChar(ch);
                 break;
             }
+
             token += ch;
         }
+
+        float value;
         try
         {
-            var value = float.Parse(token); // or float.Parse(token) if you want single-precision
-            return new LiteralNumberToken(tokenLocation, value);
+            // Provo a convertire la stringa 'token' in float, usando la cultura Invariant
+            value = float.Parse(token, CultureInfo.InvariantCulture);
         }
-        catch(FormatException)
+        catch (FormatException)
         {
+            // Se il parsing fallisce, rilancio l’errore di grammatica
             throw new GrammarError(tokenLocation, $"'{token}' is an invalid floating-point number");
         }
-    }
 
-    public Token ParseKeywordOrIdentifier(string firstChar, SourceLocation tokenLocation)
+        return new LiteralNumberToken(tokenLocation, value);
+    }
+    
+    public Token ParseKeywordOrIdentifierToken(char firstChar, SourceLocation tokenLocation)
     {
-        var token = firstChar;
+        // Accumuliamo il lexeme a partire dal primo carattere
+        var token = firstChar.ToString();
+
         while (true)
         {
-            var ch = ReadChar();
-            if (ch.All(char.IsLetterOrDigit) || ch == "_")
+            char ch = ReadChar();
+
+            // Se il carattere non è lettera, cifra o underscore, lo rimetto indietro e interrompo
+            if (!(char.IsLetterOrDigit(ch) || ch == '_'))
             {
                 UnreadChar(ch);
                 break;
             }
+
             token += ch;
         }
-        if (KeywordMap.Keywords.TryGetValue(token, out var keywordEnum))
-        {
-            return new KeywordToken(tokenLocation, keywordEnum);
-        }
-        return new IdentifierToken(tokenLocation, token);
 
-    }
-
-    public Token ReadToken()
-    {
-        SkipWhitespacesAndComments();
-        var ch = ReadChar();
-        if (ch == "")
+        // Proviamo a vedere se 'token' è una keyword
+        if (KeywordMap.Keywords.TryGetValue(token, out KeywordEnum kw))
         {
-            return new StopToken(location: Location);
+            return new KeywordToken(tokenLocation, kw);
         }
-        
-        var tokenLocation = Location;
-
-        if (Symbols.Contains(ch))
+        else
         {
-            return new SymbolToken(tokenLocation, ch);
-        }
-        if(ch == "'" )
-        {
-           return ParseStringToken(tokenLocation); 
+            return new IdentifierToken(tokenLocation, token);
         }
     }
 }

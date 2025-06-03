@@ -15,21 +15,29 @@ SYMBOLS = "()<>[],*,="
 /// - LineNum: number of the line (starting from 1)
 /// - ColNum: number of the column (starting from 1)
 /// </summary>
-public class SourceLocation
+public struct SourceLocation
 {
-    public char FileName;
+    public string FileName;
     public int LineNum;
     public int ColNum;
 
-    public SourceLocation(char fileName, int lineNum, int colNum)
+    // Parameterless constructor: initializes LineNum and ColNum to 1 by default.
+    public SourceLocation()
+    {
+        FileName = "";
+        LineNum = 1;
+        ColNum = 1;
+    }
+
+    // Full‐parameter constructor as before
+    public SourceLocation(string fileName, int lineNum, int colNum)
     {
         FileName = fileName;
         LineNum = lineNum;
         ColNum = colNum;
     }
-    
-    public SourceLocation() {}
 }
+
 
 /// <summary>
 /// A lexical token, used when parsing a scene file
@@ -188,11 +196,11 @@ public class InputStream
 
     public int Tabulations;
     public SourceLocation SavedLocation;
-    public Token[]? SavedTokens;
+    public Token? SavedToken;
     public char SavedChar;
     
 
-    public InputStream(StreamReader stream, char fileName, int tabulations = 8)
+    public InputStream(StreamReader stream, string fileName, int tabulations = 8)
     {
         Stream = stream;
         
@@ -210,18 +218,22 @@ public class InputStream
         {
             case '\0':
                 return;
+
             case '\n':
                 Location.LineNum++;
-                Location.ColNum++;
+                Location.ColNum = 1;
                 break;
+
             case '\t':
-                Location.ColNum+=Tabulations;
+                Location.ColNum += Tabulations;
                 break;
+
             default:
-                Location.ColNum ++;
+                Location.ColNum++;
                 break;
         }
     }
+
 
     public char ReadChar()
     {
@@ -234,10 +246,8 @@ public class InputStream
         }
         else
         {
-            using (var stream = Stream)
-            {
-                ch = (char)stream.Read();
-            }
+            int read = Stream.Read();
+            ch = read == -1 ? '\0' : (char)read;
         }
         
         SavedLocation = Location;
@@ -255,18 +265,27 @@ public class InputStream
 
     public void SkipWhitespacesAndComments()
     {
-        var ch = ReadChar();
+        char ch = ReadChar();
+        
         while (Whitespace.Contains(ch) || ch == '#')
         {
-            if (ch != '#') continue;
-            while("\r\n\0".Contains(ch));
+            if (ch == '#')
+            {
+                do
+                {
+                    ch = ReadChar();
+                }
+                while (ch != '\0' && ch != '\n' && ch != '\r');
+            }
             ch = ReadChar();
-            if (ch == '\0') return;
+            
+            if (ch == '\0')
+                return;
         }
         
-        // Put non-whitespace char back
         UnreadChar(ch);
     }
+
 
     public StringToken ParseStringToken(SourceLocation tokenLocation)
     {
@@ -345,5 +364,44 @@ public class InputStream
         {
             return new IdentifierToken(tokenLocation, token);
         }
+    }
+
+    public Token ReadToken()
+    {
+        if (SavedToken != null)
+        {
+            var result = SavedToken;
+            SavedToken = null;
+            return result;
+        }
+
+        SkipWhitespacesAndComments();
+
+        var ch = ReadChar();
+
+        if (ch == '\0')
+            return new StopToken(Location);
+
+        if (Symbols.Contains(ch))
+            return new SymbolToken(Location, ch);
+
+        else if (ch == '"')
+            return ParseStringToken(Location);
+
+        else if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
+            return ParseFloatToken(ch, Location);
+        
+        else if (char.IsLetter(ch) || ch == '_')
+            return ParseKeywordOrIdentifierToken(ch, Location);
+
+        else
+        {
+            // Carattere non riconosciuto
+            throw new GrammarError(
+                location: Location,
+                $"Invalid character {ch}"
+            );
+        }
+
     }
 }

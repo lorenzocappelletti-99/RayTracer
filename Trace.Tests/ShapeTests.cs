@@ -189,6 +189,14 @@ public class ShapeTests
     }
 
     [Fact]
+    public void TestIsInternal()
+    {
+        var sphere = new Sphere(transformation: Transformation.Translation(new Vec(1, 2, 3)));
+        Assert.False(sphere.IsPointInternal(new Point(0.0f, 0.0f, 0.0f)));
+        Assert.True(sphere.IsPointInternal(new Point(1.1f, 1.9f, 3.1f)));
+    }
+
+    [Fact]
     public void TestUVCoordinates()
     {
         var plane = new Plane();

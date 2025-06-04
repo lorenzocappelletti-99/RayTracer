@@ -75,8 +75,6 @@ public class ImageTracer
     
     public void FireAllRays(Func <Ray, Color> func)
     {
-   
-
         for (var row = 0; row < Image.Height; row++)
         {
             for (var col = 0; col < Image.Width; col++)

@@ -547,7 +547,7 @@ public class Scene
         Assert.False(true, "this line should be unreachable");
         return null;
     }
-
+    
     public Brdf ParseBrdf(InputStream inputFile, Scene scene)
     {
         var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
@@ -564,17 +564,32 @@ public class Scene
                 return null;
         }
     }
+
+    public Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
+    {
+        var name = ExpectString(inputFile);
+        ExpectSymbol('(', inputFile);
+        var brdf = ParseBrdf(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var emittedRadiance = ParsePigment(inputFile, scene);
+        ExpectSymbol(')', inputFile);
+        
+        return new Tuple<string, Material>(name, new Material{Brdf = brdf, EmittedRadiance = emittedRadiance});
+    }
+
+    public Transformation ParseTransformation(InputStream inputFile, Scene scene)
+    {
+        
+    }
+
     
-    
-    
-    
-    
-    /*
-parse_material(s: InputStream, scene: Scene) -> Tuple[str, Material]
+}
+
+
+/*
 parse_transformation(input_file, scene: Scene)
 parse_sphere(s: InputStream, scene: Scene) -> Sphere
 parse_plane(s: InputStream, scene: Scene) -> Plane
 parse_camera(s: InputStream, scene) -> Camera
-     */
+ */
 
-}

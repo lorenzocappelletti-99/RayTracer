@@ -113,8 +113,6 @@ public abstract class Brdf
 {
     public Pigment Pigment = new UniformPigment(Color.White);
     
-
-    
     public abstract Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv);
     
     public abstract Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);

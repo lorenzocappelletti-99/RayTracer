@@ -176,5 +176,100 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         AssertIsString(inputStream.ReadToken(), "my file.pfm");
         AssertIsSymbol(inputStream.ReadToken(), ")");
     }
+
+    [Fact]
+    public void TestParser()
+    {
+        var input = """
+        float clock(150)
+    
+        material sky_material(
+            diffuse(uniform(<0, 0, 0>)),
+            uniform(<0.7, 0.5, 1>)
+        )
+    
+        # Here is a comment
+    
+        material ground_material(
+            diffuse(checkered(<0.3, 0.5, 0.1>,
+                              <0.1, 0.2, 0.5>, 4)),
+            uniform(<0, 0, 0>)
+        )
+    
+        material sphere_material(
+            specular(uniform(<0.5, 0.5, 0.5>)),
+            uniform(<0, 0, 0>)
+        )
+    
+        plane (sky_material, translation([0, 0, 100]) * rotation_y(clock))
+        plane (ground_material, identity)
+    
+        sphere(sphere_material, translation([0, 0, 1]))
+    
+        camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
+        """;
+        
+        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
+        var inputFile = new InputStream(reader, fileName: "file");
+        var scene = Scene.ParseScene(inputFile);
+        //scene = parse_scene(input_file=InputStream(stream))
+
+        
+        // Check that float variables are ok
+        Assert.True(scene.FloatVariables.Count == 1);
+        Assert.Contains("clock", scene.FloatVariables.Keys);
+        Assert.True(Math.Abs(scene.FloatVariables["clock"] - 150.0) < 1e-5);
+        
+        // Check that materials are ok
+        Assert.True(scene.Materials.Count == 3);
+        Assert.Contains("sky_material", scene.Materials.Keys);
+        Assert.Contains("ground_material", scene.Materials.Keys);
+        Assert.Contains("sphere_material", scene.Materials.Keys);
+
+        var sphereMaterial = scene.Materials["sphere_material"];
+        var skyMaterial = scene.Materials["sky_material"];
+        var groundMaterial = scene.Materials["ground_material"];
+        
+        Assert.True(skyMaterial.Brdf is DiffusiveBrdf);
+        Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);
+        if(skyMaterial.Brdf.Pigment is UniformPigment uniformPigment)
+            Assert.True(uniformPigment.Color.IsClose(new Color(0.0f,0.0f,0.0f)));
+        
+        
+    }
+    /*
+        assert isinstance(ground_material.brdf, DiffuseBRDF)
+        assert isinstance(ground_material.brdf.pigment, CheckeredPigment)
+        assert ground_material.brdf.pigment.color1.is_close(Color(0.3, 0.5, 0.1))
+        assert ground_material.brdf.pigment.color2.is_close(Color(0.1, 0.2, 0.5))
+        assert ground_material.brdf.pigment.num_of_steps == 4
+
+        assert isinstance(sphere_material.brdf, SpecularBRDF)
+        assert isinstance(sphere_material.brdf.pigment, UniformPigment)
+        assert sphere_material.brdf.pigment.color.is_close(Color(0.5, 0.5, 0.5))
+
+        assert isinstance(sky_material.emitted_radiance, UniformPigment)
+        assert sky_material.emitted_radiance.color.is_close(Color(0.7, 0.5, 1.0))
+        assert isinstance(ground_material.emitted_radiance, UniformPigment)
+        assert ground_material.emitted_radiance.color.is_close(Color(0, 0, 0))
+        assert isinstance(sphere_material.emitted_radiance, UniformPigment)
+        assert sphere_material.emitted_radiance.color.is_close(Color(0, 0, 0))
+
+        # Check that the shapes are ok
+
+        assert len(scene.world.shapes) == 3
+        assert isinstance(scene.world.shapes[0], Plane)
+        assert scene.world.shapes[0].transformation.is_close(translation(Vec(0, 0, 100)) * rotation_y(150.0))
+        assert isinstance(scene.world.shapes[1], Plane)
+        assert scene.world.shapes[1].transformation.is_close(Transformation())
+        assert isinstance(scene.world.shapes[2], Sphere)
+        assert scene.world.shapes[2].transformation.is_close(translation(Vec(0, 0, 1)))
+
+        # Check that the camera is ok
+
+        assert isinstance(scene.camera, PerspectiveCamera)
+        assert scene.camera.transformation.is_close(rotation_z(30) * translation(Vec(-4, 0, 1)))
+        assert pytest.approx(1.0) == scene.camera.aspect_ratio
+        assert pytest.approx(2.0) == scene.camera.screen_distance*/
 }
 

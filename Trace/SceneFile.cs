@@ -427,7 +427,7 @@ public class Scene
     public HashSet<string> OverriddenVariables = [];
     public Dictionary<string, Material> Materials = new();
 
-    public void ExpectSymbol(char symbol, InputStream inputFile)
+    public static void ExpectSymbol(char symbol, InputStream inputFile)
     {
         var token = inputFile.ReadToken();
         if (token is not SymbolToken || token.GetType() != typeof(SymbolToken))
@@ -436,7 +436,7 @@ public class Scene
         }
     }
 
-    public KeywordEnum ExpectKeywords(List<KeywordEnum> keywords, InputStream inputFile)
+    public static KeywordEnum ExpectKeywords(List<KeywordEnum> keywords, InputStream inputFile)
     {
         var token = inputFile.ReadToken();
 
@@ -449,7 +449,7 @@ public class Scene
         return key.Keyword;
     }
     
-    public float ExpectNumber(InputStream inputFile, Scene scene)
+    public static float ExpectNumber(InputStream inputFile, Scene scene)
     {   
         var token = inputFile.ReadToken();
         switch (token)
@@ -468,7 +468,7 @@ public class Scene
         }
     }
 
-    public string ExpectString(InputStream inputFile)
+    public static string ExpectString(InputStream inputFile)
     {
         var token = inputFile.ReadToken();
         if(token is not StringToken) 
@@ -476,7 +476,7 @@ public class Scene
         return ((StringToken)token).Value;
     }
     
-    public string ExpectIdentifier(InputStream inputFile)
+    public static string ExpectIdentifier(InputStream inputFile)
     {
         var token = inputFile.ReadToken();
         if(token is not IdentifierToken)
@@ -484,7 +484,7 @@ public class Scene
         return ((IdentifierToken)token).Identifier;
     }
 
-    public Vec ParseVector(InputStream inputFile, Scene scene)
+    public static Vec ParseVector(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('[', inputFile);
         var x = ExpectNumber(inputFile, scene);
@@ -496,7 +496,7 @@ public class Scene
         return new Vec(x, y, z);
     }
 
-    public Color ParseColor(InputStream inputFile, Scene scene)
+    public static Color ParseColor(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('<', inputFile);
         var r = ExpectNumber(inputFile, scene);
@@ -508,7 +508,7 @@ public class Scene
         return new Color(r, g, b);
     }
 
-    public Pigment ParsePigment(InputStream inputFile, Scene scene)
+    public static Pigment ParsePigment(InputStream inputFile, Scene scene)
     {
         var keyword = ExpectKeywords([KeywordEnum.Checkered, KeywordEnum.Uniform, KeywordEnum.Image], inputFile);
         
@@ -549,7 +549,7 @@ public class Scene
         return null;
     }
     
-    public Brdf ParseBrdf(InputStream inputFile, Scene scene)
+    public static Brdf ParseBrdf(InputStream inputFile, Scene scene)
     {
         var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
         ExpectSymbol('(', inputFile);
@@ -566,7 +566,7 @@ public class Scene
         }
     }
 
-    public Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
+    public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
     {
         var name = ExpectString(inputFile);
         ExpectSymbol('(', inputFile);
@@ -578,7 +578,7 @@ public class Scene
         return new Tuple<string, Material>(name, new Material{Brdf = brdf, EmittedRadiance = emittedRadiance});
     }
 
-    public Transformation ParseTransformation(InputStream inputFile, Scene scene)
+    public static Transformation ParseTransformation(InputStream inputFile, Scene scene)
     {
         var result = new Transformation();
         while (true)
@@ -635,7 +635,7 @@ public class Scene
         return result;
     }
 
-    public Sphere ParseSphere(InputStream inputFile, Scene scene)
+    public static Sphere ParseSphere(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('(', inputFile);
         
@@ -649,7 +649,7 @@ public class Scene
         return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
     }
 
-    public Plane ParsePlane(InputStream inputFile, Scene scene)
+    public static Plane ParsePlane(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('(', inputFile);
         
@@ -663,7 +663,7 @@ public class Scene
         return new Plane(transformation: transformation, material: scene.Materials[materialName]);
     }
 
-    public Camera ParseCamera(InputStream inputFile, Scene scene)
+    public static Camera ParseCamera(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('(', inputFile);
         var typeKw = ExpectKeywords([KeywordEnum.Perspective, KeywordEnum.Orthogonal], inputFile);
@@ -688,7 +688,7 @@ public class Scene
         }
     }
 
-    public PointLight ParsePointLight(InputStream inputFile, Scene scene)
+    public static PointLight ParsePointLight(InputStream inputFile, Scene scene)
     {
         ExpectSymbol('(', inputFile);
         var position = ParseVector(inputFile, scene);
@@ -702,12 +702,8 @@ public class Scene
             
     }
 
-    public Scene ParseScene(InputStream inputFile, Dictionary<string, float> variables)
+    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float> variables = null)
     {
-        /*    scene = Scene()
-    scene.float_variables = copy(variables)
-    scene.overridden_variables = set(variables.keys())
-*/
         var scene = new Scene
         {
             FloatVariables = variables,

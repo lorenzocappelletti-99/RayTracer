@@ -3,13 +3,8 @@
  |             Released under EUPL-1.2 License
  |                       See LICENSE
  ===========================================================*/
-using System;
-using System.Collections.Generic;
+
 using System.Diagnostics;
-using System.Linq; 
-
-
-using System;
 
 namespace Trace;
 
@@ -322,10 +317,10 @@ public class Csg : Shape
 
             // 3) Calcola stato “inside” all’inizio (just before tMin)
             Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
-            float t0 = hitMin.T - 1e-4f;
+            var t0 = hitMin.T - 1e-4f;
             var p0 = ray.PointAt(t0);
-            bool inF = First.IsPointInternal(p0);
-            bool inS = Second.IsPointInternal(p0);
+            var inF = First.IsPointInternal(p0);
+            var inS = Second.IsPointInternal(p0);
 
             // 4) Processa il primo evento
             if (isFirstMin) inF = !inF; else inS = !inS;

@@ -85,7 +85,7 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(1, stream.Location.ColNum);
         
-        char ch = stream.ReadChar();
+        var ch = stream.ReadChar();
         Assert.Equal('a', ch);
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(2, stream.Location.ColNum);

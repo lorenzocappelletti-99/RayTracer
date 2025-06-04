@@ -9,7 +9,6 @@ using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
-using System.Net.Sockets;
 using Trace;
 
 namespace Myraytracer;
@@ -190,44 +189,30 @@ public class DemoCommand : ICommand
             material: ground)
         );
         
-        
-        
+        var image = new HdrImage(Width, Height);
+        var tracer = new ImageTracer(image, Camera); 
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
         {
             scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
-            var image = new HdrImage(Width, Height);
-            var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PointLightRenderer(scene, Color.Black);
             tracer.FireAllRays(render.Render);
-            using var pfmStream = new MemoryStream();
-            image.WritePfm(pfmStream);
-            pfmStream.Seek(0, SeekOrigin.Begin);
-            HdrImage.write_ldr_image(
-                pfmStream,
-                OutputLdrFileName
-            );
         }
         
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
-            var image = new HdrImage(Width, Height);
-            var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PathTracer(scene, Color.Black, new Pcg(), 3, 3, 1);
             tracer.FireAllRays(render.Render);
-            using var pfmStream = new MemoryStream();
-            image.WritePfm(pfmStream);
-            pfmStream.Seek(0, SeekOrigin.Begin);
-            HdrImage.write_ldr_image(
-                pfmStream,
-                OutputLdrFileName
-            );
         }
-
         
-        
-
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+        HdrImage.write_ldr_image(
+            pfmStream,
+            OutputLdrFileName
+        );
         
 
         Console.WriteLine($"Generated LDR: {OutputLdrFileName}");

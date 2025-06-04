@@ -3,14 +3,10 @@ using Xunit;
 
 namespace Trace;
 
-/*
-WHITESPACE = " \t\n\r"
-SYMBOLS = "()<>[],*,="
-*/
 
 /// <summary>
-/// A specific position in a source file
-/// This class has the following fields:
+///  A specific position in a source file
+///  This class has the following fields:
 /// - FileName: the name of the file, or the empty str (e.g., because the source code was provided)
 /// - LineNum: number of the line (starting from 1)
 /// - ColNum: number of the column (starting from 1)
@@ -58,6 +54,10 @@ public class StopToken : Token
     }
 }
 
+
+/// <summary>
+/// List of keywords
+/// </summary>
 public enum KeywordEnum
 {
     New = 1,
@@ -82,6 +82,9 @@ public enum KeywordEnum
     PointLight
 }
 
+/// <summary>
+/// 
+/// </summary>
 public static class KeywordMap
 {
     public static readonly Dictionary<string, KeywordEnum> Keywords = new Dictionary<string, KeywordEnum>
@@ -163,6 +166,10 @@ public class LiteralNumberToken : Token
     }
 }
 
+/// <summary>
+/// Token containing a symbol. Equivalent status of a keyword token.
+/// Separated for clarity’s sake.
+/// </summary>
 public class SymbolToken : Token
 {
     public char Symbol;
@@ -246,7 +253,7 @@ public class InputStream
         }
         else
         {
-            int read = Stream.Read();
+            var read = Stream.Read();
             ch = read == -1 ? '\0' : (char)read;
         }
         
@@ -265,7 +272,7 @@ public class InputStream
 
     public void SkipWhitespacesAndComments()
     {
-        char ch = ReadChar();
+        var ch = ReadChar();
         
         while (Whitespace.Contains(ch) || ch == '#')
         {

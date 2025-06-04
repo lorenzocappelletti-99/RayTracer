@@ -139,9 +139,9 @@ public class DemoCommand : ICommand
             }        
         };
 
-        var mirror = new Material()
+        var mirror = new Material
         {
-            Brdf = new SpecularBrdf() {
+            Brdf = new SpecularBrdf {
                 Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
             }        
         };

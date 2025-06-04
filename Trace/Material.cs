@@ -113,6 +113,8 @@ public abstract class Brdf
 {
     public Pigment Pigment = new UniformPigment(Color.White);
     
+
+    
     public abstract Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv);
     
     public abstract Ray ScatterRay(Pcg? pcg, Vec incomingDir, Point interactionPoint, Normal normal, int depth);
@@ -120,6 +122,13 @@ public abstract class Brdf
 
 public class SpecularBrdf : Brdf
 {
+    
+    public SpecularBrdf(){}
+
+    public SpecularBrdf(Pigment pigment)
+    {
+        Pigment = pigment;
+    }
     
     public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
@@ -148,6 +157,13 @@ public class SpecularBrdf : Brdf
 /// </summary>
 public class DiffusiveBrdf : Brdf
 { 
+    
+    public DiffusiveBrdf(){}
+
+    public DiffusiveBrdf(Pigment pigment)
+    {
+        Pigment = pigment;
+    }
     public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
         return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);

@@ -216,7 +216,8 @@ public class InputStream
         SavedChar = '\0';
         SavedLocation = Location;
         Tabulations = tabulations;
-        /////////////////////////////////////
+        
+        SavedToken = null;
     }
 
     public void UpdatePos(char ch)
@@ -269,6 +270,7 @@ public class InputStream
         SavedChar = ch;
         Location = SavedLocation;
     }
+
 
     public void SkipWhitespacesAndComments()
     {
@@ -392,23 +394,187 @@ public class InputStream
         if (Symbols.Contains(ch))
             return new SymbolToken(Location, ch);
 
-        else if (ch == '"')
+        if (ch == '"')
             return ParseStringToken(Location);
 
-        else if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
+        if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
             return ParseFloatToken(ch, Location);
-        
-        else if (char.IsLetter(ch) || ch == '_')
+
+        if (char.IsLetter(ch) || ch == '_')
             return ParseKeywordOrIdentifierToken(ch, Location);
 
-        else
-        {
-            // Carattere non riconosciuto
-            throw new GrammarError(
-                location: Location,
-                $"Invalid character {ch}"
-            );
-        }
+        // Carattere non riconosciuto
+        throw new GrammarError(
+            location: Location,
+            $"Invalid character {ch}"
+        );
 
     }
+    public void UnreadToken(Token token)
+    {
+        Assert.True(SavedToken == null);
+        SavedToken = token;
+    }
+    
+}
+
+public class Scene
+{
+    public World World = new World();
+    public Camera? Camera;
+    public Dictionary<string, float> FloatVariables = new();
+    public HashSet<string> OverriddenVariables = [];
+    public Dictionary<string, Material> Materials = new();
+
+    public void ExpectSymbol(char symbol, InputStream inputFile)
+    {
+        var token = inputFile.ReadToken();
+        if (token is not SymbolToken || token.GetType() != typeof(SymbolToken))
+        {
+            throw new GrammarError(token.Location, $"{nameof(ExpectSymbol)}: got '{token}' instead of '{symbol}'");
+        }
+    }
+
+    public KeywordEnum ExpectKeywords(List<KeywordEnum> keywords, InputStream inputFile)
+    {
+        var token = inputFile.ReadToken();
+
+        if (token is not KeywordToken key)
+            throw new GrammarError(token.Location, $"expected a keyword instead of '{token}'");
+        if (!keywords.Contains(key.Keyword))
+            throw new GrammarError(token.Location,
+                $"expected one of the keywords {string.Join(",", Enum.GetNames(typeof(KeywordEnum)))} instead of '{token}'"
+            );
+        return key.Keyword;
+    }
+    
+    public float ExpectNumber(InputStream inputFile, Scene scene)
+    {   
+        var token = inputFile.ReadToken();
+        switch (token)
+        {
+            case LiteralNumberToken number:
+                return number.Number;
+            case IdentifierToken identifier:
+            {
+                var variableName = identifier.Identifier;
+                if(scene.FloatVariables.ContainsKey(variableName))
+                    throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
+                return scene.FloatVariables[variableName];
+            }
+            default:
+                throw new GrammarError(token.Location, $"expected a number instead of '{token}'");
+        }
+    }
+
+    public string ExpectString(InputStream inputFile)
+    {
+        var token = inputFile.ReadToken();
+        if(token is not StringToken) 
+            throw new GrammarError(token.Location, $"expected a string in {token}");
+        return ((StringToken)token).Value;
+    }
+    
+    public string ExpectIdentifier(InputStream inputFile)
+    {
+        var token = inputFile.ReadToken();
+        if(token is not IdentifierToken)
+            throw new GrammarError(token.Location, $"expected a identifier in {token}");
+        return ((IdentifierToken)token).Identifier;
+    }
+
+    public Vec ParseVector(InputStream inputFile, Scene scene)
+    {
+        ExpectSymbol('[', inputFile);
+        var x = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var y = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var z = ExpectNumber(inputFile, scene);
+        ExpectSymbol(']', inputFile);
+        return new Vec(x, y, z);
+    }
+
+    public Color ParseColor(InputStream inputFile, Scene scene)
+    {
+        ExpectSymbol('<', inputFile);
+        var r = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var g = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var b = ExpectNumber(inputFile, scene);
+        ExpectSymbol('>', inputFile);
+        return new Color(r, g, b);
+    }
+
+    public Pigment ParsePigment(InputStream inputFile, Scene scene)
+    {
+        var keyword = ExpectKeywords([KeywordEnum.Checkered, KeywordEnum.Uniform, KeywordEnum.Image], inputFile);
+        
+        ExpectSymbol('(', inputFile);
+ 
+        if (keyword is KeywordEnum.Uniform)
+        {
+            var color = ParseColor(inputFile, scene);
+            return new UniformPigment(color);
+        }
+        if (keyword is KeywordEnum.Checkered)
+        {
+            var color1 = ParseColor(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var color2 = ParseColor(inputFile, scene);
+            try
+            {
+                ExpectSymbol(',', inputFile);
+            }
+            catch
+            {
+                var numOfSteps = (int)ExpectNumber(inputFile, scene);
+                return new CheckeredPigment(color1, color2, numOfSteps);
+            }
+            return new CheckeredPigment(color1, color2);
+        }
+        
+        if (keyword is KeywordEnum.Image)
+        {
+            var fileName = ExpectString(inputFile);
+            using var stream = new FileStream(fileName, FileMode.Open);
+            var image = HdrImage.ReadPfm(stream);
+            return new ImagePigment(image);
+        }
+        
+        ExpectSymbol(')', inputFile);
+        Assert.False(true, "this line should be unreachable");
+        return null;
+    }
+
+    public Brdf ParseBrdf(InputStream inputFile, Scene scene)
+    {
+        var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
+        ExpectSymbol('(', inputFile);
+        var pigment = ParsePigment(inputFile, scene);
+        switch (brdfKeyword)
+        {
+            case KeywordEnum.Diffuse:
+                return new DiffusiveBrdf(pigment);
+            case KeywordEnum.Specular:
+                return new SpecularBrdf(pigment);
+            default:
+                Assert.True(false, "this line should be unreachable");
+                return null;
+        }
+    }
+    
+    
+    
+    
+    
+    /*
+parse_material(s: InputStream, scene: Scene) -> Tuple[str, Material]
+parse_transformation(input_file, scene: Scene)
+parse_sphere(s: InputStream, scene: Scene) -> Sphere
+parse_plane(s: InputStream, scene: Scene) -> Plane
+parse_camera(s: InputStream, scene) -> Camera
+     */
+
 }

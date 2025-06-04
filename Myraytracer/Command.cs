@@ -4,6 +4,7 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.ComponentModel.DataAnnotations;
 using CliFx;
 using CliFx.Exceptions;
 using CliFx.Attributes;
@@ -18,6 +19,7 @@ namespace Myraytracer;
 public class DemoCommand : ICommand
 {
     [CommandOption("camera", 'c', Description = "Projection type (Perspective/Orthogonal)")]
+    [AllowedValues("Perspective", "Orthogonal")]
     public string CameraType { get; init; } = "Perspective";
 
     [CommandOption("angle", 'a', Description = "Rotation angle Z (degrees)")]
@@ -35,10 +37,11 @@ public class DemoCommand : ICommand
     [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
     public bool AntiAliasing { get; init; } = false;
     
-    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
-    public int RaysPerPixel { get; init; } = 0;
+    [CommandOption("NumOfRays", 'R', Description = "Number of rays")]
+    public int NumOfRays { get; init; } = 3;
     
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
+    [AllowedValues("PathTracer", "PointLight", "FlatRender")]
     public string Renderer { get; init; } = "PathTracer";
     
 
@@ -56,7 +59,7 @@ public class DemoCommand : ICommand
 
         // Create transformation
         var rotation = Transformation.RotationZ(AngleDeg);
-        var translation = Transformation.Translation(new Vec(-1, 0, 1));
+        var translation = Transformation.Translation(new Vec(-1, 0, 3));
         var transform = rotation * translation;
 
         // Create camera
@@ -98,19 +101,13 @@ public class DemoCommand : ICommand
         //scene 1
         // Create the objects
         
-        var sky = new Material
-        {
-            EmittedRadiance = new UniformPigment(new Color(.05f, 0.05f, 0.05f)),
-            Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(Color.Black) 
-            }
-        };
-        var ground = new Material
+        var checkered = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new CheckeredPigment(new Color(0.3f, 0.5f, 0.1f), new Color(0.1f, 0.2f, 0.5f)) 
+                Pigment = new CheckeredPigment(new Color(0.5f, 0.75f, 0.5f), new Color(1f, 0.4f, 0.7f)) 
             }
         };
+        
         
         var blue = new Material
         {
@@ -122,14 +119,14 @@ public class DemoCommand : ICommand
         var red = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(0.7f, 0.2f, 0.2f))             
+                Pigment = new UniformPigment(new Color(0.8f, 0.2f, 0.2f))             
             }        
         };
         
         var green = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(0.5f, 1.0f, 0.5f))             
+                Pigment = new UniformPigment(new Color(0.5f, 0.75f, 0.5f))             
             }        
         };
         
@@ -162,33 +159,119 @@ public class DemoCommand : ICommand
             material: green);
         
         var s4 = new Sphere(
-            transformation: Transformation.Scaling(new Vec(1f,1.2f,1f)) * Transformation.Translation(new Vec(0.7f, -0.1f, 1.2f)),
-            material: yellow);
+            transformation: Transformation.Translation(new Vec(2.5f, -0.1f, 1.2f)),
+            material: red);
         
-        var s5 = new Sphere(
+        
+        var s = new Sphere(
             transformation: Transformation.Translation(new Vec(1.5f, 3f, 0f)),
-            material: mirror);
+            material: new Material
+            {
+                EmittedRadiance = new UniformPigment(new Color(0.3f, 0.5f, 0.1f)),
+                Brdf = new DiffusiveBrdf {
+                    Pigment = new UniformPigment(Color.Black) 
+                }
+            }
+            );
+        
 
         
 
         //var difference = new Csg(sphere1, sphere2, CsgOperation.Difference);
         //var intersection = new Csg(sphere1, sphere2, CsgOperation.Intersection);
 
-        var u1 = new Csg(s1, s2, CsgOperation.Union);
-        var u2 = new Csg(u1, s3, CsgOperation.Union);
-        var union = new Csg(u2, s4, CsgOperation.Union);
+       // var u1 = new Csg(s1, s2, CsgOperation.Union);
+//var u2 = new Csg(u1, s3, CsgOperation.Union);
+      //  var union = new Csg(u2, s4, CsgOperation.Union);
         
-        scene.AddShape(union);
-        scene.AddShape(s5);
+        //scene.AddShape(union);
+        //scene.AddShape(s5);
         
         
+        //scene.AddShape(new Plane(
+        //    transformation: Transformation.Translation(new Vec(0f, 0, 4f)),
+         //   material: ground));
+        
+        //scene.AddShape(new Plane(
+        //    material: ground)
+       // );
+        
+        //scene.AddShape(union);
+       
+        
+        
+        /*
+        //////////////////////////////////
+        ////    ROOM WITH SPHERE   //////
+        ////////////////////////////////
+        
+        var sky = new Material
+           {
+               EmittedRadiance = new UniformPigment(new Color(0.2f, 0.2f, 0.2f)),
+               Brdf = new DiffusiveBrdf {
+                   Pigment = new UniformPigment(Color.Black) 
+               }
+           };
+           
+           var checkered = new Material
+           {
+               Brdf = new DiffusiveBrdf {
+                   Pigment = new CheckeredPigment(new Color(0.5f, 0.75f, 0.5f), new Color(1f, 0.4f, 0.7f)) 
+               }
+           };
+        
+        var blue = new Material
+           {
+               Brdf = new DiffusiveBrdf {
+                   Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
+               }        
+           };
+        
+        var red = new Material
+           {
+               Brdf = new DiffusiveBrdf {
+                   Pigment = new UniformPigment(new Color(0.8f, 0.2f, 0.2f))             
+               }        
+           };
+        
+        var s4 = new Sphere(
+           transformation: Transformation.Translation(new Vec(2.5f, -0.1f, 1.2f)),
+           material: red);
+        
+        //parete dx
         scene.AddShape(new Plane(
-            transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
+            transformation: Transformation.Translation(new Vec(0f, 4f, 0f)) * Transformation.RotationX(90f),
+            material: blue));
+        
+        //parete sx
+        scene.AddShape(new Plane(
+            transformation: Transformation.Translation(new Vec(0f, -4f, 0f)) * Transformation.RotationX(90f),
+            material: blue));
+            
+        //soffitto
+        scene.AddShape(new Plane(
+            transformation: Transformation.Translation(new Vec(0f, 0f, 8f)),
             material: sky));
         
+        //parete in fondo
         scene.AddShape(new Plane(
-            material: ground)
-        );
+            transformation: Transformation.Translation(new Vec(7f, 0f, 0f)) * Transformation.RotationY(90f),
+            material: blue));
+        
+        //parete alle spalle
+        scene.AddShape(new Plane(
+            transformation: Transformation.Translation(new Vec(-2f, 0f, 0f)) * Transformation.RotationY(90f),
+            material: blue));
+        
+        //pavimento
+        scene.AddShape(new Plane(material: checkered));
+        
+        //sfera
+        scene.AddShape(s4);
+        
+        */
+        
+        
         
         
         
@@ -214,7 +297,7 @@ public class DemoCommand : ICommand
             var image = new HdrImage(Width, Height);
             var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), 3, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(), NumOfRays, 3, 1);
             tracer.FireAllRays(render.Render);
             using var pfmStream = new MemoryStream();
             image.WritePfm(pfmStream);
@@ -224,6 +307,23 @@ public class DemoCommand : ICommand
                 OutputLdrFileName
             );
         }
+        
+        if (Renderer.Equals("FlatRender", StringComparison.OrdinalIgnoreCase))
+        {
+            var image = new HdrImage(Width, Height);
+            var tracer = new ImageTracer(image, Camera);
+            //if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new FlatRenderer(scene, Color.Black);
+            tracer.FireAllRays(render.Render);
+            using var pfmStream = new MemoryStream();
+            image.WritePfm(pfmStream);
+            pfmStream.Seek(0, SeekOrigin.Begin);
+            HdrImage.write_ldr_image(
+                pfmStream,
+                OutputLdrFileName
+            );
+        }
+        
 
         
         

@@ -13,9 +13,9 @@ namespace Trace;
 /// </summary>
 public struct SourceLocation
 {
-    public string FileName;
-    public int LineNum;
-    public int ColNum;
+    public string FileName = "";
+    public int LineNum = 0;
+    public int ColNum = 0;
 
     // Parameterless constructor: initializes LineNum and ColNum to 1 by default.
     public SourceLocation()
@@ -38,21 +38,15 @@ public struct SourceLocation
 /// <summary>
 /// A lexical token, used when parsing a scene file
 /// </summary>
-public abstract class Token
+public abstract class Token(SourceLocation location)
 {
-    public SourceLocation Location = new SourceLocation();
+    public SourceLocation Location = location;
 }
 
 /// <summary>
 /// A token signalling the end of a file
 /// </summary>
-public class StopToken : Token
-{
-    public StopToken(SourceLocation location)
-    {
-        Location = location;
-    }
-}
+public class StopToken(SourceLocation location) : Token(location);
 
 
 /// <summary>
@@ -61,25 +55,25 @@ public class StopToken : Token
 public enum KeywordEnum
 {
     New = 1,
-    Material,
-    Plane,
-    Sphere,
-    Diffuse,
-    Specular,
-    Uniform,
-    Checkered,
-    Image,
-    Identity,
-    Translation,
-    RotationX,
-    RotationY,
-    RotationZ,
-    Scaling,
-    Camera,
-    Orthogonal,
-    Perspective,
-    Float,
-    PointLight
+    Material = 2,
+    Plane = 3,
+    Sphere = 4,
+    Diffuse = 5,
+    Specular = 6,
+    Uniform = 7,
+    Checkered = 8,
+    Image = 9,
+    Identity = 10,
+    Translation = 11,
+    RotationX = 12,
+    RotationY = 13,
+    RotationZ = 14,
+    Scaling = 15,
+    Camera = 16,
+    Orthogonal = 17,
+    Perspective = 18,
+    Float = 19,
+    PointLight = 20
 }
 
 /// <summary>
@@ -112,87 +106,71 @@ public static class KeywordMap
     };
 }
 
-public class KeywordToken : Token
+public class KeywordToken(SourceLocation location, KeywordEnum keyword) : Token(location)
 {
-    public KeywordEnum Keyword;
+    public KeywordEnum Keyword = keyword;
 
-    public KeywordToken(SourceLocation location, KeywordEnum keyword)
-    {
-        Location = location;
-        Keyword = keyword;
-    }
-}
-
-public class IdentifierToken : Token
-{
-    public string Identifier;
-
-    public IdentifierToken(SourceLocation location, string identifier)
-    {
-        Location = location;
-        Identifier = identifier;
-    }
-
-    public string IdentifierText()
-    {
-        return Identifier;
-    }
-}
-
-public class StringToken : Token
-{
-    public readonly string Value;
-
-    public StringToken(SourceLocation location, string value)
-    {
-        Location = location;
-        Value = value;
-    }
-
-    public string ValueText()
-    {
-        return Value;
-    }
-}
-
-public class LiteralNumberToken : Token
-{
-    public float Number;
+    public override string ToString() => Keyword.ToString();
     
-    public LiteralNumberToken(SourceLocation location, float value)
-    {
-        Location = location;
-        Number = value;
-    }
+}
+
+public class IdentifierToken(SourceLocation location, string identifier) : Token(location)
+{
+    public string Identifier = identifier;
+
+    public override string ToString() => Identifier;
+}
+
+public class StringToken(SourceLocation location, string s) : Token(location)
+{
+    public readonly string S = s;
+
+    public override string ToString() => S;
+}
+
+public class LiteralNumberToken(SourceLocation location, float value) : Token(location)
+{
+    public float Number = value;
+    
+    public override string ToString() => Number.ToString();
 }
 
 /// <summary>
 /// Token containing a symbol. Equivalent status of a keyword token.
 /// Separated for clarity’s sake.
 /// </summary>
-public class SymbolToken : Token
+public class SymbolToken(SourceLocation location, char symbol) : Token(location)
 {
-    public char Symbol;
+    public char Symbol = symbol;
     
-    public SymbolToken(SourceLocation location, char symbol)
-    {
-        Location = location;
-        Symbol = symbol;
-    }
+    public override string ToString() => Symbol.ToString();
 }
 
 
-public class GrammarError : Exception
+/// <summary>
+/// An error found by the lexer/parser while reading a scene file
+/// The fields of this type are the following:
+///
+/// `file_name`: the name of the file, or the empty string if there is no real file
+/// `line_num`: the line number where the error was discovered (starting from 1)
+/// `col_num`: the column number where the error was discovered (starting from 1)
+/// `message`: a user-frendly error message
+/// 
+/// </summary>
+public class GrammarError(SourceLocation location, string message) : Exception
 {
-    public SourceLocation Location { get; }
-
-    public GrammarError(SourceLocation location, string message)
-        : base(message)
-    {
-        Location = location;
-    }
+    public SourceLocation Location = location;
+    public string Message = message;
 }
 
+
+/// <summary>
+/// A high-level wrapper around a stream, used to parse scene files
+/// 
+/// This class implements a wrapper around a stream, with the following additional capabilities:
+/// - It tracks the line number and column number;
+/// - It permits to "un-read" characters and tokens.
+/// </summary>
 public class InputStream
 {
     private const string Whitespace = " \t\n\r";
@@ -219,23 +197,24 @@ public class InputStream
         
         SavedToken = null;
     }
-
+    
+    /// <summary>
+    /// Update `location` after having read `ch` from the stream
+    /// </summary>
+    /// <param name="ch"></param>
     public void UpdatePos(char ch)
     {
         switch (ch)
         {
             case '\0':
                 return;
-
             case '\n':
                 Location.LineNum++;
                 Location.ColNum = 1;
                 break;
-
             case '\t':
                 Location.ColNum += Tabulations;
                 break;
-
             default:
                 Location.ColNum++;
                 break;
@@ -255,7 +234,7 @@ public class InputStream
         else
         {
             var read = Stream.Read();
-            ch = read == -1 ? '\0' : (char)read;
+            ch = (char)read;
         }
         
         SavedLocation = Location;
@@ -280,12 +259,10 @@ public class InputStream
         {
             if (ch == '#')
             {
-                do
-                {
-                    ch = ReadChar();
-                }
-                while (ch != '\0' && ch != '\n' && ch != '\r');
+                char next;
+                while ((next = ReadChar()) != '\0' && next != '\n' && next != '\r') { }
             }
+
             ch = ReadChar();
             
             if (ch == '\0')
@@ -304,7 +281,8 @@ public class InputStream
             var ch = ReadChar();
             
             if (ch == '"') break;
-            // if(ch == '\0') 
+            if (ch == '\0')
+                throw new GrammarError(tokenLocation, "unterminated string");
             
             token += ch;
         }
@@ -390,12 +368,14 @@ public class InputStream
 
         if (ch == '\0')
             return new StopToken(Location);
+        
+        var tokenLocation = Location;
 
         if (Symbols.Contains(ch))
-            return new SymbolToken(Location, ch);
+            return new SymbolToken(tokenLocation, ch);
 
         if (ch == '"')
-            return ParseStringToken(Location);
+            return ParseStringToken(tokenLocation);
 
         if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
             return ParseFloatToken(ch, Location);
@@ -415,17 +395,24 @@ public class InputStream
         Assert.True(SavedToken == null);
         SavedToken = token;
     }
-    
+
+
 }
 
 
 public class Scene
 {
-    public World World = new World();
+    public World World = new();
     public Camera? Camera;
-    public Dictionary<string, float> FloatVariables = new();
-    public HashSet<string> OverriddenVariables = [];
+    public Dictionary<string, float>? FloatVariables;
+    public HashSet<string> OverriddenVariables;
     public Dictionary<string, Material> Materials = new();
+    
+    private Scene(Dictionary<string, float>? floatVariables, HashSet<string> overriddenVariables)
+    {
+        FloatVariables = floatVariables;
+        OverriddenVariables = overriddenVariables;
+    }
 
     public static void ExpectSymbol(char symbol, InputStream inputFile)
     {
@@ -473,7 +460,7 @@ public class Scene
         var token = inputFile.ReadToken();
         if(token is not StringToken) 
             throw new GrammarError(token.Location, $"expected a string in {token}");
-        return ((StringToken)token).Value;
+        return ((StringToken)token).S;
     }
     
     public static string ExpectIdentifier(InputStream inputFile)
@@ -514,38 +501,39 @@ public class Scene
         
         ExpectSymbol('(', inputFile);
  
-        if (keyword is KeywordEnum.Uniform)
+        switch (keyword)
         {
-            var color = ParseColor(inputFile, scene);
-            return new UniformPigment(color);
-        }
-        if (keyword is KeywordEnum.Checkered)
-        {
-            var color1 = ParseColor(inputFile, scene);
-            ExpectSymbol(',', inputFile);
-            var color2 = ParseColor(inputFile, scene);
-            try
+            case KeywordEnum.Uniform:
             {
+                var color = ParseColor(inputFile, scene);
+                return new UniformPigment(color);
+            }
+            case KeywordEnum.Checkered:
+            {
+                var color1 = ParseColor(inputFile, scene);
                 ExpectSymbol(',', inputFile);
+                var color2 = ParseColor(inputFile, scene);
+                try
+                {
+                    ExpectSymbol(',', inputFile);
+                }
+                catch
+                {
+                    var numOfSteps = (int)ExpectNumber(inputFile, scene);
+                    return new CheckeredPigment(color1, color2, numOfSteps);
+                }
+                return new CheckeredPigment(color1, color2);
             }
-            catch
+            case KeywordEnum.Image:
             {
-                var numOfSteps = (int)ExpectNumber(inputFile, scene);
-                return new CheckeredPigment(color1, color2, numOfSteps);
+                var fileName = ExpectString(inputFile);
+                using var stream = new FileStream(fileName, FileMode.Open);
+                var image = HdrImage.ReadPfm(stream);
+                return new ImagePigment(image);
             }
-            return new CheckeredPigment(color1, color2);
         }
-        
-        if (keyword is KeywordEnum.Image)
-        {
-            var fileName = ExpectString(inputFile);
-            using var stream = new FileStream(fileName, FileMode.Open);
-            var image = HdrImage.ReadPfm(stream);
-            return new ImagePigment(image);
-        }
-        
         ExpectSymbol(')', inputFile);
-        Assert.False(true, "this line should be unreachable");
+        Assert.True(false, "this line should be unreachable");
         return null;
     }
     
@@ -568,7 +556,7 @@ public class Scene
 
     public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
     {
-        var name = ExpectString(inputFile);
+        var name = ExpectIdentifier(inputFile);
         ExpectSymbol('(', inputFile);
         var brdf = ParseBrdf(inputFile, scene);
         ExpectSymbol(',', inputFile);
@@ -702,62 +690,53 @@ public class Scene
             
     }
 
-    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float> variables = null)
+    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
     {
-        var scene = new Scene
-        {
-            FloatVariables = variables,
-            OverriddenVariables = new HashSet<string>(variables.Keys)
-        };
-
+        variables ??= new Dictionary<string, float>();
+        var scene = new Scene(variables, [..variables.Keys]);
+        
         while (true)
         {
             var what = inputFile.ReadToken();
             if(what is StopToken) break;
             if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"expected a keyword instead of {what}");
-            switch (whatToken.Keyword)
+            if(whatToken.Keyword == KeywordEnum.Float)
             {
-                case KeywordEnum.Float:
-                {
-                    var variableName = ExpectIdentifier(inputFile);
-                    var variableLoc = inputFile.Location;
-                
-                    ExpectSymbol('(', inputFile);
-                    var variableValue = ExpectNumber(inputFile, scene);
-                    ExpectSymbol(')', inputFile);
-                    if(scene.FloatVariables.ContainsKey(variableName) && 
-                       scene.OverriddenVariables.Contains(variableName)) 
-                        throw new GrammarError(variableLoc, $"variable {variableName} cannot be redefined");
-                    if(scene.OverriddenVariables.Contains(variableName)) 
+                var variableName = ExpectIdentifier(inputFile);
+                var variableLoc = inputFile.Location;
+            
+                ExpectSymbol('(', inputFile);
+                var variableValue = ExpectNumber(inputFile, scene);
+                ExpectSymbol(')', inputFile);
+                if(scene.FloatVariables != null &&
+                   scene.FloatVariables.ContainsKey(variableName) && 
+                   scene.OverriddenVariables.Contains(variableName)) 
+                    throw new GrammarError(variableLoc, $"variable {variableName} cannot be redefined");
+                if(!scene.OverriddenVariables.Contains(variableName))
+                    if (scene.FloatVariables != null)
                         scene.FloatVariables[variableName] = variableValue;
-                    break;
-                }
-                case KeywordEnum.Sphere:
-                    scene.World.AddShape(ParseSphere(inputFile, scene));
-                    break;
-                case KeywordEnum.Plane:
-                    scene.World.AddShape(ParsePlane(inputFile, scene));
-                    break;
-                case KeywordEnum.Camera when scene.Camera != null:
-                    throw new GrammarError(inputFile.Location, $"camera has already been specified");
-                case KeywordEnum.Camera:
-                    scene.Camera = ParseCamera(inputFile, scene);
-                    break;
-                case KeywordEnum.Material:
-                {
-                    var materialName = ParseMaterial(inputFile, scene);
-                    scene.Materials[materialName.Item1] = materialName.Item2;
-                    break;
-                }
             }
-
-            if (whatToken.Keyword == KeywordEnum.PointLight)
+            else if(whatToken.Keyword == KeywordEnum.Sphere)
+                scene.World.AddShape(ParseSphere(inputFile, scene));
+            else if(whatToken.Keyword == KeywordEnum.Plane)
+                scene.World.AddShape(ParsePlane(inputFile, scene));
+            else if(whatToken.Keyword ==  KeywordEnum.Camera && scene.Camera != null)
+                throw new GrammarError(inputFile.Location, $"camera has already been specified");
+            else if(whatToken.Keyword ==  KeywordEnum.Camera)
+                scene.Camera = ParseCamera(inputFile, scene);
+            else if(whatToken.Keyword ==  KeywordEnum.Material)
+            {
+                var materialName = ParseMaterial(inputFile, scene);
+                scene.Materials[materialName.Item1] = materialName.Item2;
+            }
+            
+            else if(whatToken.Keyword ==  KeywordEnum.PointLight)
             {
                 var pointLight = ParsePointLight(inputFile, scene);
                 scene.World.AddLight(pointLight);
             }
-            
-            else throw new GrammarError(what.Location, $"unexpected token {what}");
+            else
+                throw new GrammarError(what.Location, $"unexpected token {what}");
         }
         return scene;
     }

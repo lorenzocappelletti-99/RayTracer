@@ -195,34 +195,34 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
     [Fact]
     public void TestParser()
     {
-        var input = """
-        float clock(150)
-    
-        material sky_material(
-            diffuse(uniform(<0, 0, 0>)),
-            checkered(<0.7, 0.5, 1>, <0,.2,.4>)
-        )
-    
-        # Here is a comment
-    
-        material ground_material(
-            diffuse(checkered(<0.3, 0.5, 0.1>,
-                              <0.1, 0.2, 0.5>, 4)),
-            uniform(<0, 0, 0>)
-        )
-    
-        material sphere_material(
-            specular(uniform(<0.5, 0.5, 0.5>)),
-            uniform(<0, 0, 0>)
-        )
-    
-        plane (sky_material, translation([0, 0, 100]) * rotation_y(clock))
-        plane (ground_material, identity)
-    
-        sphere(sphere_material, translation([0, 0, 1]))
-    
-        camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
-        """;
+        const string input = """
+                             float clock(150)
+
+                             material sky_material(
+                                 diffuse(uniform(<0, 0, 0>)),
+                                 checkered(<0.7, 0.5, 1>, <0,.2,.4>)
+                             )
+
+                             # Here is a comment
+
+                             material ground_material(
+                                 diffuse(checkered(<0.3, 0.5, 0.1>,
+                                                   <0.1, 0.2, 0.5>, 4)),
+                                 uniform(<0, 0, 0>)
+                             )
+
+                             material sphere_material(
+                                 specular(uniform(<0.5, 0.5, 0.5>)),
+                                 uniform(<0, 0, 0>)
+                             )
+
+                             plane (sky_material, translation([0, 0, 100]) * rotation_y(clock))
+                             plane (ground_material, identity)
+
+                             sphere(sphere_material, translation([0, 0, 1]))
+
+                             camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
+                             """;
         
         var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
         var inputStream = new InputStream(reader, fileName: "file");
@@ -285,5 +285,93 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         assert scene.camera.transformation.is_close(rotation_z(30) * translation(Vec(-4, 0, 1)))
         assert pytest.approx(1.0) == scene.camera.aspect_ratio
         assert pytest.approx(2.0) == scene.camera.screen_distance*/
+    
+    // A specific test for float location
+    [Fact]
+    public void TestReadToken_FloatLocationAccuracy()
+    {
+        var input = "float myVar = 123.45;"; // Simple float
+        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
+        var inputStream = new InputStream(reader, fileName: "test.scene");
+
+        // "float"
+        var token1 = inputStream.ReadToken();
+        AssertIsKeyword(token1, KeywordEnum.Float);
+        Assert.Equal(1, token1.Location.LineNum);
+        Assert.Equal(1, token1.Location.ColNum); // 'f' of 'float'
+
+        // "myVar"
+        var token2 = inputStream.ReadToken();
+        AssertIsIdentifier(token2, "myVar");
+        Assert.Equal(1, token2.Location.LineNum);
+        Assert.Equal(7, token2.Location.ColNum); // 'm' of 'myVar'
+
+        // "="
+        var token3 = inputStream.ReadToken();
+        AssertIsSymbol(token3, "=");
+        Assert.Equal(1, token3.Location.LineNum);
+        Assert.Equal(13, token3.Location.ColNum); // '='
+
+        // "123.45" - This is the token that will be a LiteralNumberToken
+        var floatToken = inputStream.ReadToken();
+        AssertIsNumber(floatToken, 123.45f);
+        Assert.Equal(1, floatToken.Location.LineNum);
+        // This is the crucial assertion for the bug:
+        // If ReadToken passes `Location` *after* ReadChar(), this will be 15 instead of 14.
+        Assert.Equal(15, floatToken.Location.ColNum); // Expecting column 15 for the '1' of '123.45'
+    }
+    
+    
+    [Fact]
+    public void TestReadToken_BasicTokensAndComments()
+    {
+        var input = """
+                    # This is a comment
+                    # This is another comment
+                    new material sky_material(
+                        diffuse(image("my file.pfm")),
+                        <5.0, 500.0, 300.0>
+                    ) # Comment at the end of the line
+                    """;
+
+        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
+        var inputStream = new InputStream(reader, fileName: "file");
+
+        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.New);
+        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Material);
+        AssertIsIdentifier(inputStream.ReadToken(), "sky_material");
+        AssertIsSymbol(inputStream.ReadToken(), "(");
+        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Diffuse);
+        AssertIsSymbol(inputStream.ReadToken(), "(");
+        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Image);
+        AssertIsSymbol(inputStream.ReadToken(), "(");
+        AssertIsString(inputStream.ReadToken(), "my file.pfm");
+        AssertIsSymbol(inputStream.ReadToken(), ")");
+
+        // Now for the numbers and their locations
+        // It's crucial to check the location here
+        var angleBracket = inputStream.ReadToken();
+        AssertIsSymbol(angleBracket, "<");
+        Assert.Equal(5, angleBracket.Location.LineNum); // Should be line 5
+        Assert.Equal(25, angleBracket.Location.ColNum); // Should be col 25 (after "))," and before "<")
+
+        var number1 = inputStream.ReadToken();
+        AssertIsNumber(number1, 5.0f);
+        // This is the critical part: check if the location is correct for the '5'
+        Assert.Equal(5, number1.Location.LineNum);
+        Assert.Equal(26, number1.Location.ColNum); // Expecting 26 for '5' if '>' was at 25
+
+        var comma1 = inputStream.ReadToken();
+        AssertIsSymbol(comma1, ",");
+        Assert.Equal(5, comma1.Location.LineNum);
+        Assert.Equal(30, comma1.Location.ColNum); // Expecting 30 for ',' if '5.0' ended at 29
+
+        // ... continue for other numbers and symbols
+    }
+    
+    
 }
+
+
+
 

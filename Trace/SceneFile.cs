@@ -185,7 +185,7 @@ public class InputStream
     public char SavedChar;
     
 
-    public InputStream(StreamReader stream, string fileName, int tabulations = 8)
+    public InputStream(StreamReader stream, string fileName, int tabulations = 4)
     {
         Stream = stream;
         
@@ -351,8 +351,48 @@ public class InputStream
         {
             return new IdentifierToken(tokenLocation, token);
         }
+    } 
+    
+    public Token ReadToken()
+    {
+        if (SavedToken != null)
+        {
+            var result = SavedToken;
+            SavedToken = null;
+            return result;
+        }
+    
+        SkipWhitespacesAndComments();
+    
+        // *** IMPORTANT CHANGE HERE ***
+        // Capture the location *before* reading the first character of the potential token.
+        var tokenStartLocation = Location; 
+    
+        var ch = ReadChar();
+    
+        if (ch == '\0')
+            return new StopToken(tokenStartLocation); 
+    
+        if (Symbols.Contains(ch))
+            return new SymbolToken(tokenStartLocation, ch); 
+    
+        if (ch == '"')
+            return ParseStringToken(tokenStartLocation); 
+    
+        if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
+            return ParseFloatToken(ch, tokenStartLocation); 
+    
+        if (char.IsLetter(ch) || ch == '_')
+            return ParseKeywordOrIdentifierToken(ch, tokenStartLocation);
+    
+        // Carattere non riconosciuto
+        throw new GrammarError(
+            location: tokenStartLocation, // Use tokenStartLocation
+            $"Invalid character '{ch}'" // Add quotes for clarity
+        );
     }
-
+     
+/*
     public Token ReadToken()
     {
         if (SavedToken != null)
@@ -389,7 +429,7 @@ public class InputStream
             $"Invalid character {ch}"
         );
 
-    }
+    }*/
     public void UnreadToken(Token token)
     {
         Assert.True(SavedToken == null);
@@ -398,6 +438,7 @@ public class InputStream
 
 
 }
+
 
 
 public class Scene
@@ -446,7 +487,7 @@ public class Scene
             case IdentifierToken identifier:
             {
                 var variableName = identifier.Identifier;
-                if(scene.FloatVariables.ContainsKey(variableName))
+                if(scene.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
                     throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
                 return scene.FloatVariables[variableName];
             }
@@ -506,6 +547,7 @@ public class Scene
             case KeywordEnum.Uniform:
             {
                 var color = ParseColor(inputFile, scene);
+                ExpectSymbol(')', inputFile);
                 return new UniformPigment(color);
             }
             case KeywordEnum.Checkered:
@@ -513,15 +555,16 @@ public class Scene
                 var color1 = ParseColor(inputFile, scene);
                 ExpectSymbol(',', inputFile);
                 var color2 = ParseColor(inputFile, scene);
-                try
-                {
-                    ExpectSymbol(',', inputFile);
-                }
-                catch
+
+                var nextToken = inputFile.ReadToken();
+                if (nextToken is SymbolToken commaToken && commaToken.Symbol == ',')
                 {
                     var numOfSteps = (int)ExpectNumber(inputFile, scene);
+                    ExpectSymbol(')', inputFile);
                     return new CheckeredPigment(color1, color2, numOfSteps);
                 }
+                inputFile.UnreadToken(nextToken); // Put the token back, it's not a comma
+                ExpectSymbol(')', inputFile); // Closing parenthesis after two colors
                 return new CheckeredPigment(color1, color2);
             }
             case KeywordEnum.Image:
@@ -529,10 +572,11 @@ public class Scene
                 var fileName = ExpectString(inputFile);
                 using var stream = new FileStream(fileName, FileMode.Open);
                 var image = HdrImage.ReadPfm(stream);
+                ExpectSymbol(')', inputFile);
                 return new ImagePigment(image);
             }
         }
-        ExpectSymbol(')', inputFile);
+
         Assert.True(false, "this line should be unreachable");
         return null;
     }
@@ -542,16 +586,13 @@ public class Scene
         var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
         ExpectSymbol('(', inputFile);
         var pigment = ParsePigment(inputFile, scene);
-        switch (brdfKeyword)
+        ExpectSymbol(')', inputFile);
+        return brdfKeyword switch
         {
-            case KeywordEnum.Diffuse:
-                return new DiffusiveBrdf(pigment);
-            case KeywordEnum.Specular:
-                return new SpecularBrdf(pigment);
-            default:
-                Assert.True(false, "this line should be unreachable");
-                return null;
-        }
+            KeywordEnum.Diffuse => new DiffusiveBrdf(pigment),
+            KeywordEnum.Specular => new SpecularBrdf(pigment),
+            _ => throw new GrammarError(inputFile.Location, $"Unexpected BRDF keyword: {brdfKeyword}")
+        };
     }
 
     public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)

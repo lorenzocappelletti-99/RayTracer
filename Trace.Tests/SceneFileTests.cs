@@ -85,6 +85,7 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(1, stream.Location.ColNum);
         
+        
         var ch = stream.ReadChar();
         Assert.Equal('a', ch);
         Assert.Equal(1, stream.Location.LineNum);
@@ -93,60 +94,60 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         stream.UnreadChar('A');
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(1, stream.Location.ColNum);
-        
+
         ch = stream.ReadChar();
         Assert.Equal('A', ch);
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(2, stream.Location.ColNum);
-        
+
        // _testOutputHelper.WriteLine("1) so far so good!\n");
-        
-        
+
+
         ch = stream.ReadChar();
         Assert.Equal('b', ch);
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(3, stream.Location.ColNum);
-        
+
        // _testOutputHelper.WriteLine("2) so far so good!\n");
 
-        
+
         ch = stream.ReadChar();
         Assert.Equal('c', ch);
         Assert.Equal(1, stream.Location.LineNum);
         Assert.Equal(4, stream.Location.ColNum);
-        
+
         //_testOutputHelper.WriteLine("3) so far so good!\n");
-        
+
         stream.SkipWhitespacesAndComments();
-        
+
         //_testOutputHelper.WriteLine("4) so far so good!\n");
-        
+
         ch = stream.ReadChar();
         Assert.Equal('d', ch);
         Assert.Equal(2, stream.Location.LineNum);
         Assert.Equal(2, stream.Location.ColNum);
-        
+
         ch = stream.ReadChar();
         Assert.Equal('\n', ch);
         Assert.Equal(3, stream.Location.LineNum);
         Assert.Equal(1, stream.Location.ColNum);
-        
+
         ch = stream.ReadChar();
         Assert.Equal('e', ch);
         Assert.Equal(3, stream.Location.LineNum);
         Assert.Equal(2, stream.Location.ColNum);
-        
+
         ch = stream.ReadChar();
         Assert.Equal('f', ch);
         Assert.Equal(3, stream.Location.LineNum);
         Assert.Equal(3, stream.Location.ColNum);
-        
+
        // _testOutputHelper.WriteLine("4) so far so good!\n");
-        
+
         ch = stream.ReadChar();
         Assert.Equal('\0', ch);
-        
-        //_testOutputHelper.WriteLine("5) so far so good!\n");
+
+        //_testOutputHelper.WriteLine("5) so far so good!\n");*/
     }
 
 
@@ -233,23 +234,23 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         
         // Check that float variables are ok
         Assert.True(scene.FloatVariables is { Count: 1 });
-        //Assert.Contains("clock", scene.FloatVariables.Keys);
-        //Assert.True(Math.Abs(scene.FloatVariables["clock"] - 150.0) < 1e-5);
+        Assert.Contains("clock", scene.FloatVariables.Keys);
+        Assert.True(Math.Abs(scene.FloatVariables["clock"] - 150.0) < 1e-5);
         
         // Check that materials are ok
-        //Assert.True(scene.Materials.Count == 3);
-        //Assert.Contains("sky_material", scene.Materials.Keys);
-        //Assert.Contains("ground_material", scene.Materials.Keys);
-        //Assert.Contains("sphere_material", scene.Materials.Keys);
+        Assert.True(scene.Materials.Count == 3);
+        Assert.Contains("sky_material", scene.Materials.Keys);
+        Assert.Contains("ground_material", scene.Materials.Keys);
+        Assert.Contains("sphere_material", scene.Materials.Keys);
 
         var sphereMaterial = scene.Materials["sphere_material"];
         var skyMaterial = scene.Materials["sky_material"];
         var groundMaterial = scene.Materials["ground_material"];
         
-        //Assert.True(skyMaterial.Brdf is DiffusiveBrdf);
-        //Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);
-        //if(skyMaterial.Brdf.Pigment is UniformPigment uniformPigment)
-        //    Assert.True(uniformPigment.Color.IsClose(new Color(0.0f,0.0f,0.0f)));
+        Assert.True(skyMaterial.Brdf is DiffusiveBrdf);
+        Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);
+        if(skyMaterial.Brdf.Pigment is UniformPigment uniformPigment)
+            Assert.True(uniformPigment.Color.IsClose(new Color(0.0f,0.0f,0.0f)));
     }
     /*
         assert isinstance(ground_material.brdf, DiffuseBRDF)

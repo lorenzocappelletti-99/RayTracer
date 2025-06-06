@@ -185,7 +185,7 @@ public class InputStream
     public char SavedChar;
     
 
-    public InputStream(StreamReader stream, string fileName, int tabulations = 4)
+    public InputStream(StreamReader stream, string fileName, int tabulations = 8)
     {
         Stream = stream;
         
@@ -225,7 +225,7 @@ public class InputStream
     public char ReadChar()
     {
         char ch;
-        
+
         if (SavedChar != '\0')
         {
             ch = SavedChar;
@@ -234,12 +234,19 @@ public class InputStream
         else
         {
             var read = Stream.Read();
-            ch = (char)read;
+            if (read == -1) // Check for end of stream
+            {
+                ch = '\0'; // Return the null character as the end-of-stream sentinel
+            }
+            else
+            {
+                ch = (char)read; // Otherwise, cast the read byte to a char
+            }
         }
-        
+
         SavedLocation = Location;
-        UpdatePos(ch);
-        
+        UpdatePos(ch); // Update position even for '\0' if you want to track EOF position
+
         return ch;
     }
 
@@ -361,46 +368,6 @@ public class InputStream
             SavedToken = null;
             return result;
         }
-    
-        SkipWhitespacesAndComments();
-    
-        // *** IMPORTANT CHANGE HERE ***
-        // Capture the location *before* reading the first character of the potential token.
-        var tokenStartLocation = Location; 
-    
-        var ch = ReadChar();
-    
-        if (ch == '\0')
-            return new StopToken(tokenStartLocation); 
-    
-        if (Symbols.Contains(ch))
-            return new SymbolToken(tokenStartLocation, ch); 
-    
-        if (ch == '"')
-            return ParseStringToken(tokenStartLocation); 
-    
-        if (char.IsDigit(ch) || ch == '+' || ch == '-' || ch == '.')
-            return ParseFloatToken(ch, tokenStartLocation); 
-    
-        if (char.IsLetter(ch) || ch == '_')
-            return ParseKeywordOrIdentifierToken(ch, tokenStartLocation);
-    
-        // Carattere non riconosciuto
-        throw new GrammarError(
-            location: tokenStartLocation, // Use tokenStartLocation
-            $"Invalid character '{ch}'" // Add quotes for clarity
-        );
-    }
-     
-/*
-    public Token ReadToken()
-    {
-        if (SavedToken != null)
-        {
-            var result = SavedToken;
-            SavedToken = null;
-            return result;
-        }
 
         SkipWhitespacesAndComments();
 
@@ -429,7 +396,7 @@ public class InputStream
             $"Invalid character {ch}"
         );
 
-    }*/
+    }
     public void UnreadToken(Token token)
     {
         Assert.True(SavedToken == null);
@@ -438,7 +405,6 @@ public class InputStream
 
 
 }
-
 
 
 public class Scene
@@ -782,5 +748,3 @@ public class Scene
         return scene;
     }
 }
-
-

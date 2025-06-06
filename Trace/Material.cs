@@ -196,5 +196,4 @@ public class Material
 {
     public Pigment EmittedRadiance = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
-    
 }

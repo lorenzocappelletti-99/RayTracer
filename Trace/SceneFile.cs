@@ -157,10 +157,16 @@ public class SymbolToken(SourceLocation location, char symbol) : Token(location)
 /// `message`: a user-frendly error message
 /// 
 /// </summary>
-public class GrammarError(SourceLocation location, string message) : Exception
+public class GrammarError(SourceLocation location, string message, Exception innerException = null)
+    : Exception(message, innerException)
 {
-    public SourceLocation Location = location;
-    public string Message = message;
+    public SourceLocation Location { get; } = location;
+
+    
+    public override string ToString()
+    {
+        return $"Grammar Error at {Location}: {base.Message}{Environment.NewLine}{base.ToString()}";
+    }
 }
 
 
@@ -372,7 +378,6 @@ public class InputStream
         SkipWhitespacesAndComments();
 
         var ch = ReadChar();
-
         if (ch == '\0')
             return new StopToken(Location);
         
@@ -388,13 +393,12 @@ public class InputStream
             return ParseFloatToken(ch, Location);
 
         if (char.IsLetter(ch) || ch == '_')
+        {
             return ParseKeywordOrIdentifierToken(ch, Location);
+        }
 
         // Carattere non riconosciuto
-        throw new GrammarError(
-            location: Location,
-            $"Invalid character {ch}"
-        );
+        throw new GrammarError(location: Location, $"Invalid character {ch}");
 
     }
     public void UnreadToken(Token token)
@@ -474,7 +478,7 @@ public class Scene
     {
         var token = inputFile.ReadToken();
         if(token is not IdentifierToken)
-            throw new GrammarError(token.Location, $"expected a identifier in {token}");
+            throw new GrammarError(token.Location, $"at {token.Location} expected a identifier in {token}");
         return ((IdentifierToken)token).Identifier;
     }
 
@@ -706,7 +710,7 @@ public class Scene
         {
             var what = inputFile.ReadToken();
             if(what is StopToken) break;
-            if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"expected a keyword instead of {what}");
+            if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"at column {inputFile.Location.ColNum}, line {inputFile.Location.LineNum}, expected a keyword instead of {what}");
             if(whatToken.Keyword == KeywordEnum.Float)
             {
                 var variableName = ExpectIdentifier(inputFile);

@@ -9,9 +9,44 @@ using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
+using System.Text;
 using Trace;
 
 namespace Myraytracer;
+
+[Command("render", Description = "Generates images given an input file")]
+public class RenderCommand : ICommand
+{
+    [CommandParameter(1, Name = "inputFile", Description = "File source with description of scene")]
+    public string? InputFile { get; set; }
+
+    public ValueTask ExecuteAsync(IConsole console)
+    {
+        if (InputFile == null) return default;
+        var reader = new StreamReader(InputFile);
+        var inputStream = new InputStream(reader, InputFile);
+        var scene = Scene.ParseScene(inputStream);
+        
+        var image = new HdrImage(1366, 768);
+        var tracer = new ImageTracer(image, new PerspectiveProjection()); 
+        //var render = new PointLightRenderer(scene.World, Color.Black);
+        //tracer.FireAllRays(render.Render);
+        
+        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+        tracer.FireAllRays(render.Render);
+        
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+        HdrImage.write_ldr_image(
+            pfmStream,
+            "demo.jpg"
+        );
+
+
+        return default;
+    }
+}
 
 [Command("demo", Description = "Generate images with different projections")]
 public class DemoCommand : ICommand
@@ -267,3 +302,4 @@ public class Pfm2LdrCommand : ICommand
         return default;
     }
 }
+

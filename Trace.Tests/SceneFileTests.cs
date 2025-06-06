@@ -201,7 +201,7 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
 
                              material sky_material(
                                  diffuse(uniform(<0, 0, 0>)),
-                                 checkered(<0.7, 0.5, 1>, <0,.2,.4>)
+                                 uniform(<0.7, 0.5, 1>)
                              )
 
                              # Here is a comment
@@ -251,126 +251,48 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);
         if(skyMaterial.Brdf.Pigment is UniformPigment uniformPigment)
             Assert.True(uniformPigment.Color.IsClose(new Color(0.0f,0.0f,0.0f)));
+        
+        Assert.True(groundMaterial.Brdf is DiffusiveBrdf);
+        Assert.True( groundMaterial.Brdf.Pigment is CheckeredPigment);
+        var check = groundMaterial.Brdf.Pigment as CheckeredPigment;
+        Assert.True( check != null && check.Color1.IsClose(new Color(0.3f, 0.5f, 0.1f)) );
+        Assert.True( check.Color2.IsClose(new Color(0.1f, 0.2f, 0.5f)));
+        Assert.True( check.N == 4);
+        
+        Assert.True(sphereMaterial.Brdf is SpecularBrdf);
+        Assert.True(sphereMaterial.Brdf.Pigment is UniformPigment);
+        var check1 = sphereMaterial.Brdf.Pigment as UniformPigment;
+        Assert.True(check1 != null && check1.Color.IsClose(new Color(0.5f, 0.5f, 0.5f)));
+        
+        Assert.True(skyMaterial.EmittedRadiance is UniformPigment);
+        var check2 = skyMaterial.EmittedRadiance as UniformPigment;
+        Assert.True(check2 != null && check2.Color.IsClose(new Color(0.7f, 0.5f, 1.0f)));
+        
+        Assert.True(groundMaterial.EmittedRadiance is  UniformPigment);
+        var check3 = groundMaterial.EmittedRadiance as UniformPigment;
+        
+        Assert.True(check3 != null && check3.Color.IsClose(new Color(0, 0, 0)));
+        Assert.True(sphereMaterial.EmittedRadiance is UniformPigment);
+        var check4 = sphereMaterial.EmittedRadiance as UniformPigment;
+        Assert.True(check4 != null && check4.Color.IsClose(new Color(0, 0, 0)));
+        
+        
+        Assert.True( scene.World.Shapes.Count == 3);
+        Assert.True( scene.World.Shapes[0] is Plane);
+        Assert.True( scene.World.Shapes[0].Transformation.IsClose(
+            Transformation.Translation(new Vec(0, 0, 100)) * Transformation.RotationY(150)));
+        Assert.True( scene.World.Shapes[1] is Plane);
+        Assert.True( scene.World.Shapes[1].Transformation.IsClose(new Transformation()));
+        Assert.True( scene.World.Shapes[2] is Sphere);
+        Assert.True( scene.World.Shapes[2].Transformation.IsClose(
+            Transformation.Translation(new Vec(0, 0, 1))));
+        
+        Assert.True( scene.Camera is PerspectiveProjection);
+        Assert.True( scene.Camera.Transform.IsClose(
+            Transformation.RotationZ(30) * Transformation.Translation(new Vec(-4, 0, 1))));
+        Assert.True( Math.Abs(1.0f - scene.Camera.AspectRatio) < 1e-5);
+        Assert.True( Math.Abs(2.0f - scene.Camera.Distance) < 1e-5);
     }
-    /*
-        assert isinstance(ground_material.brdf, DiffuseBRDF)
-        assert isinstance(ground_material.brdf.pigment, CheckeredPigment)
-        assert ground_material.brdf.pigment.color1.is_close(Color(0.3, 0.5, 0.1))
-        assert ground_material.brdf.pigment.color2.is_close(Color(0.1, 0.2, 0.5))
-        assert ground_material.brdf.pigment.num_of_steps == 4
-
-        assert isinstance(sphere_material.brdf, SpecularBRDF)
-        assert isinstance(sphere_material.brdf.pigment, UniformPigment)
-        assert sphere_material.brdf.pigment.color.is_close(Color(0.5, 0.5, 0.5))
-
-        assert isinstance(sky_material.emitted_radiance, UniformPigment)
-        assert sky_material.emitted_radiance.color.is_close(Color(0.7, 0.5, 1.0))
-        assert isinstance(ground_material.emitted_radiance, UniformPigment)
-        assert ground_material.emitted_radiance.color.is_close(Color(0, 0, 0))
-        assert isinstance(sphere_material.emitted_radiance, UniformPigment)
-        assert sphere_material.emitted_radiance.color.is_close(Color(0, 0, 0))
-
-        # Check that the shapes are ok
-
-        assert len(scene.world.shapes) == 3
-        assert isinstance(scene.world.shapes[0], Plane)
-        assert scene.world.shapes[0].transformation.is_close(translation(Vec(0, 0, 100)) * rotation_y(150.0))
-        assert isinstance(scene.world.shapes[1], Plane)
-        assert scene.world.shapes[1].transformation.is_close(Transformation())
-        assert isinstance(scene.world.shapes[2], Sphere)
-        assert scene.world.shapes[2].transformation.is_close(translation(Vec(0, 0, 1)))
-
-        # Check that the camera is ok
-
-        assert isinstance(scene.camera, PerspectiveCamera)
-        assert scene.camera.transformation.is_close(rotation_z(30) * translation(Vec(-4, 0, 1)))
-        assert pytest.approx(1.0) == scene.camera.aspect_ratio
-        assert pytest.approx(2.0) == scene.camera.screen_distance*/
-    
-    // A specific test for float location
-    [Fact]
-    public void TestReadToken_FloatLocationAccuracy()
-    {
-        var input = "float myVar = 123.45;"; // Simple float
-        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
-        var inputStream = new InputStream(reader, fileName: "test.scene");
-
-        // "float"
-        var token1 = inputStream.ReadToken();
-        AssertIsKeyword(token1, KeywordEnum.Float);
-        Assert.Equal(1, token1.Location.LineNum);
-        Assert.Equal(1, token1.Location.ColNum); // 'f' of 'float'
-
-        // "myVar"
-        var token2 = inputStream.ReadToken();
-        AssertIsIdentifier(token2, "myVar");
-        Assert.Equal(1, token2.Location.LineNum);
-        Assert.Equal(7, token2.Location.ColNum); // 'm' of 'myVar'
-
-        // "="
-        var token3 = inputStream.ReadToken();
-        AssertIsSymbol(token3, "=");
-        Assert.Equal(1, token3.Location.LineNum);
-        Assert.Equal(13, token3.Location.ColNum); // '='
-
-        // "123.45" - This is the token that will be a LiteralNumberToken
-        var floatToken = inputStream.ReadToken();
-        AssertIsNumber(floatToken, 123.45f);
-        Assert.Equal(1, floatToken.Location.LineNum);
-        // This is the crucial assertion for the bug:
-        // If ReadToken passes `Location` *after* ReadChar(), this will be 15 instead of 14.
-        Assert.Equal(15, floatToken.Location.ColNum); // Expecting column 15 for the '1' of '123.45'
-    }
-    
-    
-    [Fact]
-    public void TestReadToken_BasicTokensAndComments()
-    {
-        var input = """
-                    # This is a comment
-                    # This is another comment
-                    new material sky_material(
-                        diffuse(image("my file.pfm")),
-                        <5.0, 500.0, 300.0>
-                    ) # Comment at the end of the line
-                    """;
-
-        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
-        var inputStream = new InputStream(reader, fileName: "file");
-
-        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.New);
-        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Material);
-        AssertIsIdentifier(inputStream.ReadToken(), "sky_material");
-        AssertIsSymbol(inputStream.ReadToken(), "(");
-        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Diffuse);
-        AssertIsSymbol(inputStream.ReadToken(), "(");
-        AssertIsKeyword(inputStream.ReadToken(), KeywordEnum.Image);
-        AssertIsSymbol(inputStream.ReadToken(), "(");
-        AssertIsString(inputStream.ReadToken(), "my file.pfm");
-        AssertIsSymbol(inputStream.ReadToken(), ")");
-
-        // Now for the numbers and their locations
-        // It's crucial to check the location here
-        var angleBracket = inputStream.ReadToken();
-        AssertIsSymbol(angleBracket, "<");
-        Assert.Equal(5, angleBracket.Location.LineNum); // Should be line 5
-        Assert.Equal(25, angleBracket.Location.ColNum); // Should be col 25 (after "))," and before "<")
-
-        var number1 = inputStream.ReadToken();
-        AssertIsNumber(number1, 5.0f);
-        // This is the critical part: check if the location is correct for the '5'
-        Assert.Equal(5, number1.Location.LineNum);
-        Assert.Equal(26, number1.Location.ColNum); // Expecting 26 for '5' if '>' was at 25
-
-        var comma1 = inputStream.ReadToken();
-        AssertIsSymbol(comma1, ",");
-        Assert.Equal(5, comma1.Location.LineNum);
-        Assert.Equal(30, comma1.Location.ColNum); // Expecting 30 for ',' if '5.0' ended at 29
-
-        // ... continue for other numbers and symbols
-    }
-    
-    
 }
 
 

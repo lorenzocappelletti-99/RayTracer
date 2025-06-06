@@ -4,9 +4,12 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System;
+using System.Collections.Generic;
 using Xunit;
 using System.Text;
 using System.Globalization;
+using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

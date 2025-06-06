@@ -4,6 +4,8 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System;
+
 namespace Trace;
 /// <summary>
 /// Represents an RGB color with floating-point components.

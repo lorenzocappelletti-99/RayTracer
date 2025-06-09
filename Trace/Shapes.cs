@@ -3,10 +3,8 @@
  |             Released under EUPL-1.2 License
  |                       See LICENSE
  ===========================================================*/
-using System;
-using System.Collections.Generic;
+
 using System.Diagnostics;
-using System.Linq; 
 
 
 namespace Trace;
@@ -51,6 +49,12 @@ public abstract class Shape
     public abstract HitRecord? RayIntersection(Ray ray);
     public abstract bool IsPointInternal(Point p);
 }
+
+/***********************************************************
+ *                                                         *
+ *                        SPHERE                           *
+ *                                                         *
+ ***********************************************************/
 
 public class Sphere : Shape
 {
@@ -201,6 +205,12 @@ public class Sphere : Shape
     }
 }
 
+/***********************************************************
+ *                                                         *
+ *                        PLANE                            *
+ *                                                         *
+ ***********************************************************/
+
 public class Plane : Shape
 {
     public Plane(
@@ -261,6 +271,205 @@ public class Plane : Shape
         return false;
     }
 }
+
+/***********************************************************
+ *                                                         *
+ *                     HALF SPACE                          *
+ *                                                         *
+ ***********************************************************/
+
+public class Box : Shape
+{
+    /// <summary>
+    /// Minimum corner of the box in local coordinates.
+    /// </summary>
+    public Vec Min { get; }
+
+    /// <summary>
+    /// Maximum corner of the box in local coordinates.
+    /// </summary>
+    public Vec Max { get; }
+
+    /// <summary>
+    /// Creates an axis-aligned box (parallelepiped) with specified min/max bounds, material and transform.
+    /// </summary>
+    /// <param name="min">Local-space minimum corner (default = (-1,-1,-1)).</param>
+    /// <param name="max">Local-space maximum corner (default = (1,1,1)).</param>
+    /// <param name="transformation">Optional world-to-object transform.</param>
+    /// <param name="material">Optional surface material.</param>
+    public Box(
+        Vec? min             = null,
+        Vec? max             = null,
+        Transformation? transformation = null,
+        Material? material   = null)
+        : base(material, transformation)
+    {
+        // Se non passo nulla, uso i valori di default
+        Min = min ?? new Vec(-1f, -1f, -1f);
+        Max = max ?? new Vec( 1f,  1f,  1f);
+    }
+
+    /// <summary>
+    /// Maps a point on the box surface (local coordinates) to UV texture coordinates.
+    /// UV layout depends on which face is hit.
+    /// </summary>
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // For simplicity, check face by comparing distances to planes
+        double u = 0, v = 0;
+        if (Math.Abs(p.X - Min.X) < 1e-6)
+        {
+            // Left face: y, z
+            u = (p.Z - Min.Z) / (Max.Z - Min.Z);
+            v = (p.Y - Min.Y) / (Max.Y - Min.Y);
+        }
+        else if (Math.Abs(p.X - Max.X) < 1e-6)
+        {
+            // Right face
+            u = 1 - (p.Z - Min.Z) / (Max.Z - Min.Z);
+            v = (p.Y - Min.Y) / (Max.Y - Min.Y);
+        }
+        else if (Math.Abs(p.Y - Min.Y) < 1e-6)
+        {
+            // Bottom face: x, z
+            u = (p.X - Min.X) / (Max.X - Min.X);
+            v = (p.Z - Min.Z) / (Max.Z - Min.Z);
+        }
+        else if (Math.Abs(p.Y - Max.Y) < 1e-6)
+        {
+            // Top face
+            u = (p.X - Min.X) / (Max.X - Min.X);
+            v = 1 - (p.Z - Min.Z) / (Max.Z - Min.Z);
+        }
+        else if (Math.Abs(p.Z - Min.Z) < 1e-6)
+        {
+            // Front face: x, y
+            u = (p.X - Min.X) / (Max.X - Min.X);
+            v = (p.Y - Min.Y) / (Max.Y - Min.Y);
+        }
+        else if (Math.Abs(p.Z - Max.Z) < 1e-6)
+        {
+            // Back face
+            u = 1 - (p.X - Min.X) / (Max.X - Min.X);
+            v = (p.Y - Min.Y) / (Max.Y - Min.Y);
+        }
+        return new Vec2d((float)u, (float)v);
+    }
+
+    /// <summary>
+    /// Quick test for ray intersection using slab method.
+    /// </summary>
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+        var origin = localRay.Origin.to_vec();
+        var dir = localRay.Direction;
+
+        // Slab method
+        float tMin = (Min.X - origin.X) / dir.X;
+        float tMax = (Max.X - origin.X) / dir.X;
+        if (tMin > tMax) (tMin, tMax) = (tMax, tMin);
+
+        float tyMin = (Min.Y - origin.Y) / dir.Y;
+        float tyMax = (Max.Y - origin.Y) / dir.Y;
+        if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
+
+        if (tMin > tyMax || tyMin > tMax)
+            return false;
+        tMin = MathF.Max(tMin, tyMin);
+        tMax = MathF.Min(tMax, tyMax);
+
+        float tzMin = (Min.Z - origin.Z) / dir.Z;
+        float tzMax = (Max.Z - origin.Z) / dir.Z;
+        if (tzMin > tzMax) (tzMin, tzMax) = (tzMax, tzMin);
+
+        if (tMin > tzMax || tzMin > tMax)
+            return false;
+
+        tMin = MathF.Max(tMin, tzMin);
+        tMax = MathF.Min(tMax, tzMax);
+
+        return (localRay.Tmin < tMin && tMin < localRay.Tmax) ||
+               (localRay.Tmin < tMax && tMax < localRay.Tmax);
+    }
+
+    /// <summary>
+    /// Detailed ray intersection, returns HitRecord or null.
+    /// </summary>
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+        var origin = localRay.Origin.to_vec();
+        var dir = localRay.Direction;
+
+        float tMin = (Min.X - origin.X) / dir.X;
+        float tMax = (Max.X - origin.X) / dir.X;
+        if (tMin > tMax)
+            (tMin, tMax) = (tMax, tMin);
+
+        float tyMin = (Min.Y - origin.Y) / dir.Y;
+        float tyMax = (Max.Y - origin.Y) / dir.Y;
+        if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
+
+        if (tMin > tyMax || tyMin > tMax)
+            return null;
+        tMin = MathF.Max(tMin, tyMin);
+        tMax = MathF.Min(tMax, tyMax);
+
+        float tzMin = (Min.Z - origin.Z) / dir.Z;
+        float tzMax = (Max.Z - origin.Z) / dir.Z;
+        if (tzMin > tzMax) (tzMin, tzMax) = (tzMax, tzMin);
+
+        if (tMin > tzMax || tzMin > tMax)
+            return null;
+        tMin = MathF.Max(tMin, tzMin);
+        tMax = MathF.Min(tMax, tzMax);
+
+        float tHit = tMin > localRay.Tmin && tMin < localRay.Tmax ? tMin :
+                     (tMax > localRay.Tmin && tMax < localRay.Tmax ? tMax : float.NaN);
+        if (float.IsNaN(tHit))
+            return null;
+
+        var localHit = localRay.PointAt(tHit);
+        // Compute local normal
+        Vec n = new Vec(
+            Math.Abs(localHit.X - Min.X) < 1e-5 ? -1 : (Math.Abs(localHit.X - Max.X) < 1e-6 ? 1 : 0),
+            Math.Abs(localHit.Y - Min.Y) < 1e-5 ? -1 : (Math.Abs(localHit.Y - Max.Y) < 1e-6 ? 1 : 0),
+            Math.Abs(localHit.Z - Min.Z) < 1e-5 ? -1 : (Math.Abs(localHit.Z - Max.Z) < 1e-6 ? 1 : 0)
+        );
+        var localNormal = new Normal(n.X,n.Y,n.Z);
+
+        // UV coords
+        var uv = ShapePointToUV(localHit);
+        
+        // Transform back
+        Point worldPoint = Transformation * localHit;
+        Normal worldNormal = Transformation * localNormal;
+
+        return new HitRecord
+        {
+            WorldPoint = worldPoint,
+            Normal = worldNormal,
+            SurfacePoint = uv,
+            T = tHit,
+            Ray = ray,
+            Material = Material
+        };
+    }
+
+    /// <summary>
+    /// Checks if a point is inside the box (inclusive).
+    /// </summary>
+    public override bool IsPointInternal(Point p)
+    {
+        var local = (Transformation.Inverse() * p).to_vec();
+        return local.X >= Min.X && local.X <= Max.X &&
+               local.Y >= Min.Y && local.Y <= Max.Y &&
+               local.Z >= Min.Z && local.Z <= Max.Z;
+    }
+}
+
+
 
 public enum CsgOperation
 {
@@ -369,7 +578,20 @@ public class Csg : Shape
             if (b == null) return a;
             return a.T < b.T ? a : b;
         }
+        
+        public static Shape IntersectAll(params Shape[] shapes)
+        {
+            if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
+            Shape result = shapes[0];
+            for (int i = 1; i < shapes.Length; i++)
+                result = new Csg(result, shapes[i], CsgOperation.Intersection);
+            return result;
+        }
+        
     }
+
+
+
 
 
 

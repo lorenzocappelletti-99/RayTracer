@@ -11,6 +11,7 @@ using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using Trace;
 
 namespace Myraytracer;
@@ -59,7 +60,7 @@ public class DemoCommand : ICommand
 
         // Create transformation
         var rotation = Transformation.RotationZ(AngleDeg);
-        var translation = Transformation.Translation(new Vec(-1, 0, 3));
+        var translation = Transformation.Translation(new Vec(-8, 0, 3));
         var transform = rotation * translation;
 
         // Create camera
@@ -98,7 +99,7 @@ public class DemoCommand : ICommand
         Console.WriteLine("Running demo scene and writing PFM file...");
 
         var scene = new World();
-        //scene 1
+        
         // Create the objects
         
         var checkered = new Material
@@ -144,7 +145,42 @@ public class DemoCommand : ICommand
             }        
         };
         
+        var sky = new Material
+        {
+            EmittedRadiance = new UniformPigment(new Color(0.3f, 0.3f, 0.3f)),
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(Color.Black) 
+            }
+        };
+        
+        
+        
         // Create the scene
+
+
+        var box = new Box(
+            min: new Vec(-1.5f, -1.5f, -1.5f),
+            max: new Vec(1.5f, 1.5f, 1.5f),
+            transformation: Transformation.Translation(new Vec(0,0,2f)),
+            material: red
+        );        
+        
+        var sphere = new Sphere(material: blue,
+            transformation: Transformation.Translation(new Vec(2f,0,1.5f)),
+            radius: 0.8f);
+        
+        var dif = new Csg(box, sphere, CsgOperation.Difference);
+        
+        scene.AddShape(box);
+        
+        
+        //sky
+        scene.AddShape(new Plane(material:sky, transformation: Transformation.Translation(new Vec(0, 0, 100)) ));
+        
+        //ground
+        scene.AddShape(new Plane(material: checkered));
+        
+        /*
         
         var s1 = new Sphere(
             transformation: Transformation.Translation(new Vec(0.7f, -0.3f, 1.4f)),
@@ -173,8 +209,8 @@ public class DemoCommand : ICommand
                 }
             }
             );
-        
-
+            
+            */
         
 
         //var difference = new Csg(sphere1, sphere2, CsgOperation.Difference);
@@ -197,7 +233,7 @@ public class DemoCommand : ICommand
        // );
         
         //scene.AddShape(union);
-       
+        
         
         
         /*
@@ -270,8 +306,6 @@ public class DemoCommand : ICommand
         scene.AddShape(s4);
         
         */
-        
-        
         
         
         

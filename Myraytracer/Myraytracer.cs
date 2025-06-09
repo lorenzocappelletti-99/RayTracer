@@ -10,12 +10,12 @@ namespace Myraytracer;
 
 internal static class Program
 {
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
         return await new CliApplicationBuilder()
-            .AddCommand<DemoCommand>()
+            .AddCommand<RenderCommand>()
             .AddCommand<Pfm2LdrCommand>()
             .Build()
-            .RunAsync();
+            .RunAsync(args);
     }
 }

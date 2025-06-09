@@ -205,6 +205,11 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
                              )
 
                              # Here is a comment
+                             
+                             material mirror(
+                                 specular(uniform(<0.1,0.8,0.1>)),
+                                 uniform(<0,0,0>)
+                             )
 
                              material ground_material(
                                  diffuse(checkered(<0.3, 0.5, 0.1>,
@@ -238,14 +243,16 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.True(Math.Abs(scene.FloatVariables["clock"] - 150.0) < 1e-5);
         
         // Check that materials are ok
-        Assert.True(scene.Materials.Count == 3);
+        Assert.True(scene.Materials.Count == 4);
         Assert.Contains("sky_material", scene.Materials.Keys);
         Assert.Contains("ground_material", scene.Materials.Keys);
         Assert.Contains("sphere_material", scene.Materials.Keys);
+        Assert.Contains("mirror", scene.Materials.Keys);
 
         var sphereMaterial = scene.Materials["sphere_material"];
         var skyMaterial = scene.Materials["sky_material"];
         var groundMaterial = scene.Materials["ground_material"];
+        var mirror = scene.Materials["mirror"];
         
         Assert.True(skyMaterial.Brdf is DiffusiveBrdf);
         Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);

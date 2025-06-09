@@ -1,4 +1,5 @@
 using System.Globalization;
+using SixLabors.ImageSharp.Diagnostics;
 using Xunit;
 
 namespace Trace;
@@ -256,6 +257,18 @@ public class InputStream
         return ch;
     }
 
+    public bool NextCharIsChar(char ch)
+    {
+        var chRead = ReadChar();
+        if (chRead != ch)
+        {
+            UnreadChar(ch);
+            return false;
+        }
+        UnreadChar(ch);
+        return true;
+    }
+
     public void UnreadChar(char ch)
     {
         Assert.True(SavedChar == '\0');
@@ -430,7 +443,7 @@ public class Scene
         var token = inputFile.ReadToken();
         if (token is not SymbolToken || token.GetType() != typeof(SymbolToken))
         {
-            throw new GrammarError(token.Location, $"{nameof(ExpectSymbol)}: got '{token}' instead of '{symbol}'");
+            throw new GrammarError(token.Location, $"at c {token.Location.ColNum}, l {token.Location.LineNum}, {nameof(ExpectSymbol)}: got '{token}' instead of '{symbol}'");
         }
     }
 
@@ -570,12 +583,19 @@ public class Scene
         var name = ExpectIdentifier(inputFile);
         ExpectSymbol('(', inputFile);
         var brdf = ParseBrdf(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var emittedRadiance = ParsePigment(inputFile, scene);
+        if (inputFile.NextCharIsChar(','))
+        {
+            ExpectSymbol(',', inputFile);
+            var emittedRadiance = ParsePigment(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new Tuple<string, Material>(name, new Material { Brdf = brdf, EmittedRadiance = emittedRadiance });
+        }
         ExpectSymbol(')', inputFile);
-        
-        return new Tuple<string, Material>(name, new Material{Brdf = brdf, EmittedRadiance = emittedRadiance});
+        return new Tuple<string, Material>(name, new Material{Brdf = brdf});
     }
+
+    
 
     public static Transformation ParseTransformation(InputStream inputFile, Scene scene)
     {
@@ -747,7 +767,7 @@ public class Scene
                 scene.World.AddLight(pointLight);
             }
             else
-                throw new GrammarError(what.Location, $"unexpected token {what}");
+                throw new GrammarError(what.Location, $"at c {what.Location.ColNum}, l {what.Location.LineNum}, unexpected token {what}");
         }
         return scene;
     }

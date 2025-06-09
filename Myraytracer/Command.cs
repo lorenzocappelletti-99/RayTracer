@@ -26,14 +26,17 @@ public class RenderCommand : ICommand
         var reader = new StreamReader(InputFile);
         var inputStream = new InputStream(reader, InputFile);
         var scene = Scene.ParseScene(inputStream);
+        Console.WriteLine($"File {InputFile} read!");
         
         var image = new HdrImage(1366, 768);
-        var tracer = new ImageTracer(image, new PerspectiveProjection()); 
+        var tracer = new ImageTracer(image, scene.Camera); 
         //var render = new PointLightRenderer(scene.World, Color.Black);
         //tracer.FireAllRays(render.Render);
         
-        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+        tracer.SamplesPerSide = 4;
+        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 5, 3, 1);
         tracer.FireAllRays(render.Render);
+        Console.WriteLine($"File PFM generated!");
         
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);
@@ -42,7 +45,7 @@ public class RenderCommand : ICommand
             pfmStream,
             "demo.jpg"
         );
-
+        Console.WriteLine($"Generated LDR: demo.jpg");
 
         return default;
     }
@@ -212,9 +215,10 @@ public class DemoCommand : ICommand
         var u2 = new Csg(u1, s3, CsgOperation.Union);
         var union = new Csg(u2, s4, CsgOperation.Union);
         
-        scene.AddShape(union);
-        scene.AddShape(s5);
-        
+        //scene.AddShape(union);
+        scene.AddShape(new Sphere(
+            transformation: Transformation.Translation(new Vec(2, 0, 1)),
+            material: red));
         
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
@@ -233,6 +237,8 @@ public class DemoCommand : ICommand
             var render = new PointLightRenderer(scene, Color.Black);
             tracer.FireAllRays(render.Render);
         }
+        
+        
         
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {

@@ -42,6 +42,8 @@ public class RenderCommand : ICommand
         if (InputFile == null) return default;
         var reader = new StreamReader(InputFile);
         var inputStream = new InputStream(reader, InputFile);
+        
+        //PARSING
         var scene = Scene.ParseScene(inputStream);
         console.Output.WriteLine($"File {InputFile} read!");
         
@@ -78,7 +80,7 @@ public class RenderCommand : ICommand
             pfmStream,
             OutputLdrFileName
         );
-        console.Output.WriteLine($"Generated LDR: demo.jpg");
+        console.Output.WriteLine($"Generated LDR: {OutputLdrFileName}");
 
         return default;
     }

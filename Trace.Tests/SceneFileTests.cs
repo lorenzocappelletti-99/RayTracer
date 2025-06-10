@@ -13,64 +13,38 @@ using Xunit;
 
 public class SceneFileTest(ITestOutputHelper testOutputHelper)
 {
-
-    public static void AssertIsKeyword(Token token, KeywordEnum expectedKeyword)
+    private static void AssertIsKeyword(Token token, KeywordEnum expectedKeyword)
     {
-        // Ensure that the token is exactly of type KeyWord
         Assert.IsType<KeywordToken>(token);
-
-        // Ora possiamo fare il cast in sicurezza
         var keywordToken = (KeywordToken)token;
-
-        // Verifichiamo che il valore dell’enum corrisponda a quello atteso
         Assert.Equal(expectedKeyword, keywordToken.Keyword);
     }
 
-    public static void AssertIsIdentifier(Token token, string expectedIdentifier)
+    private static void AssertIsIdentifier(Token token, string expectedIdentifier)
     {
-        // Ensure that the token is exactly of type IdentifierToken
         Assert.IsType<IdentifierToken>(token);
-
-        // Safe to cast now that we know the type is IdentifierToken
         var idToken = (IdentifierToken)token;
-
-        // Compare the actual identifier text with the expected value
         Assert.Equal(expectedIdentifier, idToken.Identifier);
     }
     
-    public static void AssertIsSymbol(Token token, string expectedSymbol)
+    private static void AssertIsSymbol(Token token, string expectedSymbol)
     {
-        // Ensure that the token is exactly of type SymbolToken
         Assert.IsType<SymbolToken>(token);
-
-        // Safe to cast now that we know the type is SymbolToken
         var symToken = (SymbolToken)token;
-
-        // The Symbol property is a char; convert it to string for comparison
         Assert.Equal(expectedSymbol, symToken.Symbol.ToString());
     }
     
-    public static void AssertIsNumber(Token token, float expectedNumber)
+    private static void AssertIsNumber(Token token, float expectedNumber)
     {
-        // Ensure that the token is exactly of type LiteralNumberToken
         Assert.IsType<LiteralNumberToken>(token);
-
-        // Safe to cast now that we know the type is LiteralNumberToken
         var numToken = (LiteralNumberToken)token;
-
-        // Compare the numeric value with the expected value
         Assert.Equal(expectedNumber, numToken.Number);
     }
     
-    public static void AssertIsString(Token token, string expectedString)
+    private static void AssertIsString(Token token, string expectedString)
     {
-        // Ensure that the token is exactly of type StringToken
         Assert.IsType<StringToken>(token);
-
-        // Safe to cast now that we know the type is StringToken
         var strToken = (StringToken)token;
-
-        // Compare the string content with the expected value
         Assert.Equal(expectedString, strToken.S);
     }
 
@@ -192,6 +166,37 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         var scene = Scene.ParseScene(inputStream);
 
     }
+
+    [Fact]
+    public void TestCsgParser()
+    {
+        const string input = """
+                             material sphere_material(
+                                 specular(uniform(<0.5, 0.5, 0.5>)),
+                                 uniform(<0, 0, 0>)
+                             )
+                             
+                             material sphere_material1(
+                                 specular(uniform(<0.5, 0.5, 0.5>)),
+                                 uniform(<0, 0, 0>)
+                             )
+                             
+                             CSG(
+                             sphere2 sphere(sphere_material, translation([0, 0, 1])),
+                             sphere3 sphere(sphere_material1, translation([0, 0, 1])),
+                             union1 union (sphere2, sphere3),
+                             intersection2 intersection(union1, sphere3)
+                             )
+                             perform union( intersection2, sphere2 )
+                             
+         
+                             """;
+        
+        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
+        var inputStream = new InputStream(reader, fileName: "file");
+        var scene = Scene.ParseScene(inputStream);
+        
+    }
     
     [Fact]
     public void TestParser()
@@ -233,9 +238,7 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
         var inputStream = new InputStream(reader, fileName: "file");
         var scene = Scene.ParseScene(inputStream);
-
-        // You would typically work with the 'scene' object here
-     
+        
         
         // Check that float variables are ok
         Assert.True(scene.FloatVariables is { Count: 1 });

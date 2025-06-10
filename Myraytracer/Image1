@@ -8,21 +8,41 @@ material ground_material(
     uniform(<0,0,0>)
 )
 
-material sphere_material(
+material sphere_material1(
     diffuse(uniform(<0.8,0.1,0.1>)),
     uniform(<0,0,0>)
 )
 
-material mirror(
-    specular(uniform(<0.5, 0.5, 0.5>)),
-    uniform(<0, 0, 0>)
+material sphere_material2(
+    diffuse(uniform(<0.1,0.8,0.1>)),
+    uniform(<0,0,0>)
 )
 
-            
-sphere (sphere_material, translation([1,0,1]))
-sphere (mirror, translation([1.5, 1.8, .8]))
+material sphere_material3(
+    diffuse(uniform(<0.1,0.1,0.8>)),
+    uniform(<0,0,0>)
+)
+
+material sphere_material4(
+    diffuse(uniform(<0.5,0.5,0.1>)),
+    uniform(<0,0,0>)
+)
+
+CSG(
+    sphere1 sphere(sphere_material1, translation([1,0,1])),
+    sphere2 sphere(sphere_material2, translation([1,0,1.5])),
+    sphere3 sphere(sphere_material3, translation([1,-.5,1.25])),
+    sphere4 sphere(sphere_material4, translation([1,.5,1.25])),
+    difference1 difference(sphere1, sphere2),
+    difference2 difference(sphere2, sphere2),
+    difference3 difference(sphere3, sphere2),
+    difference4 difference(sphere4, sphere2),
+    union1 union(difference1, difference2),
+    union2 union(difference3, difference4)
+)
+perform union(union1, union2)
 
 plane (sky_material, scaling([200,200,200])*translation([0, 0, .4]))
 plane (ground_material, identity)
 
-camera (perspective, translation([-1,0,1]), 1.7778, 1) 
+camera (perspective, translation([1,.6,1])*rotation_z(90), 1.7778, 1) 

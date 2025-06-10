@@ -74,7 +74,10 @@ public enum KeywordEnum
     Orthogonal = 17,
     Perspective = 18,
     Float = 19,
-    PointLight = 20
+    PointLight = 20,
+    Union = 21,
+    Intersection = 22,
+    Difference = 23,
 }
 
 /// <summary>
@@ -103,7 +106,10 @@ public static class KeywordMap
         { "orthogonal", KeywordEnum.Orthogonal },
         { "perspective", KeywordEnum.Perspective },
         { "float", KeywordEnum.Float },
-        { "point_light", KeywordEnum.PointLight }
+        { "point_light", KeywordEnum.PointLight },
+        { "union", KeywordEnum.Union},
+        { "intersection", KeywordEnum.Intersection },
+        { "difference", KeywordEnum.Difference}
     };
 }
 
@@ -431,6 +437,7 @@ public class Scene
     public Dictionary<string, float>? FloatVariables;
     public HashSet<string> OverriddenVariables;
     public Dictionary<string, Material> Materials = new();
+    public Dictionary<string, Shape> Shapes = new();
     
     private Scene(Dictionary<string, float>? floatVariables, HashSet<string> overriddenVariables)
     {
@@ -680,6 +687,32 @@ public class Scene
         ExpectSymbol(')', inputFile);
         
         return new Plane(transformation: transformation, material: scene.Materials[materialName]);
+    }
+
+    public static Csg ParseCompoundShape(InputStream inputFile, Scene scene)
+    {
+        ExpectSymbol('(', inputFile);
+        var operation = ExpectKeywords([KeywordEnum.Union, KeywordEnum.Intersection, KeywordEnum.Difference], inputFile);
+        ExpectSymbol(',', inputFile);
+        var shape1 = ExpectIdentifier(inputFile);
+        if(!scene.Shapes.TryGetValue(shape1, out var shapeOne)) throw new GrammarError(inputFile.Location, $"unknown shape {shape1}");
+        ExpectSymbol(',', inputFile);
+        var shape2 = ExpectIdentifier(inputFile);
+        if(!scene.Shapes.TryGetValue(shape2, out var shapeTwo)) throw new GrammarError(inputFile.Location, $"unknown shape {shape2}");
+        ExpectSymbol(')', inputFile);
+
+        switch (operation)
+        {
+           case KeywordEnum.Union:
+               return new Csg(shapeOne, shapeTwo, CsgOperation.Union);
+           case KeywordEnum.Difference:
+               return new Csg(shapeOne, shapeTwo, CsgOperation.Difference);
+           case KeywordEnum.Intersection:
+               return new Csg(shapeOne, shapeTwo, CsgOperation.Intersection);
+           default:
+               Assert.True(false, "Tried to parse unknown CSG operation");
+               return null;
+        }
     }
 
     public static Camera ParseCamera(InputStream inputFile, Scene scene)

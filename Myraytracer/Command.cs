@@ -19,6 +19,23 @@ public class RenderCommand : ICommand
 {
     [CommandParameter(1, Name = "inputFile", Description = "File source with description of scene")]
     public string? InputFile { get; set; }
+    [CommandOption("width", 'w', Description = "Image width")]
+    public int Width { get; init; } = 1366;
+
+    [CommandOption("height", 'h', Description = "Image height")]
+    public int Height { get; init; } = 768;
+
+    [CommandOption("output", 'o', Description = "Output file name (LDR)")]
+    public string OutputLdrFileName { get; init; } = "demo.png";
+    
+    [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
+    public bool AntiAliasing { get; init; } = false;
+    
+    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
+    public int RaysPerPixel { get; init; } = 0;
+    
+    [CommandOption("Renderer", 'r', Description = "Renderer type")]
+    public string Renderer { get; init; } = "PathTracer";
 
     public ValueTask ExecuteAsync(IConsole console)
     {
@@ -26,26 +43,42 @@ public class RenderCommand : ICommand
         var reader = new StreamReader(InputFile);
         var inputStream = new InputStream(reader, InputFile);
         var scene = Scene.ParseScene(inputStream);
-        Console.WriteLine($"File {InputFile} read!");
+        console.Output.WriteLine($"File {InputFile} read!");
         
-        var image = new HdrImage(1366, 768);
+        var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, scene.Camera); 
-        //var render = new PointLightRenderer(scene.World, Color.Black);
-        //tracer.FireAllRays(render.Render);
+
         
-        tracer.SamplesPerSide = 4;
-        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 10, 3, 1);
-        tracer.FireAllRays(render.Render);
-        Console.WriteLine($"File PFM generated!");
+        if(AntiAliasing) tracer.SamplesPerSide = 4;
+        if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
+        {
+            //scene.World.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+            if(scene.World.PointLights.Count == 0) 
+                console.Output.WriteLine("No point lights found. Needed for PointLight rendering. try: \n " +
+                                  "pointlight( [vector(position)], <color>, 0.0 )");
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PointLightRenderer(scene.World, Color.Black);
+            tracer.FireAllRays(render.Render);
+        }
+        
+        
+        if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
+        {
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+            tracer.FireAllRays(render.Render);
+        }
+
+        console.Output.WriteLine($"File PFM generated!");
         
         using var pfmStream = new MemoryStream();
         image.WritePfm(pfmStream);
         pfmStream.Seek(0, SeekOrigin.Begin);
         HdrImage.write_ldr_image(
             pfmStream,
-            "demo.jpg"
+            OutputLdrFileName
         );
-        Console.WriteLine($"Generated LDR: demo.jpg");
+        console.Output.WriteLine($"Generated LDR: demo.jpg");
 
         return default;
     }

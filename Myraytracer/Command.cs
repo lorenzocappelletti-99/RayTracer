@@ -34,7 +34,7 @@ public class RenderCommand : ICommand
         //tracer.FireAllRays(render.Render);
         
         tracer.SamplesPerSide = 4;
-        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 5, 3, 1);
+        var render = new PathTracer(scene.World, Color.Black, new Pcg(), 10, 3, 1);
         tracer.FireAllRays(render.Render);
         Console.WriteLine($"File PFM generated!");
         

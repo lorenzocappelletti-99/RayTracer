@@ -15,6 +15,7 @@ internal static class Program
         return await new CliApplicationBuilder()
             .AddCommand<DemoCommand>()
             .AddCommand<Pfm2LdrCommand>()
+            .AddCommand<RenderCommand>()
             .Build()
             .RunAsync();
     }

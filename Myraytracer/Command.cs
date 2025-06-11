@@ -13,6 +13,99 @@ using Trace;
 
 namespace Myraytracer;
 
+[Command("render", Description = "Generates images given an input file")]
+public class RenderCommand : ICommand
+{
+    [CommandParameter(1, Name = "inputFile", Description = "File source with description of scene")]
+    public string? InputFile { get; set; }
+    [CommandOption("width", 'w', Description = "Image width")]
+    public int Width { get; init; } = 1366;
+
+    [CommandOption("height", 'h', Description = "Image height")]
+    public int Height { get; init; } = 768;
+
+    [CommandOption("output", 'o', Description = "Output file name (LDR)")]
+    public string OutputLdrFileName { get; init; } = "demo.png";
+    
+    [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
+    public bool AntiAliasing { get; init; } = false;
+    
+    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
+    public int RaysPerPixel { get; init; } = 0;
+    
+    [CommandOption("Renderer", 'r', Description = "Renderer type")]
+    public string Renderer { get; init; } = "PathTracer";
+
+    public ValueTask ExecuteAsync(IConsole console)
+    {
+        if (InputFile == null) return default;
+        var reader = new StreamReader(InputFile);
+        var inputStream = new InputStream(reader, InputFile);
+        
+        //PARSING
+        Scene? scene = null;
+        try
+        {
+            console.WriteLine("Parsing scene...");
+            scene = Scene.ParseScene(inputStream);
+            console.WriteLine("Scene parsed successfully!");
+        }
+        
+        catch (GrammarError ex)
+        {
+            console.Error.WriteLine("\n--- PARSING ERROR ---");
+            console.Error.WriteLine(ex.ToString());
+            console.Error.WriteLine("---------------------\n");
+            Environment.Exit(1);
+        }
+        catch (Exception ex)
+        {
+            console.Error.WriteLine("\n--- AN UNEXPECTED ERROR OCCURRED ---");
+            console.Error.WriteLine(ex.ToString());
+            console.Error.WriteLine("------------------------------------\n");
+            Environment.Exit(1); 
+        }
+        console.Output.WriteLine($"File {InputFile} read!");
+        
+        var image = new HdrImage(Width, Height);
+        var tracer = new ImageTracer(image, scene!.Camera); 
+
+        
+        if(AntiAliasing) tracer.SamplesPerSide = 4;
+        if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
+        {
+            //scene!!.World.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+            if(scene.World.PointLights.Count == 0) 
+                console.Output.WriteLine("No point lights found. Needed for PointLight rendering. try: \n " +
+                                  "pointlight( [vector(position)], <color>, 0.0 )");
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PointLightRenderer(scene.World, Color.Black);
+            tracer.FireAllRays(render.Render);
+        }
+        
+        
+        if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
+        {
+            if (AntiAliasing) tracer.SamplesPerSide = 4;
+            var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+            tracer.FireAllRays(render.Render);
+        }
+
+        console.Output.WriteLine($"File PFM generated!");
+        
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+        HdrImage.write_ldr_image(
+            pfmStream,
+            OutputLdrFileName
+        );
+        console.Output.WriteLine($"Generated LDR: {OutputLdrFileName}");
+
+        return default;
+    }
+}
+
 [Command("demo", Description = "Generate images with different projections")]
 public class DemoCommand : ICommand
 {
@@ -110,75 +203,112 @@ public class DemoCommand : ICommand
                 Pigment = new CheckeredPigment(new Color(0.3f, 0.5f, 0.1f), new Color(0.1f, 0.2f, 0.5f)) 
             }
         };
-        var sphere = new Material
+        
+        var blue = new Material
         {
             Brdf = new DiffusiveBrdf {
-                Pigment = new UniformPigment(new Color(0.3f, 0.4f, 0.8f))             
+                Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
+            }        
+        };
+        
+        var red = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(0.7f, 0.2f, 0.2f))             
+            }        
+        };
+        
+        var green = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(0.5f, 1.0f, 0.5f))             
+            }        
+        };
+        
+        var yellow = new Material
+        {
+            Brdf = new DiffusiveBrdf {
+                Pigment = new UniformPigment(new Color(1.0f, 0.9f, 0f))             
             }        
         };
 
-        var mirror = new Material()
+        var mirror = new Material
         {
-            Brdf = new SpecularBrdf() {
-                Pigment = new UniformPigment(new Color(0.6f, 0.2f, 0.3f))             
+            Brdf = new SpecularBrdf {
+                Pigment = new UniformPigment(new Color(0.5f, 0.8f, 1.0f))             
             }        
         };
         
         // Create the scene
+        
+        var s1 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.3f, 1.4f)),
+            material: red);
+        
+        var s2 = new Sphere(
+            transformation: Transformation.Translation(new Vec(0.7f, -0.3f, 1f)),
+            material: blue);
+        
+        var s3 = new Sphere(
+            transformation: Transformation.Scaling(new Vec(1f,1.08f,1f)) * Transformation.Translation(new Vec(0.7f, -0.5f, 1.2f)),
+            material: green);
+        
+        var s4 = new Sphere(
+            transformation: Transformation.Scaling(new Vec(1f,1.2f,1f)) * Transformation.Translation(new Vec(0.7f, -0.1f, 1.2f)),
+            material: yellow);
+        
+        var s5 = new Sphere(
+            transformation: Transformation.Translation(new Vec(1.5f, 3f, 0f)),
+            material: mirror);
 
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(0f, 0, 1f)),
-            material: sphere));
         
-        scene.AddShape(new Sphere(
-            transformation: Transformation.Translation(new Vec(1f, 2.5f, 0f)),
-            material: mirror));
+
+        //var difference = new Csg(sphere1, sphere2, CsgOperation.Difference);
+        //var intersection = new Csg(sphere1, sphere2, CsgOperation.Intersection);
+
+        var u1 = new Csg(s1, s2, CsgOperation.Union);
+        var u2 = new Csg(u1, s3, CsgOperation.Union);
+        var union = new Csg(u2, s4, CsgOperation.Union);
         
-        scene.AddShape(new Plane(
-                material: ground
-            )
-        );
+        //scene.AddShape(union);
+        scene.AddShape(new Sphere(
+            transformation: Transformation.Translation(new Vec(2, 0, 1)),
+            material: red));
         
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));
         
+        scene.AddShape(new Plane(
+            material: ground)
+        );
+        
+        var image = new HdrImage(Width, Height);
+        var tracer = new ImageTracer(image, Camera); 
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
         {
             scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
-            var image = new HdrImage(Width, Height);
-            var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PointLightRenderer(scene, Color.Black);
             tracer.FireAllRays(render.Render);
-            using var pfmStream = new MemoryStream();
-            image.WritePfm(pfmStream);
-            pfmStream.Seek(0, SeekOrigin.Begin);
-            HdrImage.write_ldr_image(
-                pfmStream,
-                OutputLdrFileName
-            );
         }
+        
+        
         
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
-            var image = new HdrImage(Width, Height);
-            var tracer = new ImageTracer(image, Camera);
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), 5, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(), 3, 3, 1);
             tracer.FireAllRays(render.Render);
-            using var pfmStream = new MemoryStream();
-            image.WritePfm(pfmStream);
-            pfmStream.Seek(0, SeekOrigin.Begin);
-            HdrImage.write_ldr_image(
-                pfmStream,
-                OutputLdrFileName
-            );
         }
-
         
-        
-
+        using var pfmStream = new MemoryStream();
+        image.WritePfm(pfmStream);
+        pfmStream.Seek(0, SeekOrigin.Begin);
+        HdrImage.write_ldr_image(
+            pfmStream,
+            OutputLdrFileName
+        );
         
 
         Console.WriteLine($"Generated LDR: {OutputLdrFileName}");
@@ -233,3 +363,4 @@ public class Pfm2LdrCommand : ICommand
         return default;
     }
 }
+

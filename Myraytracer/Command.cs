@@ -9,7 +9,6 @@ using CliFx.Exceptions;
 using CliFx.Attributes;
 using CliFx.Infrastructure;
 using System.Globalization;
-using System.Text;
 using Trace;
 
 namespace Myraytracer;
@@ -44,17 +43,38 @@ public class RenderCommand : ICommand
         var inputStream = new InputStream(reader, InputFile);
         
         //PARSING
-        var scene = Scene.ParseScene(inputStream);
+        Scene? scene = null;
+        try
+        {
+            console.WriteLine("Parsing scene...");
+            scene = Scene.ParseScene(inputStream);
+            console.WriteLine("Scene parsed successfully!");
+        }
+        
+        catch (GrammarError ex)
+        {
+            console.Error.WriteLine("\n--- PARSING ERROR ---");
+            console.Error.WriteLine(ex.ToString());
+            console.Error.WriteLine("---------------------\n");
+            Environment.Exit(1);
+        }
+        catch (Exception ex)
+        {
+            console.Error.WriteLine("\n--- AN UNEXPECTED ERROR OCCURRED ---");
+            console.Error.WriteLine(ex.ToString());
+            console.Error.WriteLine("------------------------------------\n");
+            Environment.Exit(1); 
+        }
         console.Output.WriteLine($"File {InputFile} read!");
         
         var image = new HdrImage(Width, Height);
-        var tracer = new ImageTracer(image, scene.Camera); 
+        var tracer = new ImageTracer(image, scene!.Camera); 
 
         
         if(AntiAliasing) tracer.SamplesPerSide = 4;
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
         {
-            //scene.World.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
+            //scene!!.World.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
             if(scene.World.PointLights.Count == 0) 
                 console.Output.WriteLine("No point lights found. Needed for PointLight rendering. try: \n " +
                                   "pointlight( [vector(position)], <color>, 0.0 )");

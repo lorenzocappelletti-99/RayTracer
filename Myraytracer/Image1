@@ -1,48 +1,47 @@
-material sky_material(
-    diffuse(uniform(<0, 0, 0>)),
-    uniform(<0.05, 0.05, 0.05>)
-)
-
-material ground_material(
-    diffuse(checkered(<0.3, 0.5, 0.1>, <0.1, 0.2, 0.5>, 10)),
-    uniform(<0,0,0>)
-)
-
-material sphere_material1(
-    diffuse(uniform(<0.8,0.1,0.1>)),
-    uniform(<0,0,0>)
-)
-
-material sphere_material2(
-    diffuse(uniform(<0.1,0.8,0.1>)),
-    uniform(<0,0,0>)
-)
-
-material sphere_material3(
-    diffuse(uniform(<0.1,0.1,0.8>)),
-    uniform(<0,0,0>)
-)
-
-material sphere_material4(
-    diffuse(uniform(<0.5,0.5,0.1>)),
-    uniform(<0,0,0>)
-)
 
 CSG(
-    sphere1 sphere(sphere_material1, translation([1,0,1])),
-    sphere2 sphere(sphere_material2, translation([1,0,1.5])),
-    sphere3 sphere(sphere_material3, translation([1,-.5,1.25])),
-    sphere4 sphere(sphere_material4, translation([1,.5,1.25])),
-    difference1 difference(sphere1, sphere2),
-    difference2 difference(sphere2, sphere2),
-    difference3 difference(sphere3, sphere2),
-    difference4 difference(sphere4, sphere2),
-    union1 union(difference1, difference2),
-    union2 union(difference3, difference4)
+    sphere1 sphere(sphere_material, translation([1,0,1])),
+    sphere2 sphere(sphere_material1, translation([1,0,1.5]))
 )
-perform union(union1, union2)
+perform union(sphere1, sphere2)
 
 plane (sky_material, scaling([200,200,200])*translation([0, 0, .4]))
 plane (ground_material, identity)
 
-camera (perspective, translation([1,.6,1])*rotation_z(90), 1.7778, 1) 
+camera (perspective, translation([-1,0,1]), 1.7778, 1)
+
+point_light([-2, 0, 2], <1,1,1>, 0.0)
+
+# The following is the cornell box
+
+
+material WhitePlane(
+    diffuse(uniform( <0.94, 0.94, 0.94>)),
+    uniform(<0,0,0>)
+)
+material RedPlane(
+    diffuse(uniform( <0.94, 0.2, 0.2>)),
+    uniform(<0,0,0>)
+)
+material GreenPlane(
+    diffuse(uniform( <0.2, 0.94, 0.2>)),
+    uniform(<0,0,0>)
+)
+
+material WindowPlane(
+    diffuse(uniform(0,0,0)),
+    uniform(<.05,.05,.05>)
+)
+
+CGS(
+roof plane (WhitePlane, translation([0, 0, 2]) * rotation_x(180)),
+window plane (WindowPlane, )
+)
+
+plane (WhitePlane, identity)
+plane (WhitePlane, translation([2, 0, 0]) * rotation_y(90))
+
+plane (RedPlane, translation([0, -1,0]) * rotation_x(90))
+plane (RedPlane, translation([0, 1,0]) * rotation_x(-90))
+
+camera (perspective, translation([-1,0,1]), 1.7778, 1)

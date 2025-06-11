@@ -165,7 +165,6 @@ public class GrammarError(SourceLocation location, string message, Exception? in
 {
     public SourceLocation Location { get; } = location;
 
-    
     public override string ToString()
     {
         return $"Grammar Error at line: {Location.LineNum}, column: {Location.ColNum}: {base.Message}{Environment.NewLine}{base.ToString()}";
@@ -538,14 +537,17 @@ public class Scene
         if (token is not KeywordToken key)
             throw new GrammarError(token.Location, $" expected a keyword instead of '{token}'");
         if (!keywords.Contains(key.Keyword))
+        {
             throw new GrammarError(token.Location,
                 $"expected one of the keywords {string.Join(",", Enum.GetNames(typeof(KeywordEnum)))} instead of '{token}'"
             );
+        }
+
         return key.Keyword;
     }
     
 
-    public static float ExpectNumber(InputStream inputFile, Scene scene)
+    public static float ExpectNumber(InputStream inputFile, Scene? scene)
     {   
         var token = inputFile.ReadToken();
         switch (token)
@@ -581,7 +583,7 @@ public class Scene
         return ((IdentifierToken)token).Identifier;
     }
 
-    public static Vec ParseVector(InputStream inputFile, Scene scene)
+    public static Vec ParseVector(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('[', inputFile);
         var x = ExpectNumber(inputFile, scene);
@@ -593,7 +595,7 @@ public class Scene
         return new Vec(x, y, z);
     }
 
-    public static Color ParseColor(InputStream inputFile, Scene scene)
+    public static Color ParseColor(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('<', inputFile);
         var r = ExpectNumber(inputFile, scene);
@@ -605,7 +607,7 @@ public class Scene
         return new Color(r, g, b);
     }
 
-    public static Pigment ParsePigment(InputStream inputFile, Scene scene)
+    public static Pigment ParsePigment(InputStream inputFile, Scene? scene)
     {
         var keyword = ExpectKeywords([KeywordEnum.Checkered, KeywordEnum.Uniform, KeywordEnum.Image], inputFile);
         
@@ -650,7 +652,7 @@ public class Scene
         return null;
     }
     
-    public static Brdf ParseBrdf(InputStream inputFile, Scene scene)
+    public static Brdf ParseBrdf(InputStream inputFile, Scene? scene)
     {
         var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
         ExpectSymbol('(', inputFile);
@@ -665,7 +667,7 @@ public class Scene
         };
     }
 
-    public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
+    public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene? scene)
     {
         var name = ExpectIdentifier(inputFile);
         ExpectSymbol('(', inputFile);
@@ -684,7 +686,7 @@ public class Scene
 
     
 
-    public static Transformation ParseTransformation(InputStream inputFile, Scene scene)
+    public static Transformation ParseTransformation(InputStream inputFile, Scene? scene)
     {
         var result = new Transformation();
         while (true)
@@ -741,7 +743,7 @@ public class Scene
         return result;
     }
 
-    public static Sphere ParseSphere(InputStream inputFile, Scene scene)
+    public static Sphere ParseSphere(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);
         
@@ -754,7 +756,7 @@ public class Scene
         return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
     }
 
-    public static Plane ParsePlane(InputStream inputFile, Scene scene)
+    public static Plane ParsePlane(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);
         
@@ -796,7 +798,7 @@ public class Scene
         
     }*/
 
-    public static Csg ParseCompoundShape(InputStream inputFile, Scene scene)
+    public static Csg ParseCompoundShape(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);
         
@@ -899,7 +901,7 @@ public class Scene
     }
     
 
-    public static Camera ParseCamera(InputStream inputFile, Scene scene)
+    public static Camera ParseCamera(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);
         var typeKw = ExpectKeywords([KeywordEnum.Perspective, KeywordEnum.Orthogonal], inputFile);
@@ -924,7 +926,7 @@ public class Scene
         }
     }
 
-    public static PointLight ParsePointLight(InputStream inputFile, Scene scene)
+    public static PointLight ParsePointLight(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);
         var position = ParseVector(inputFile, scene);
@@ -938,7 +940,7 @@ public class Scene
             
     }
 
-    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
+    public static Scene? ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
     {
         variables ??= new Dictionary<string, float>();
         var scene = new Scene(variables, [..variables.Keys]);
@@ -947,7 +949,7 @@ public class Scene
         {
             var what = inputFile.ReadToken();
             if(what is StopToken) break;
-            if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"at column {inputFile.Location.ColNum}, line {inputFile.Location.LineNum}, expected a keyword instead of {what}");
+            if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"expected a keyword instead of {what}");
             if(whatToken.Keyword == KeywordEnum.Float)
             {
                 var variableName = ExpectIdentifier(inputFile);

@@ -1,3 +1,5 @@
+using System;
+
 namespace Trace;
 
 public static class Misc

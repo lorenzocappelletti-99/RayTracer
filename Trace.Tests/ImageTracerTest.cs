@@ -11,7 +11,7 @@ public class ImageTracerTest : IDisposable
 {
     public ImageTracer Tracer;
     public HdrImage Image;
-    public World Scene;
+    public World? Scene;
 
     public ImageTracerTest()
     {

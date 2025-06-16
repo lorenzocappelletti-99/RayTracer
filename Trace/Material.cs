@@ -4,6 +4,7 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System;
 using System.Diagnostics;
 
 namespace Trace;
@@ -120,6 +121,13 @@ public abstract class Brdf
 public class SpecularBrdf : Brdf
 {
     
+    public SpecularBrdf(){}
+
+    public SpecularBrdf(Pigment pigment)
+    {
+        Pigment = pigment;
+    }
+    
     public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
         var thetaIn = (float)Math.Acos(Vec.NormalizedDot(normal.ToVec(), incomingDir));
@@ -147,6 +155,13 @@ public class SpecularBrdf : Brdf
 /// </summary>
 public class DiffusiveBrdf : Brdf
 { 
+    
+    public DiffusiveBrdf(){}
+
+    public DiffusiveBrdf(Pigment pigment)
+    {
+        Pigment = pigment;
+    }
     public override Color Eval(Normal normal, Vec incomingDir, Vec outgoingDir, Vec2d uv)
     {
         return Pigment.GetColor(uv) * (1.0f / (float)Math.PI);
@@ -181,5 +196,4 @@ public class Material
 {
     public Pigment EmittedRadiance = new UniformPigment();
     public Brdf Brdf = new DiffusiveBrdf();
-    
 }

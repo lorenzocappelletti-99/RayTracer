@@ -6,6 +6,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Xunit.Sdk;
 
 namespace Trace;

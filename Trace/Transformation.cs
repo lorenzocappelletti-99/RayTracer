@@ -4,6 +4,7 @@
  |                       See LICENSE                        
  ===========================================================*/
 
+using System;
 using System.Text;
 
 namespace Trace
@@ -34,6 +35,38 @@ namespace Trace
         {
             M = m ?? IdentityMatr4X4;
             Invm = invm ?? IdentityMatr4X4;
+        }
+        
+        /// <summary>
+        /// Compare 2 matrices (direct and inverse)
+        /// </summary>
+        /// <param name="t1"></param>
+        /// <param name="t2"></param>
+        /// <param name="sigma=1e-5"></param>
+        /// <param name="sigma"></param>
+        /// <returns></returns>
+        public bool IsClose(Transformation t2, float sigma = 1e-4f)
+        {
+            // Compare the forward matrices
+            for (var i = 0; i < 4; i++)
+            {
+                for (var j = 0; j < 4; j++)
+                {
+                    if (!Color.are_close(M[i, j], t2.M[i, j], sigma))
+                        return false;
+                }
+            }
+
+            // Compare the inverse matrices as well
+            for (var i = 0; i < 4; i++)
+            {
+                for (var j = 0; j < 4; j++)
+                {
+                    if (!Color.are_close(Invm[i, j], t2.Invm[i, j], sigma))
+                        return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>

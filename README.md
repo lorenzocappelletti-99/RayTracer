@@ -1,6 +1,6 @@
 # Raytracer
 
-Raytracer 0.2.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
+Raytracer 0.3.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
 
 ## Requirements
 
@@ -18,6 +18,7 @@ The project is compiled using .NET. If .NET is not available, download the preco
 
 If you want to build the project from source, navigate to the project directory and run:
 
+
 ```dotnet build```
 
 ## Usage
@@ -25,25 +26,35 @@ Generating a Simple Image
 
 To generate a simple image, use the following command:
 
+
 ```dotnet run demo```
 
-For different options and help with the demo command, run:
+for a more complex usage, run
+```dotnet run demo -c Perspective -A true```
 
-```dotnet run demo help```
+List of all functionalities:
+```dotnet run demo [options]```
+
+```-c```|```--camera``` Options: Perspective, Orthogonal
+
+```-a```|```--angle``` Options. angle degres
+
+```-w```|```--width```
+
+```-h```|```--height```
+
+```-o```|```--output``` Eg: demo.png, demo.jpg
+
+```-A```|```--AntiAliasing``` Options: true, false
+
+```-r```|```--renderer``` Options: PathTracer, PointLight
+
 
 ## Converting PFM to JPG
 
 To convert a PFM image to JPG, use the following command:
 
 ```dotnet run -- <inputfile>.pfm <a-factor> <gamma-factor> <outputfile>.jpg```
-
-Example
-
-## Animation
-
-You can also create a simple animation by running the following script:
-
-```./make_animation.sh```
 
 ## Contributing
 

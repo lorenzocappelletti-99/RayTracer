@@ -70,7 +70,8 @@ public enum KeywordEnum
     Intersection = 22,
     Difference = 23,
     Csg = 24,
-    Perform = 25
+    Perform = 25,
+    Box = 26
 }
 
 /// <summary>
@@ -104,7 +105,8 @@ public static class KeywordMap
         { "intersection", KeywordEnum.Intersection },
         { "difference", KeywordEnum.Difference},
         { "CSG", KeywordEnum.Csg},
-        { "perform", KeywordEnum.Perform}
+        { "perform", KeywordEnum.Perform},
+        { "box", KeywordEnum.Box },
     };
 }
 
@@ -748,12 +750,12 @@ public class Scene
         ExpectSymbol('(', inputFile);
         
         var materialName = ExpectIdentifier(inputFile);
-        if(!scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+        if(scene != null && !scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
         
         ExpectSymbol(',', inputFile);
         var transformation = ParseTransformation(inputFile, scene);
         ExpectSymbol(')', inputFile);
-        return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
+        return new Sphere(transformation: transformation, material: scene?.Materials[materialName]);
     }
 
     public static Plane ParsePlane(InputStream inputFile, Scene? scene)
@@ -761,14 +763,42 @@ public class Scene
         ExpectSymbol('(', inputFile);
         
         var materialName = ExpectIdentifier(inputFile);
-        if(!scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+        if(scene != null && !scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
 
         ExpectSymbol(',', inputFile);
         var transformation = ParseTransformation(inputFile, scene);
         ExpectSymbol(')', inputFile);
         
-        return new Plane(transformation: transformation, material: scene.Materials[materialName]);
+        return new Plane(transformation: transformation, material: scene?.Materials[materialName]);
     }
+    
+    public static Box ParseBox(InputStream inputFile, Scene? scene)
+    {
+        ExpectSymbol('(', inputFile);
+
+        var min = ParseVector(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+
+        var max = ParseVector(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+
+        var materialName = ExpectIdentifier(inputFile);
+        if (scene != null && !scene.Materials.ContainsKey(materialName))
+            throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+        var material = scene?.Materials[materialName];
+        ExpectSymbol(',', inputFile);
+
+        var transformation = ParseTransformation(inputFile, scene);
+        ExpectSymbol(')', inputFile);
+
+        return new Box(
+            min:            min,
+            max:            max,
+            transformation: transformation,
+            material:       material
+        );
+    }
+
 
     /*
     public static Csg ParseCsg(InputStream inputFile, Scene scene, Tuple<string, Shape> shape1, Tuple<string, Shape> shape2)
@@ -971,6 +1001,8 @@ public class Scene
                 scene.World.AddShape(ParseSphere(inputFile, scene));
             else if(whatToken.Keyword == KeywordEnum.Plane)
                 scene.World.AddShape(ParsePlane(inputFile, scene));
+            else if(whatToken.Keyword == KeywordEnum.Box)
+                scene.World.AddShape(ParseBox(inputFile, scene));
             else if (whatToken.Keyword == KeywordEnum.Csg)
                 scene.World.AddShape(ParseCompoundShape(inputFile, scene));
             

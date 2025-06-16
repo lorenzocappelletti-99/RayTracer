@@ -30,11 +30,20 @@ public class RenderCommand : ICommand
     [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
     public bool AntiAliasing { get; init; } = false;
     
-    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
-    public int RaysPerPixel { get; init; } = 0;
+    [CommandOption("NumOfRays", 'R', Description = "Number of rays")]
+    public int NumOfRays { get; init; } = 3;
+    
+    [CommandOption("RussianRoulette", 'x', Description = "Russian roulette")]
+    public int RussianRoulette { get; init; } = 1;
+    
+    [CommandOption("MaxDepth", 'D', Description = "Max number of reflections")]
+    public int MaxDepth { get; init; } = 2;
     
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
     public string Renderer { get; init; } = "PathTracer";
+    
+    
+    
 
     public ValueTask ExecuteAsync(IConsole console)
     {
@@ -67,6 +76,8 @@ public class RenderCommand : ICommand
         }
         console.Output.WriteLine($"File {InputFile} read!");
         
+        console.Output.WriteLine($"Creating scene:\n width: {Width}, height: {Height}\n output: {OutputLdrFileName}\n renderer: {Renderer}, number of rays: {NumOfRays}, max depth: {MaxDepth}, russian roulette: {RussianRoulette}, antiAliasing: {AntiAliasing} \n");
+        
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, scene!.Camera); 
 
@@ -87,7 +98,7 @@ public class RenderCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+            var render = new PathTracer(scene.World, Color.Black, new Pcg(), NumOfRays, MaxDepth, RussianRoulette);
             tracer.FireAllRays(render.Render);
         }
 

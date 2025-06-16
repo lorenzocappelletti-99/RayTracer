@@ -479,174 +479,183 @@ public enum CsgOperation
 }
 
 public class Csg : Shape
+{
+    public readonly Shape First;
+    public readonly Shape Second;
+    public readonly CsgOperation Op;
+
+    public Csg(Shape first, Shape second, CsgOperation operation)
+        : base(material: null, transformation: null)
     {
-        public readonly Shape First;
-        public readonly Shape Second;
-        public readonly CsgOperation Op;
+        First = first;
+        Second = second;
+        Op = operation;
+    }
 
-        public Csg(Shape first, Shape second, CsgOperation operation)
-            : base(material: null, transformation: null)
-        {
-            First  = first;
-            Second = second;
-            Op     = operation;
-        }
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // UV is taken from whichever shape provided the hit;
+        // handled in RayIntersection
+        return new Vec2d();
+    }
 
-        public override Vec2d ShapePointToUV(Point p)
-        {
-            // UV is taken from whichever shape provided the hit;
-            // handled in RayIntersection
-            return new Vec2d();
-        }
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        // If either child might intersect, we consider there might be a hit.
+        return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
+    }
 
-        public override bool QuickRayIntersection(Ray ray)
-        {
-            // If either child might intersect, we consider there might be a hit.
-            return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
-        }
-
-        public override HitRecord? RayIntersection(Ray ray)
-        {
-            if (!QuickRayIntersection(ray))
-                return null;
-
-            // 1) Calcola solo una volta le due intersezioni
-            var h1 = First.RayIntersection(ray);
-            var h2 = Second.RayIntersection(ray);
-
-            // Se nessuna, esci subito
-            if (h1 == null && h2 == null)
-                return null;
-
-            // 2) Determina l’ordine dei due eventi
-            //   - Primo evento (tMin) e secondo evento (tMax)
-            var (hitMin, isFirstMin) = 
-                (h1 != null && (h2 == null || h1.T < h2.T)) ? (h1, true)
-                    : (h2, false);
-
-            var (hitMax, isFirstMax) =
-                (hitMin == h1) ? (h2, false) : (h1, true);
-
-            // 3) Calcola stato “inside” all’inizio (just before tMin)
-            Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
-            float t0 = hitMin.T - 1e-4f;
-            var p0 = ray.PointAt(t0);
-            bool inF = First.IsPointInternal(p0);
-            bool inS = Second.IsPointInternal(p0);
-
-            // 4) Processa il primo evento
-            if (isFirstMin) inF = !inF; else inS = !inS;
-            if (Op switch {
-                    CsgOperation.Union        => inF || inS,
-                    CsgOperation.Intersection => inF && inS,
-                    CsgOperation.Difference   => inF && !inS,
-                    _                          => false
-                })
-                return hitMin;
-
-            // 5) Processa il secondo evento
-            if (isFirstMax) inF = !inF; else inS = !inS;
-            if (Op switch {
-                    CsgOperation.Union        => inF || inS,
-                    CsgOperation.Intersection => inF && inS,
-                    CsgOperation.Difference   => inF && !inS,
-                    _                          => false
-                })
-                return hitMax;
-
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        if (!QuickRayIntersection(ray))
             return null;
-        }
 
+        // 1) Calcola solo una volta le due intersezioni
+        var h1 = First.RayIntersection(ray);
+        var h2 = Second.RayIntersection(ray);
 
-        public override bool IsPointInternal(Point p)
-        {
-            var insideFirst  = First.IsPointInternal(p);
-            var insideSecond = Second.IsPointInternal(p);
+        // Se nessuna, esci subito
+        if (h1 == null && h2 == null)
+            return null;
 
-            return Op switch
+        // 2) Determina l’ordine dei due eventi
+        //   - Primo evento (tMin) e secondo evento (tMax)
+        var (hitMin, isFirstMin) =
+            (h1 != null && (h2 == null || h1.T < h2.T))
+                ? (h1, true)
+                : (h2, false);
+
+        var (hitMax, isFirstMax) =
+            (hitMin == h1) ? (h2, false) : (h1, true);
+
+        // 3) Calcola stato “inside” all’inizio (just before tMin)
+        Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
+        float t0 = hitMin.T - 1e-4f;
+        var p0 = ray.PointAt(t0);
+        bool inF = First.IsPointInternal(p0);
+        bool inS = Second.IsPointInternal(p0);
+
+        // 4) Processa il primo evento
+        if (isFirstMin) inF = !inF;
+        else inS = !inS;
+        if (Op switch
             {
-                CsgOperation.Union        => insideFirst || insideSecond,
-                CsgOperation.Intersection => insideFirst && insideSecond,
-                CsgOperation.Difference   => insideFirst && !insideSecond,
-                _                          => false
-            };
-        }
+                CsgOperation.Union => inF || inS,
+                CsgOperation.Intersection => inF && inS,
+                CsgOperation.Difference => inF && !inS,
+                _ => false
+            })
+            return hitMin;
 
-        private static HitRecord? PickNearest(HitRecord? a, HitRecord? b)
-        {
-            if (a == null) return b;
-            if (b == null) return a;
-            return a.T < b.T ? a : b;
-        }
-        
-        public static Shape IntersectAll(params Shape[] shapes)
-        {
-            if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
-            Shape result = shapes[0];
-            for (int i = 1; i < shapes.Length; i++)
-                result = new Csg(result, shapes[i], CsgOperation.Intersection);
-            return result;
-        }
-        
+        // 5) Processa il secondo evento
+        if (isFirstMax) inF = !inF;
+        else inS = !inS;
+        if (Op switch
+            {
+                CsgOperation.Union => inF || inS,
+                CsgOperation.Intersection => inF && inS,
+                CsgOperation.Difference => inF && !inS,
+                _ => false
+            })
+            return hitMax;
+
+        return null;
     }
 
 
+    public override bool IsPointInternal(Point p)
+    {
+        var insideFirst = First.IsPointInternal(p);
+        var insideSecond = Second.IsPointInternal(p);
 
-
+        return Op switch
+        {
+            CsgOperation.Union => insideFirst || insideSecond,
+            CsgOperation.Intersection => insideFirst && insideSecond,
+            CsgOperation.Difference => insideFirst && !insideSecond,
+            _ => false
+        };
+    }
+}
 
 
 /*
+
+private static HitRecord? PickNearest(HitRecord? a, HitRecord? b)
+{
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.T < b.T ? a : b;
+}
+
+public static Shape IntersectAll(params Shape[] shapes)
+{
+    if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
+    Shape result = shapes[0];
+    for (int i = 1; i < shapes.Length; i++)
+        result = new Csg(result, shapes[i], CsgOperation.Intersection);
+    return result;
+}
+
+}
+
+
+
+
+
+
+
 public class Composition
 {
-    public List<Shape> ShapesAdd { get; } = [];
-    public List<Shape> ShapesDif { get; } = [];
+public List<Shape> ShapesAdd { get; } = [];
+public List<Shape> ShapesDif { get; } = [];
 
-    public void AddShapeAdd(Shape shape)
-    {
-        ShapesAdd.Add(shape);
-    }
-    public void AddShapeDif(Shape shape)
-    {
-        ShapesDif.Add(shape);
-    }
+public void AddShapeAdd(Shape shape)
+{
+ShapesAdd.Add(shape);
+}
+public void AddShapeDif(Shape shape)
+{
+ShapesDif.Add(shape);
+}
 
-    public HitRecord Union(Ray ray)
-    {
-        var closest = new HitRecord();
-        foreach (var intersection in ShapesAdd.Select(shape => shape.RayIntersection(ray))
-                     .OfType<HitRecord>()
-                     .Where(intersection => closest == null || intersection.T < closest.T))
-        {
-            closest = intersection;
-        }
-        return closest;
-    }
-    
-    
-    public HitRecord Difference(Ray ray)
-    {
-        var intersectionsAdd = (from t in ShapesAdd where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
-        var intersectionsDif = (from t in ShapesDif where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+public HitRecord Union(Ray ray)
+{
+var closest = new HitRecord();
+foreach (var intersection in ShapesAdd.Select(shape => shape.RayIntersection(ray))
+             .OfType<HitRecord>()
+             .Where(intersection => closest == null || intersection.T < closest.T))
+{
+    closest = intersection;
+}
+return closest;
+}
 
-        var myHits = new List<HitRecord>();
-        
-        foreach (var interDif in intersectionsDif)
-        {
-            foreach (var shapeAdd in ShapesAdd)
-            {
-                if (shapeAdd.IsPointInternal(interDif.WorldPoint)) myHits.Add(interDif);
-            }
-        }
 
-        foreach (var interAdd in intersectionsAdd)
-        {
-            foreach (var shapeAdd in ShapesDif)
-            {
-                if (!shapeAdd.IsPointInternal(interAdd.WorldPoint)) myHits.Add(interAdd);
-            }
-        }
-        
-        return myHits.OrderBy(h => h.T).First();
+public HitRecord Difference(Ray ray)
+{
+var intersectionsAdd = (from t in ShapesAdd where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+var intersectionsDif = (from t in ShapesDif where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
+
+var myHits = new List<HitRecord>();
+
+foreach (var interDif in intersectionsDif)
+{
+    foreach (var shapeAdd in ShapesAdd)
+    {
+        if (shapeAdd.IsPointInternal(interDif.WorldPoint)) myHits.Add(interDif);
     }
+}
+
+foreach (var interAdd in intersectionsAdd)
+{
+    foreach (var shapeAdd in ShapesDif)
+    {
+        if (!shapeAdd.IsPointInternal(interAdd.WorldPoint)) myHits.Add(interAdd);
+    }
+}
+
+return myHits.OrderBy(h => h.T).First();
+}
 }
 */

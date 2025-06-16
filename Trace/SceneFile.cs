@@ -799,35 +799,6 @@ public class Scene
         );
     }
 
-
-    /*
-    public static Csg ParseCsg(InputStream inputFile, Scene scene, Tuple<string, Shape> shape1, Tuple<string, Shape> shape2)
-    {
-        ExpectSymbol('(', inputFile);
-        var operation = ExpectKeywords([KeywordEnum.Union, KeywordEnum.Intersection, KeywordEnum.Difference], inputFile);
-        ExpectSymbol(',', inputFile);
-        var shape1 = ExpectIdentifier(inputFile);
-        if(!scene.Shapes.TryGetValue(shape1, out var shapeOne)) throw new GrammarError(inputFile.Location, $"unknown shape {shape1}");
-        ExpectSymbol(',', inputFile);
-        var shape2 = ExpectIdentifier(inputFile);
-        if(!scene.Shapes.TryGetValue(shape2, out var shapeTwo)) throw new GrammarError(inputFile.Location, $"unknown shape {shape2}");
-        ExpectSymbol(')', inputFile);
-
-        switch (operation)
-        {
-            case KeywordEnum.Union:
-                return new Csg(shapeOne, shapeTwo, CsgOperation.Union);
-            case KeywordEnum.Difference:
-                return new Csg(shapeOne, shapeTwo, CsgOperation.Difference);
-            case KeywordEnum.Intersection:
-                return new Csg(shapeOne, shapeTwo, CsgOperation.Intersection);
-            default:
-                Assert.True(false, "Tried to parse unknown CSG operation");
-                return null;
-        }
-        
-    }*/
-
     public static Csg ParseCompoundShape(InputStream inputFile, Scene? scene)
     {
         ExpectSymbol('(', inputFile);

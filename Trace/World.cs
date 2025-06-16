@@ -1,8 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Trace;
 
+/// <summary>
+/// Represents the scene to be rendered.
+/// - <see cref="Shapes"/>: list of objects in the scene,
+/// - <see cref="PointLights"/>: list of PointLights in the scene
+/// </summary>
 public class World
 {
     public List<Shape> Shapes { get; set; } = [];

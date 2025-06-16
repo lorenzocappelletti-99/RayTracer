@@ -4,11 +4,14 @@
  |                       See LICENSE                        
  ===========================================================*/
 
-using System;
 using System.Diagnostics;
 
 namespace Trace;
 
+/// <summary>
+/// Responsible for tracing rays through an image using a camera,
+/// optionally performing Antialiasing.
+/// </summary>
 public class ImageTracer
 {
     public HdrImage Image { get; }
@@ -55,24 +58,7 @@ public class ImageTracer
         Debug.Assert(Camera != null, nameof(Camera) + " != null");
         return Camera.FireRay(u, v);
     }
-/*
-    /// <summary>
-    /// Fires a ray for each pixel in the image, applies the specified function(rendering) to compute a color,
-    /// and sets the pixel in the image to the computed color.
-    /// </summary>
-    /// <param name="func">A function that, given a Ray, returns a Color (i.e. solving rendering equation).</param>
-    public void FireAllRays(Func <Ray, Color> func)
-    {
-        for (var row = 0; row < Image.Height; row++)
-        {
-            for (var col = 0; col < Image.Width; col++)
-            {
-                var ray = FireRay(col, row);
-                var color = func(ray);
-                Image.SetPixel(col, row, color);
-            }
-        }
-    }*/
+
     
     public void FireAllRays(Func <Ray, Color> func)
     {

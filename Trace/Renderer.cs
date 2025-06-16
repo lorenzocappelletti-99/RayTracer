@@ -4,7 +4,9 @@ using System.Runtime.CompilerServices;
 
 namespace Trace;
 
-
+/// <summary>
+/// Base class for all renderers.
+/// </summary>
 public abstract class Renderer
 {
     public World World;
@@ -26,6 +28,10 @@ public abstract class Renderer
     public abstract Color Render(Ray ray);
 }
 
+/// <summary>
+/// This renderer returns a fixed color if the ray hits anything; otherwise background.
+/// Useful for debugging geometry visibility.
+/// </summary>
 public class OnOffRenderer : Renderer
 {
     public Color OnColor = Color.White;
@@ -45,6 +51,10 @@ public class OnOffRenderer : Renderer
 }
 
 
+/// <summary>
+/// This renderer returns the emissive color of surfaces intersected by the ray.
+/// Ignores lighting and reflections. Useful for testing materials' emissions.
+/// </summary>
 public class FlatRenderer : Renderer{
     
     public FlatRenderer(World world, Color backgroundColor) : base(world, backgroundColor){}
@@ -63,6 +73,9 @@ public class FlatRenderer : Renderer{
     }
 }
 
+/// <summary>
+/// Path tracer renderer with multiple rays per intersection for global illumination.
+/// </summary>
 public class PathTracer : Renderer
 {
     public Pcg? Pgc { get; }
@@ -98,8 +111,6 @@ public class PathTracer : Renderer
     public PathTracer(World world) : base(world)
     {
     }
-    
-    
 
     public override Color Render(Ray ray)
     {
@@ -143,6 +154,11 @@ public class PathTracer : Renderer
     }
 }
 
+
+/// <summary>
+/// Renderer that simulates direct illumination from point lights with ambient term.
+/// Useful for real-time previews or stylized renders.
+/// </summary>
 public class PointLightRenderer : Renderer
 {
        public Color AmbientColor = new Color(0.1f, 0.1f, 0.1f);

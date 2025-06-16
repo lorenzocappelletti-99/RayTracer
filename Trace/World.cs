@@ -25,10 +25,15 @@ public class World
     public HitRecord? ray_intersection(Ray ray)
     {
         HitRecord? closest = null;
+        float bestT = float.PositiveInfinity;
 
-        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.T < closest.T))
+        foreach (var shape in Shapes)
         {
-            closest = intersection;
+            if (shape.RayIntersection(ray) is { } hit && hit.T < bestT)
+            {
+                closest = hit;
+                bestT = hit.T;
+            }
         }
         return closest;
     }

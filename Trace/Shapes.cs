@@ -272,6 +272,151 @@ public class Plane : Shape
     }
 }
 
+
+
+
+/***********************************************************
+ *                                                         *
+ *                     RECTANGLE                           *
+ *                                                         *
+ ***********************************************************/
+public class Rectangle : Shape
+{
+    public float Width { get; }
+    public float Height { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the Rectangle class, representing a finite rectangular surface.
+    /// The rectangle is in its local XY-plane (Z=0), centered at the origin.
+    /// </summary>
+    /// <param name="width">The width of the rectangle along the local X-axis.</param>
+    /// <param name="height">The height of the rectangle along the local Y-axis.</param>
+    /// <param name="material">The material of the rectangle.</param>
+    /// <param name="transformation">The transformation applied to the rectangle.</param>
+    public Rectangle(
+        float width,
+        float height,
+        Material? material = null,
+        Transformation? transformation = null)
+        : base(material, transformation)
+    {
+        // Basic validation for dimensions
+        if (width <= 0 || height <= 0)
+        {
+            throw new ArgumentException("Width and Height must be positive values for a finite rectangle.");
+        }
+        Width = width;
+        Height = height;
+    }
+
+    /// <summary>
+    /// Maps a local 3D point on the rectangle to 2D UV coordinates (0-1 range).
+    /// </summary>
+    /// <param name="p">The local 3D point on the rectangle (Z=0).</param>
+    /// <returns>A Vec2d containing the U and V coordinates.</returns>
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // Map local X from [-Width/2, Width/2] to U [0, 1]
+        var u = (p.X + (Width / 2.0f)) / Width;
+        // Map local Y from [-Height/2, Height/2] to V [0, 1]
+        var v = (p.Y + (Height / 2.0f)) / Height;
+        return new Vec2d(u, v);
+    }
+
+    /// <summary>
+    /// Performs a quick check for ray intersection with the finite rectangle.
+    /// </summary>
+    /// <param name="ray">The ray in world coordinates.</param>
+    /// <returns>True if the ray intersects the finite rectangle within its bounds and Tmin/Tmax, false otherwise.</returns>
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        // Check if ray is parallel to the rectangle's plane (or nearly so)
+        if (Math.Abs(localRay.Direction.Z) < 1E-5) return false;
+
+        // Calculate 't' for intersection with the infinite plane (Z=0)
+        var t = -localRay.Origin.Z / localRay.Direction.Z;
+
+        // Check if 't' is within the ray's valid range
+        if (t <= localRay.Tmin || t >= localRay.Tmax) return false;
+
+        // Calculate the local hit point on the infinite plane
+        var localHit = localRay.PointAt(t);
+
+        // --- Check if the local hit point falls within the rectangle's bounds ---
+        var halfWidth = Width / 2.0f;
+        var halfHeight = Height / 2.0f;
+
+        if (localHit.X < -halfWidth || localHit.X > halfWidth ||
+            localHit.Y < -halfHeight || localHit.Y > halfHeight)
+        {
+            return false; // Intersection point is outside the rectangle's bounds
+        }
+
+        return true; // Intersection found within bounds and ray limits
+    }
+
+    /// <summary>
+    /// Checks if a ray intersects the finite rectangle and returns a `HitRecord`.
+    /// Returns `null` if no intersection was found.
+    /// </summary>
+    /// <param name="ray">The ray in world coordinates.</param>
+    /// <returns>A HitRecord if an intersection was found, or null.</returns>
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        // Check if ray is parallel to the rectangle's plane (or nearly so)
+        if (Math.Abs(localRay.Direction.Z) < 1E-5) return null;
+
+        // Calculate 't' for intersection with the infinite plane (Z=0)
+        var t = -localRay.Origin.Z / localRay.Direction.Z;
+
+        // Check if 't' is within the ray's valid range
+        if (t <= ray.Tmin || t >= ray.Tmax) return null; // Use original ray's Tmin/Tmax
+
+        // Calculate the local hit point on the infinite plane
+        var localHit = localRay.PointAt(t);
+
+        // --- Check if the local hit point falls within the rectangle's bounds ---
+        var halfWidth = Width / 2.0f;
+        var halfHeight = Height / 2.0f;
+
+        if (localHit.X < -halfWidth || localHit.X > halfWidth ||
+            localHit.Y < -halfHeight || localHit.Y > halfHeight)
+        {
+            return null; // Intersection point is outside the rectangle's bounds
+        }
+
+        // The normal of a plane at Z=0 in local space is (0,0,1).
+        // Use OrientedNormal to ensure the normal points towards the ray origin if needed.
+        var localNormal = OrientedNormal(new Point(0.0f, 0.0f, 1.0f), localRay.Direction);
+
+        return new HitRecord
+        {
+            WorldPoint   = Transformation * localHit, // Transform local hit point back to world space
+            Normal       = Transformation * localNormal,   // Transform local normal to world space
+            SurfacePoint = ShapePointToUV(localHit), // Get UV coordinates for material mapping
+            T            = t,                                   // The 't' value for the intersection
+            Ray          = ray,                               // The original ray
+            Material     = Material                      // The material of this rectangle
+        };
+    }
+
+    /// <summary>
+    /// Determines if a world point is internal to the rectangle.
+    /// For a finite, non-solid surface like a rectangle, this typically returns false.
+    /// </summary>
+    /// <param name="p">The point to check.</param>
+    /// <returns>False, as a rectangle is not a solid volume.</returns>
+    public override bool IsPointInternal(Point p)
+    {
+        return false;
+    }
+}
+
+
 /***********************************************************
  *                                                         *
  *                     HALF SPACE                          *
@@ -471,6 +616,153 @@ public class Box : Shape
 
 
 
+/***********************************************************
+ *                                                         *
+ *                        CONE                             *
+ *                                                         *
+ ***********************************************************/
+public class Cone : Shape
+{
+    
+    public float Radius { get; }
+    public float Height { get; }
+
+    
+    public Cone(
+        float radius,
+        float height,
+        Transformation? transformation = null,
+        Material? material = null)
+        : base(material, transformation)
+    {
+        Radius = radius;
+        Height = height;
+    }
+
+    /// <summary>
+    /// Maps a point on the cone to UV texture coordinates.
+    /// This implementation is a simple cylindrical unwrap.
+    /// </summary>
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // Convert to cylindrical coords
+        var theta = MathF.Atan2(p.Y, p.X);
+        var u = theta / (2 * MathF.PI);
+        if (u < 0) u += 1.0f; // remapped to 0,1
+
+        var v = p.Z / Height;
+        return new Vec2d(u, v);
+    }
+
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        return RayIntersection(ray) != null;
+    }
+
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        var o = localRay.Origin.to_vec();
+        var d = localRay.Direction;
+
+        // Tip at origin, base at (0,0,h)
+        var k = Radius / Height;
+        var k2 = k * k;
+        
+        var a = d.X * d.X + d.Y * d.Y - k2 * d.Z * d.Z;
+        var b = 2 * (d.X * o.X + d.Y * o.Y - k2 * d.Z * (o.Z - Height));
+        var c = o.X * o.X + o.Y * o.Y - k2 * (o.Z - Height) * (o.Z - Height);
+
+
+
+        var delta = b * b - 4 * a * c;
+        if (delta < 0) return null;
+
+        var sqrtDelta = MathF.Sqrt(delta);
+        var t1 = (-b - sqrtDelta) / (2 * a);
+        var t2 = (-b + sqrtDelta) / (2 * a);
+
+        var t = float.MaxValue;
+        foreach (var ti in new[] { t1, t2 })
+        {
+            if (ti > localRay.Tmin && ti < localRay.Tmax)
+            {
+                var hitZ = localRay.PointAt(ti).Z;
+                if ((Height >= 0 && hitZ >= 0 && hitZ <= Height) ||
+                    (Height < 0 && hitZ <= 0 && hitZ >= Height))
+                {
+                    t = ti;
+                    break;
+                }
+            }
+        }
+
+        if (Math.Abs(t - float.MaxValue) < 1e-5)
+        {
+            // Try intersection with the base disk
+            var denom = Vec.VEC_Z * d;
+            if (MathF.Abs(denom) > 1e-6)
+            {
+                var tDisk = (Height - o.Z) / d.Z;
+                if (tDisk > localRay.Tmin && tDisk < localRay.Tmax)
+                {
+                    var pDisk = localRay.PointAt(tDisk);
+                    if (pDisk.X * pDisk.X + pDisk.Y * pDisk.Y <= Radius * Radius)
+                    {
+                        var worldPoint = Transformation * pDisk;
+                        var worldNormal = Transformation * new Normal(0, 0, Height >= 0 ? 1 : -1);
+                        var uv = new Vec2d(pDisk.X / Radius / 2 + 0.5f, pDisk.Y / Radius / 2 + 0.5f);
+
+                        return new HitRecord
+                        {
+                            WorldPoint = worldPoint,
+                            Normal = worldNormal,
+                            SurfacePoint = uv,
+                            T = tDisk,
+                            Ray = ray,
+                            Material = Material
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        var localHit = localRay.PointAt(t);
+        var normalDir = new Vec(localHit.X, localHit.Y, -k * MathF.Sqrt(localHit.X * localHit.X + localHit.Y * localHit.Y));
+        normalDir = Height < 0 ? -normalDir : normalDir;
+        normalDir.Normalize();
+        var localNormal = normalDir.ToNorm();
+
+        var uvCoords = ShapePointToUV(localHit);
+        var worldPointFinal = Transformation * localHit;
+        var worldNormalFinal = Transformation * localNormal;
+
+        return new HitRecord
+        {
+            WorldPoint = worldPointFinal,
+            Normal = worldNormalFinal,
+            SurfacePoint = uvCoords,
+            T = t,
+            Ray = ray,
+            Material = Material
+        };
+    }
+
+    public override bool IsPointInternal(Point p)
+    {
+        var localPoint = (Transformation.Inverse()) * p;
+        var rAtZ = (Radius / Height) * localPoint.Z;
+        return localPoint.Z >= 0 && localPoint.Z <= Height &&
+               localPoint.X * localPoint.X + localPoint.Y * localPoint.Y <= rAtZ * rAtZ;
+    }
+}
+
+
+
+
 public enum CsgOperation
 {
     Union,
@@ -479,116 +771,115 @@ public enum CsgOperation
 }
 
 public class Csg : Shape
+{
+    public readonly Shape First;
+    public readonly Shape Second;
+    public readonly CsgOperation Op;
+
+    public Csg(Shape first, Shape second, CsgOperation operation)
+        : base(material: null, transformation: null)
     {
-        public readonly Shape First;
-        public readonly Shape Second;
-        public readonly CsgOperation Op;
-
-        public Csg(Shape first, Shape second, CsgOperation operation)
-            : base(material: null, transformation: null)
-        {
-            First  = first;
-            Second = second;
-            Op     = operation;
-        }
-
-        public override Vec2d ShapePointToUV(Point p)
-        {
-            // UV is taken from whichever shape provided the hit;
-            // handled in RayIntersection
-            return new Vec2d();
-        }
-
-        public override bool QuickRayIntersection(Ray ray)
-        {
-            // If either child might intersect, we consider there might be a hit.
-            return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
-        }
-
-        public override HitRecord? RayIntersection(Ray ray)
-        {
-            if (!QuickRayIntersection(ray))
-                return null;
-
-            // 1) Calcola solo una volta le due intersezioni
-            var h1 = First.RayIntersection(ray);
-            var h2 = Second.RayIntersection(ray);
-
-            // Se nessuna, esci subito
-            if (h1 == null && h2 == null)
-                return null;
-
-            // 2) Determina l’ordine dei due eventi
-            //   - Primo evento (tMin) e secondo evento (tMax)
-            var (hitMin, isFirstMin) = 
-                (h1 != null && (h2 == null || h1.T < h2.T)) ? (h1, true)
-                    : (h2, false);
-
-            var (hitMax, isFirstMax) =
-                (hitMin == h1) ? (h2, false) : (h1, true);
-
-            // 3) Calcola stato “inside” all’inizio (just before tMin)
-            Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
-            float t0 = hitMin.T - 1e-4f;
-            var p0 = ray.PointAt(t0);
-            bool inF = First.IsPointInternal(p0);
-            bool inS = Second.IsPointInternal(p0);
-
-            // 4) Processa il primo evento
-            if (isFirstMin) inF = !inF; else inS = !inS;
-            if (Op switch {
-                    CsgOperation.Union        => inF || inS,
-                    CsgOperation.Intersection => inF && inS,
-                    CsgOperation.Difference   => inF && !inS,
-                    _                          => false
-                })
-                return hitMin;
-
-            // 5) Processa il secondo evento
-            if (isFirstMax) inF = !inF; else inS = !inS;
-            if (Op switch {
-                    CsgOperation.Union        => inF || inS,
-                    CsgOperation.Intersection => inF && inS,
-                    CsgOperation.Difference   => inF && !inS,
-                    _                          => false
-                })
-                return hitMax;
-
-            return null;
-        }
-
-
-        public override bool IsPointInternal(Point p)
-        {
-            var insideFirst  = First.IsPointInternal(p);
-            var insideSecond = Second.IsPointInternal(p);
-
-            return Op switch
-            {
-                CsgOperation.Union        => insideFirst || insideSecond,
-                CsgOperation.Intersection => insideFirst && insideSecond,
-                CsgOperation.Difference   => insideFirst && !insideSecond,
-                _                          => false
-            };
-        }
-
-        private static HitRecord? PickNearest(HitRecord? a, HitRecord? b)
-        {
-            if (a == null) return b;
-            if (b == null) return a;
-            return a.T < b.T ? a : b;
-        }
-        
-        public static Shape IntersectAll(params Shape[] shapes)
-        {
-            if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
-            Shape result = shapes[0];
-            for (int i = 1; i < shapes.Length; i++)
-                result = new Csg(result, shapes[i], CsgOperation.Intersection);
-            return result;
-        }
-        
+        First  = first;
+        Second = second;
+        Op     = operation;
     }
+
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // UV is taken from whichever shape provided the hit;
+        // handled in RayIntersection
+        return new Vec2d();
+    }
+
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        // If either child might intersect, we consider there might be a hit.
+        return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
+    }
+
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        if (!QuickRayIntersection(ray))
+            return null;
+
+        // 1) Calcola solo una volta le due intersezioni
+        var h1 = First.RayIntersection(ray);
+        var h2 = Second.RayIntersection(ray);
+
+        // Se nessuna, esci subito
+        if (h1 == null && h2 == null)
+            return null;
+
+        // 2) Determina l’ordine dei due eventi
+        //   - Primo evento (tMin) e secondo evento (tMax)
+        var (hitMin, isFirstMin) = 
+            (h1 != null && (h2 == null || h1.T < h2.T)) ? (h1, true)
+                : (h2, false);
+
+        var (hitMax, isFirstMax) =
+            (hitMin == h1) ? (h2, false) : (h1, true);
+
+        // 3) Calcola stato “inside” all’inizio (just before tMin)
+        Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
+        float t0 = hitMin.T - 1e-4f;
+        var p0 = ray.PointAt(t0);
+        bool inF = First.IsPointInternal(p0);
+        bool inS = Second.IsPointInternal(p0);
+
+        // 4) Processa il primo evento
+        if (isFirstMin) inF = !inF; else inS = !inS;
+        if (Op switch {
+                CsgOperation.Union        => inF || inS,
+                CsgOperation.Intersection => inF && inS,
+                CsgOperation.Difference   => inF && !inS,
+                _                          => false
+            })
+            return hitMin;
+
+        // 5) Processa il secondo evento
+        if (isFirstMax) inF = !inF; else inS = !inS;
+        if (Op switch {
+                CsgOperation.Union        => inF || inS,
+                CsgOperation.Intersection => inF && inS,
+                CsgOperation.Difference   => inF && !inS,
+                _                          => false
+            })
+            return hitMax;
+
+        return null; 
+    }
+
+
+    public override bool IsPointInternal(Point p)
+    {
+        var insideFirst  = First.IsPointInternal(p);
+        var insideSecond = Second.IsPointInternal(p);
+
+        return Op switch
+        {
+            CsgOperation.Union        => insideFirst || insideSecond,
+            CsgOperation.Intersection => insideFirst && insideSecond,
+            CsgOperation.Difference   => insideFirst && !insideSecond,
+            _                          => false
+        };
+    }
+
+    private static HitRecord? PickNearest(HitRecord? a, HitRecord? b)
+    {
+        if (a == null) return b;
+        if (b == null) return a;
+        return a.T < b.T ? a : b;
+    }
+    
+    public static Shape IntersectAll(params Shape[] shapes)
+    {
+        if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
+        Shape result = shapes[0];
+        for (int i = 1; i < shapes.Length; i++)
+            result = new Csg(result, shapes[i], CsgOperation.Intersection);
+        return result;
+    }
+}
 
 
 

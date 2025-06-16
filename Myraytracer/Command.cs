@@ -87,7 +87,7 @@ public class RenderCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene.World, Color.Black, new Pcg(), 3, 3, 1);
+            var render = new PathTracer(scene.World, Color.Black, new Pcg(), 4, 8, 5);
             tracer.FireAllRays(render.Render);
         }
 
@@ -271,9 +271,20 @@ public class DemoCommand : ICommand
         var union = new Csg(u2, s4, CsgOperation.Union);
         
         //scene.AddShape(union);
+        /*
         scene.AddShape(new Sphere(
             transformation: Transformation.Translation(new Vec(2, 0, 1)),
-            material: red));
+            material: red));*/
+        
+        scene.AddShape(new Cone(1, 2, 
+            Transformation.Translation(new Vec(1,0,0)),
+            material: blue)
+        );
+        scene.AddShape(new Sphere(
+            transformation: Transformation.Translation(new Vec(1, 0, 3)),
+            material: red)
+        );
+        
         
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
@@ -282,6 +293,8 @@ public class DemoCommand : ICommand
         scene.AddShape(new Plane(
             material: ground)
         );
+        
+   
         
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera); 
@@ -298,7 +311,7 @@ public class DemoCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), 3, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(), 1, 2, 2);
             tracer.FireAllRays(render.Render);
         }
         

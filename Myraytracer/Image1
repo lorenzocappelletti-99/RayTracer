@@ -1,23 +1,15 @@
-
-CSG(
-    sphere1 sphere(sphere_material, translation([1,0,1])),
-    sphere2 sphere(sphere_material1, translation([1,0,1.5]))
-)
-perform union(sphere1, sphere2)
-
-plane (sky_material, scaling([200,200,200])*translation([0, 0, .4]))
-plane (ground_material, identity)
-
-camera (perspective, translation([-1,0,1]), 1.7778, 1)
-
-point_light([-2, 0, 2], <1,1,1>, 0.0)
+# point_light([-2, 0, 2], <1,1,1>, 0.0)
 
 # The following is the cornell box
 
+material Sky(
+    diffuse(uniform(<0.0, 0.0, 0.0>)),
+    uniform(<.1, .1, .1>)
+)
 
 material WhitePlane(
     diffuse(uniform( <0.94, 0.94, 0.94>)),
-    uniform(<0,0,0>)
+    uniform(<0.000,0.000,0.000>)
 )
 material RedPlane(
     diffuse(uniform( <0.94, 0.2, 0.2>)),
@@ -28,20 +20,18 @@ material GreenPlane(
     uniform(<0,0,0>)
 )
 
-material WindowPlane(
-    diffuse(uniform(0,0,0)),
-    uniform(<.05,.05,.05>)
+plane(WhitePlane, translation([0, 0, 2]) * rotation_x(180))
+
+material Ground(
+    diffuse(checkered(<.8,.1,.1>,<.1, .8,.8>,10)),
+    uniform(<0,0,0>)
 )
 
-CGS(
-roof plane (WhitePlane, translation([0, 0, 2]) * rotation_x(180)),
-window plane (WindowPlane, )
-)
+plane (Ground, identity)
 
-plane (WhitePlane, identity)
-plane (WhitePlane, translation([2, 0, 0]) * rotation_y(90))
+plane (GreenPlane, translation([0,2,0])*rotation_x(90))
+plane (RedPlane, translation([0,-2,0])*rotation_x(-90))
+#plane (RedPlane, translation([2,0,0])*rotation_y(90))
 
-plane (RedPlane, translation([0, -1,0]) * rotation_x(90))
-plane (RedPlane, translation([0, 1,0]) * rotation_x(-90))
 
 camera (perspective, translation([-1,0,1]), 1.7778, 1)

@@ -70,7 +70,8 @@ public enum KeywordEnum
     Intersection = 22,
     Difference = 23,
     Csg = 24,
-    Perform = 25
+    Perform = 25,
+    Rectangle = 26
 }
 
 /// <summary>
@@ -104,7 +105,8 @@ public static class KeywordMap
         { "intersection", KeywordEnum.Intersection },
         { "difference", KeywordEnum.Difference},
         { "CSG", KeywordEnum.Csg},
-        { "perform", KeywordEnum.Perform}
+        { "perform", KeywordEnum.Perform},
+        { "rectangle", KeywordEnum.Rectangle}
     };
 }
 
@@ -770,6 +772,24 @@ public class Scene
         return new Plane(transformation: transformation, material: scene.Materials[materialName]);
     }
 
+    public static Rectangle ParseRectangle(InputStream inputFile, Scene? scene)
+    {
+        ExpectSymbol('(', inputFile);
+        var width = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        var height = ExpectNumber(inputFile, scene);
+        ExpectSymbol(',', inputFile);
+        
+        var materialName = ExpectIdentifier(inputFile);
+        if(!scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+
+        ExpectSymbol(',', inputFile);
+        var transformation = ParseTransformation(inputFile, scene);
+        ExpectSymbol(')', inputFile);
+        
+        return new Rectangle(width, height, scene.Materials[materialName],  transformation);
+    }
+
     /*
     public static Csg ParseCsg(InputStream inputFile, Scene scene, Tuple<string, Shape> shape1, Tuple<string, Shape> shape2)
     {
@@ -826,6 +846,9 @@ public class Scene
             
                 case KeywordEnum.Plane:
                     shapes.Add(shapeName, ParsePlane(inputFile, scene));
+                    break;
+                case KeywordEnum.Rectangle:
+                    shapes.Add(shapeName, ParseRectangle(inputFile, scene));
                     break;
                 
                 case KeywordEnum.Union:
@@ -973,6 +996,8 @@ public class Scene
                 scene.World.AddShape(ParsePlane(inputFile, scene));
             else if (whatToken.Keyword == KeywordEnum.Csg)
                 scene.World.AddShape(ParseCompoundShape(inputFile, scene));
+            else if (whatToken.Keyword == KeywordEnum.Rectangle)
+                scene.World.AddShape(ParseRectangle(inputFile, scene));
             
             else if(whatToken.Keyword ==  KeywordEnum.Camera && scene.Camera != null)
                 throw new GrammarError(inputFile.Location, $"camera has already been specified");

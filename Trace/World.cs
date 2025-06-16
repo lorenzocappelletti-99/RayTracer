@@ -1,8 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Trace;
 
+/// <summary>
+/// Represents the scene to be rendered.
+/// - <see cref="Shapes"/>: list of objects in the scene,
+/// - <see cref="PointLights"/>: list of PointLights in the scene
+/// </summary>
 public class World
 {
     public List<Shape> Shapes { get; set; } = [];
@@ -28,10 +30,15 @@ public class World
     public HitRecord? ray_intersection(Ray ray)
     {
         HitRecord? closest = null;
+        float bestT = float.PositiveInfinity;
 
-        foreach (var intersection in Shapes.Select(shape => shape.RayIntersection(ray)).OfType<HitRecord>().Where(intersection => closest == null || intersection.T < closest.T))
+        foreach (var shape in Shapes)
         {
-            closest = intersection;
+            if (shape.RayIntersection(ray) is { } hit && hit.T < bestT)
+            {
+                closest = hit;
+                bestT = hit.T;
+            }
         }
         return closest;
     }

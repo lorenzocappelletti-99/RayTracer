@@ -4,7 +4,6 @@
  |                       See LICENSE
  ===========================================================*/
 
-using System;
 using System.Diagnostics;
 
 namespace Trace;

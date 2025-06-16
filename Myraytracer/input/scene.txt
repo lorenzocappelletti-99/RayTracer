@@ -1,0 +1,24 @@
+camera (perspective, rotation_z(20)*translation([-1,0,5]), 1.7778, 1)
+
+material sky(
+    diffuse(uniform( <0, 0, 0>)),
+    uniform(<0.3,0.3,0.3>) #emette grigino
+)
+
+material check(
+    diffuse(checkered(<0.5, 0.75, 0.5>, <1, 0.4, 0.7>)),
+    uniform(<0,0,0>) #non emette
+)
+
+material blue(
+    diffuse(uniform( <0, 0, 0.8>)),
+    uniform(<0,0,0>) #non emette
+)
+
+
+plane (sky, scaling([200,200,200])*translation([0, 0, .4]))
+plane (check, translation([0, 0, -0.5]))
+#sphere (blue, translation([2, 0, 0.5]))
+box ([-1.5, -1.5, -1.5], [1.5, 1.5,  1.5], blue, translation([6, 0, 2]))
+
+

@@ -4,12 +4,9 @@
  |                       See LICENSE                        
  ===========================================================*/
 
-using System;
-using System.Collections.Generic;
 using Xunit;
 using System.Text;
 using System.Globalization;
-using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -29,10 +26,9 @@ public class HdrImage
      ***********************************************************/
     
     /// <summary>
-    /// Constructs HdrImage type with width and height
+    /// Constructs an HDR image with specified width and height.
+    /// All pixels are initialized to black.
     /// </summary>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
     public HdrImage(int width = 0, int height = 0)
     {
         Width = width;
@@ -74,18 +70,6 @@ public class HdrImage
     /// <returns></returns>
     public bool valid_coordinates(int x, int y)
     {
-        /*
-        // Check if x is out of bounds
-        if (x < 0 || x >= Width)
-        {
-            throw new ArgumentOutOfRangeException(nameof(x), "The x coordinate is out of bounds.");
-        }
-        // Check if y is out of bounds
-        if (y < 0 || y >= Height)
-        {
-            throw new ArgumentOutOfRangeException(nameof(y), "The y coordinate is out of bounds.");
-        }
-        */
         return x >= 0 && x < Width && y >= 0 && y < Height;
     }
 
@@ -226,6 +210,7 @@ public class HdrImage
             }
         }
     }
+    
 
     /// <summary>
     /// Reads pfm. Returns the HdrImage of that pfm file.
@@ -235,46 +220,41 @@ public class HdrImage
     /// <exception cref="InvalidDataException"></exception>
     public static HdrImage ReadPfm(Stream inputStream)
     {
-        // 1. Read and validate "PF" header
-        byte[] line1Bytes = ReadLineBytes(inputStream);
-        string line1 = Encoding.ASCII.GetString(line1Bytes).Trim();
+        
+        var line1Bytes = ReadLineBytes(inputStream);
+        var line1 = Encoding.ASCII.GetString(line1Bytes).Trim();
         if (line1 != "PF")
             throw new InvalidDataException("Invalid PFM format: missing 'PF' in the first line.");
 
-        // 2. Read width and height
-        byte[] line2Bytes = ReadLineBytes(inputStream);
-        string line2 = Encoding.ASCII.GetString(line2Bytes).Trim();
-        string[] whParts = line2.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var line2Bytes = ReadLineBytes(inputStream);
+        var line2 = Encoding.ASCII.GetString(line2Bytes).Trim();
+        var whParts = line2.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (whParts.Length != 2 ||
             !int.TryParse(whParts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int width) ||
             !int.TryParse(whParts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int height) ||
             width <= 0 || height <= 0)
             throw new InvalidDataException("Invalid PFM format: incorrect image dimensions.");
 
-        // 3. Read endianness (-1.0 = little-endian, 1.0 = big-endian)
-        byte[] line3Bytes = ReadLineBytes(inputStream);
-        string line3 = Encoding.ASCII.GetString(line3Bytes).Trim();
+        var line3Bytes = ReadLineBytes(inputStream);
+        var line3 = Encoding.ASCII.GetString(line3Bytes).Trim();
         if (!float.TryParse(line3, NumberStyles.Float, CultureInfo.InvariantCulture, out float endianValue))
             throw new InvalidDataException("Invalid PFM format: malformed endianness value.");
-        bool isLittleEndian = endianValue < 0;
+        var isLittleEndian = endianValue < 0;
 
-        // 4. Verify data length
-        long expectedBytes = 12L * width * height;
+        var expectedBytes = 12L * width * height;
         if (inputStream.Length - inputStream.Position < expectedBytes)
             throw new InvalidDataException("Insufficient data in PFM file.");
 
-        // 5. Create image and fill pixels
-        HdrImage image = new HdrImage(width, height);
+        var image = new HdrImage(width, height);
         using var reader = new BinaryReader(inputStream, Encoding.ASCII, leaveOpen: true);
-        // PFM pixels are written bottom-to-top, convert to top-to-bottom
-        for (int yPfm = 0; yPfm < height; yPfm++)
+        for (var yPfm = 0; yPfm < height; yPfm++)
         {
-            int yHdr = height - 1 - yPfm; // Convert to HdrImage coordinates (top-to-bottom)
-            for (int x = 0; x < width; x++)
+            var yHdr = height - 1 - yPfm; // Convert to HdrImage coordinates (top-to-bottom)
+            for (var x = 0; x < width; x++)
             {
-                float r = ReadFloat(reader, isLittleEndian);
-                float g = ReadFloat(reader, isLittleEndian);
-                float b = ReadFloat(reader, isLittleEndian);
+                var r = ReadFloat(reader, isLittleEndian);
+                var g = ReadFloat(reader, isLittleEndian);
+                var b = ReadFloat(reader, isLittleEndian);
                 image.SetPixel(x, yHdr, new Color(r, g, b));
             }
         }
@@ -346,10 +326,9 @@ public class HdrImage
      ***********************************************************/
     
     /// <summary>
-    /// 
+    /// Computes the average logarithmic luminosity of the image.
+    /// A small delta is added to each pixel's luminosity to avoid logarithm of zero.
     /// </summary>
-    /// <param name="delta"></param>
-    /// <returns></returns>
     public float AverageLuminosity(double delta = 1e-10d)
     {
         var cumsum = 0.0d;
@@ -360,10 +339,14 @@ public class HdrImage
     }
 
     /// <summary>
-    /// Normalizes pixel values
+    /// Normalizes the HDR image by scaling each pixel's value according to a factor and average luminosity.
+    /// Optionally, an external luminosity value can be specified.
     /// </summary>
-    /// <param name="factor"></param>
-    /// <param name="luminosity"></param>
+    /// <param name="factor">Scaling factor to apply.</param>
+    /// <param name="luminosity">
+    /// Optional external luminosity value.
+    /// If not provided, it is calculated via AverageLuminosity().
+    /// </param>
     public void NormalizeImage(float factor, float? luminosity = null)
     {
         var lum = luminosity ?? AverageLuminosity();
@@ -374,17 +357,19 @@ public class HdrImage
     }
 
     /// <summary>
-    /// 
+    /// Helper function that applies tone mapping to a single float value.
+    /// Implements a simple compression to keep values in [0,1].
     /// </summary>
-    /// <param name="x"></param>
-    /// <returns></returns>
+    /// <param name="x">The input brightness value.</param>
+    /// <returns>The tone-mapped value.</returns>
     private static float Clamp(float x)
     {
         return x / (1 + x);
     }
     
     /// <summary>
-    /// 
+    /// Applies tone mapping (clamping) to every pixel in the image.
+    /// This compresses overly bright areas while preserving details in dark regions.
     /// </summary>
     public void ClampImage()
     {

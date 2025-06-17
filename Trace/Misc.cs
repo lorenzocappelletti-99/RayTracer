@@ -13,4 +13,36 @@ public static class Misc
     {
         return Math.Abs(a - b) <= epsilon;
     }
+    
+    public static void DrawProgressBar(int percent, int barSize = 50)
+    {
+        var progress = (int)((percent / 100.0) * barSize);
+        var bar = new string('>', progress).PadRight(barSize, '-');
+        Console.Write($"\r[{bar}] {percent}%");
+    }
+    
+    public static void DrawProgressBarWithSpinner(int percent, int barSize = 50, char spinner = '/')
+    {
+        var progress = (int)((percent / 100.0) * barSize);
+        var bar = new string('➤', progress).PadRight(barSize, '-');
+        char[] spinners = ['|', '/', '-', '\\'];
+        var spin = spinners[percent % spinners.Length];
+        Console.Write($"\r[{bar}] {percent}% {spin}");
+    }
+    
+    public static void PrintTime(TimeSpan elapsedWallClockTime)
+    {
+        switch (elapsedWallClockTime.TotalSeconds)
+        {
+            case <= 60:
+                Console.WriteLine($"\nWall-Clock Time Elapsed for Firing all Rays:{elapsedWallClockTime.TotalSeconds} seconds");
+                break;
+            case > 60:
+                Console.WriteLine($"\nWall-Clock Time Elapsed for Firing all Rays:{elapsedWallClockTime.TotalMinutes} minutes");
+                break;
+        }
+    }
+
+
 }
+

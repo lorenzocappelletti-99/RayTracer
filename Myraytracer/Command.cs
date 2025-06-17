@@ -4,6 +4,7 @@
  |                       See LICENSE
  ===========================================================*/
 
+using System.Diagnostics;
 using CliFx;
 using CliFx.Exceptions;
 using CliFx.Attributes;
@@ -80,8 +81,9 @@ public class RenderCommand : ICommand
         console.Output.WriteLine($"Creating scene:\n width: {Width}, height: {Height}\n output: {OutputLdrFileName}\n renderer: {Renderer}, number of rays: {NumOfRays}, max depth: {MaxDepth}, russian roulette: {RussianRoulette}, antiAliasing: {AntiAliasing} \n");
         
         var image = new HdrImage(Width, Height);
-        var tracer = new ImageTracer(image, scene!.Camera); 
+        var tracer = new ImageTracer(image, scene.Camera); 
 
+        var stopwatch = new Stopwatch();
         
         if(AntiAliasing) tracer.SamplesPerSide = 4;
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
@@ -92,7 +94,14 @@ public class RenderCommand : ICommand
                                   "pointlight( [vector(position)], <color>, 0.0 )");
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PointLightRenderer(scene.World, Color.Black);
+            
+            stopwatch.Start();
+
             tracer.FireAllRays(render.Render);
+
+            stopwatch.Stop();
+            var elapsedWallClockTime = stopwatch.Elapsed;
+            Misc.PrintTime(elapsedWallClockTime);
         }
         
         
@@ -100,7 +109,14 @@ public class RenderCommand : ICommand
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PathTracer(scene.World, Color.Black, new Pcg(), NumOfRays, MaxDepth, RussianRoulette);
+            
+            stopwatch.Start();
+
             tracer.FireAllRays(render.Render);
+
+            stopwatch.Stop();
+            var elapsedWallClockTime = stopwatch.Elapsed;
+            Misc.PrintTime(elapsedWallClockTime);
         }
 
         console.Output.WriteLine($"File PFM generated!");
@@ -308,6 +324,8 @@ public class DemoCommand : ICommand
             material: ground)
         );
         
+        var stopwatch = new Stopwatch();
+        
         var image = new HdrImage(Width, Height);
         var tracer = new ImageTracer(image, Camera); 
         if (Renderer.Equals("PointLight", StringComparison.OrdinalIgnoreCase))
@@ -315,14 +333,28 @@ public class DemoCommand : ICommand
             scene.AddLight(new PointLight(new Point(-10, 0, 10f), new Color(1, 1, 1)));
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PointLightRenderer(scene, Color.Black);
+            
+            stopwatch.Start();
+
             tracer.FireAllRays(render.Render);
+
+            stopwatch.Stop();
+            var elapsedWallClockTime = stopwatch.Elapsed;
+            Misc.PrintTime(elapsedWallClockTime);
         }
         
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
             var render = new PathTracer(scene, Color.Black, new Pcg(), NumOfRays, 3, 1);
+            
+            stopwatch.Start();
+
             tracer.FireAllRays(render.Render);
+
+            stopwatch.Stop();
+            var elapsedWallClockTime = stopwatch.Elapsed;
+            Misc.PrintTime(elapsedWallClockTime);
         }
         
         using var pfmStream = new MemoryStream();
@@ -334,7 +366,7 @@ public class DemoCommand : ICommand
         );
         
 
-        Console.WriteLine($"Generated LDR: {OutputLdrFileName}");
+        Console.WriteLine($"\nGenerated LDR: {OutputLdrFileName}");
     }
 }
 

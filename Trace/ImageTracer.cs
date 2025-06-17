@@ -88,6 +88,8 @@ public class ImageTracer
                     Image.SetPixel(col, row, func(ray));
                 }
             }
+            var percent = (int)((row + 1) / (double)Image.Height * 100);
+            Misc.DrawProgressBar(percent);
         }
     }
 }

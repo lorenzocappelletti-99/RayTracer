@@ -5,12 +5,11 @@
  ===========================================================*/
 
 using Xunit;
-using Xunit.Abstractions;
 namespace Trace.Tests;
 
 
 
-public class RendererTest(ITestOutputHelper testOutputHelper)
+public class RendererTest
 {
     private static readonly HdrImage Image = new HdrImage(width: 3, height: 3);
     private static readonly OrthogonalProjection? Camera = new OrthogonalProjection();
@@ -21,7 +20,6 @@ public class RendererTest(ITestOutputHelper testOutputHelper)
         return MathF.Abs(a - b) < epsilon;
     }
     
-    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     [Fact]
     public void TestOnOffRenderer()
     {

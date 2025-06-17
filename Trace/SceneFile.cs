@@ -559,9 +559,9 @@ public class Scene
             case IdentifierToken identifier:
             {
                 var variableName = identifier.Identifier;
-                if(scene.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
+                if(scene?.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
                     throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
-                if (scene.FloatVariables != null) return scene.FloatVariables[variableName];
+                if (scene?.FloatVariables != null) return scene.FloatVariables[variableName];
                 throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
             }
             default:
@@ -941,7 +941,7 @@ public class Scene
             
     }
 
-    public static Scene? ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
+    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
     {
         variables ??= new Dictionary<string, float>();
         var scene = new Scene(variables, [..variables.Keys]);

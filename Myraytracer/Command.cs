@@ -105,7 +105,7 @@ public class RenderCommand : ICommand
 
         console.Output.WriteLine($"File PFM generated!");
         
-        using var pfmStream = new MemoryStream();
+        using var pfmStream = new MemoryStream(); // no file .pfm is being written to disk. Written only to memory
         image.WritePfm(pfmStream);
         pfmStream.Seek(0, SeekOrigin.Begin);
         HdrImage.write_ldr_image(
@@ -275,16 +275,25 @@ public class DemoCommand : ICommand
         var u2 = new Csg(u1, s3, CsgOperation.Union);
         var union = new Csg(u2, s4, CsgOperation.Union);
         
+        
+        scene.AddShape(union);
+        
         scene.AddShape(new Box(
             transformation: Transformation.Scaling(new Vec(0.5f,0.5f,0.5f)) 
-                            * Transformation.Translation(new Vec(0.7f, 3, 0)) 
-                             * Transformation.RotationX(20),
+                            * Transformation.Translation(new Vec(0.1f, 3, 0)) 
+                             * Transformation.RotationX(30),
+            material:       mirrorRed)
+        );
+        
+        scene.AddShape(new Box(
+            transformation: Transformation.Scaling(new Vec(0.5f,0.5f,0.5f)) 
+                            * Transformation.Translation(new Vec(2.1f,-6f, 1.5f)) 
+                            * Transformation.RotationZ(30) 
+                            * Transformation.RotationY(-10),
             material:       mirrorRed)
         );
         
 
-        scene.AddShape(union);
-        
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),
             material: sky));

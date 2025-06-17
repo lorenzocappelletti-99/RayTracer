@@ -4,8 +4,6 @@
  |                       See LICENSE                        
  ===========================================================*/
 
-using System;
-
 namespace Trace;
 /// <summary>
 /// Represents an RGB color with floating-point components.
@@ -85,8 +83,8 @@ public record struct Color(float r, float g, float b)
     /// <returns></returns>
     public float Luminosity()
     {
-        float maxVal = Math.Max(R, Math.Max(G, B));
-        float minVal = Math.Min(R, Math.Min(G, B));
+        var maxVal = Math.Max(R, Math.Max(G, B));
+        var minVal = Math.Min(R, Math.Min(G, B));
         return (maxVal + minVal) / 2.0f;
     }
 

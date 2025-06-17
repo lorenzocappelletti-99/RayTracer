@@ -5,15 +5,14 @@
  ===========================================================*/
 
 using Xunit;
-using Xunit.Abstractions;
 using FileStream = System.IO.FileStream;
 
 namespace Trace.Tests;
 
 
-public class HdrImageTests(ITestOutputHelper testOutputHelper)
+public class HdrImageTests
 {
-    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
     [Fact]
     public void TestHdrImageConstruction()
     {

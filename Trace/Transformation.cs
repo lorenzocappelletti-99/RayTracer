@@ -4,14 +4,13 @@
  |                       See LICENSE                        
  ===========================================================*/
 
-using System;
 using System.Text;
 
 namespace Trace
 {
     public struct Transformation
     {
-        public static readonly float[,] IdentityMatr4X4 = new float[4, 4]
+        public static readonly float[,] IdentityMatr4X4 = new [,]
         {
             { 1.0f, 0.0f, 0.0f, 0.0f },
             { 0.0f, 1.0f, 0.0f, 0.0f },
@@ -36,11 +35,10 @@ namespace Trace
             M = m ?? IdentityMatr4X4;
             Invm = invm ?? IdentityMatr4X4;
         }
-        
+
         /// <summary>
         /// Compare 2 matrices (direct and inverse)
         /// </summary>
-        /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <param name="sigma=1e-5"></param>
         /// <param name="sigma"></param>

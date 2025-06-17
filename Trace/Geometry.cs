@@ -4,11 +4,6 @@
  |                       See LICENSE                        |
  ===========================================================*/
 
-// ReSharper disable InconsistentNaming
-
-using System;
-using Xunit.Sdk;
-
 namespace Trace;
 
     /***********************************************************
@@ -213,11 +208,10 @@ public struct Vec (float x, float y, float z)
         v.Normalize();
         return new Normal(v.X, v.Y, v.Z);
     }
-    
+
     /// <summary>
     /// Normalizes this Vector and transforms it into a type Normal
     /// </summary>
-    /// <param name="v"></param>
     /// <returns></returns>
     public Normal ToNorm()
     {
@@ -554,11 +548,10 @@ public struct Normal(float x, float y, float z)
     {
         return new Vec(n.X, n.Y, n.Z);
     }
-    
+
     /// <summary>
     /// Transforms this normal into a type Vec
     /// </summary>
-    /// <param name="n"></param>
     /// <returns></returns>
     public Vec ToVec()
     {

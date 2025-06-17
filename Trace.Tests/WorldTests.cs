@@ -4,7 +4,6 @@
  |                       See LICENSE
  ===========================================================*/
 
-using System.Runtime.CompilerServices;
 using Xunit;
 namespace Trace.Tests;
 

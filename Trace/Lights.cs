@@ -14,7 +14,7 @@ namespace Trace;
     {
         public Point Position;
         public Color Color;
-        public float LinearRadius = 0.0f;
+        public float LinearRadius;
 
         public PointLight(Point position, Color color)
         {

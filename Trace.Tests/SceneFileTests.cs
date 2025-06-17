@@ -6,12 +6,11 @@
 
 namespace Trace.Tests;
 
-using Xunit.Abstractions;
 using System.IO;
 using System.Text;
 using Xunit;
 
-public class SceneFileTest(ITestOutputHelper testOutputHelper)
+public class SceneFileTest
 {
     private static void AssertIsKeyword(Token token, KeywordEnum expectedKeyword)
     {
@@ -48,7 +47,6 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.Equal(expectedString, strToken.S);
     }
 
-    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     [Fact]
     public void TestSceneFile()
     {

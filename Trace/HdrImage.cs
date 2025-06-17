@@ -203,7 +203,7 @@ public class HdrImage
         {
             for (var x = 0; x < Width; x++)
             {
-                var color = this.GetPixel(x, y);
+                var color = GetPixel(x, y);
                 WriteFloat(outputStream, color.R, endianness);
                 WriteFloat(outputStream, color.G, endianness);
                 WriteFloat(outputStream, color.B, endianness);

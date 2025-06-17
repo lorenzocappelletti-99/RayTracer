@@ -4,8 +4,6 @@
  |                       See LICENSE
  ===========================================================*/
 
-using System;
-
 namespace Trace
 {
     /// <summary>

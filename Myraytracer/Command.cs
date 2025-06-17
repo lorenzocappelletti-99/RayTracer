@@ -30,7 +30,7 @@ public class RenderCommand : ICommand
     [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
     public bool AntiAliasing { get; init; } = false;
     
-    [CommandOption("NumOfRays", 'R', Description = "Number of rays")]
+    [CommandOption("NumOfRays", 'R', Description = "Number of rays at each recursion")]
     public int NumOfRays { get; init; } = 3;
     
     [CommandOption("RussianRoulette", 'x', Description = "Russian roulette")]
@@ -139,8 +139,8 @@ public class DemoCommand : ICommand
     [CommandOption("AntiAliasing", 'A', Description = "Anti-aliasing enabled")]
     public bool AntiAliasing { get; init; } = false;
     
-    [CommandOption("RaysPerPixel", 'R', Description = "Rays per pixel")]
-    public int RaysPerPixel { get; init; } = 1;
+    [CommandOption("NumOfRays", 'R', Description = "Number of rays at each recursion")]
+    public int NumOfRays { get; init; } = 1;
     
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
     public string Renderer { get; init; } = "PathTracer";
@@ -187,7 +187,7 @@ public class DemoCommand : ICommand
             $"Output = {OutputLdrFileName}, "+
             $"AntiAliasing = {AntiAliasing}, "+
             $"RendererType = {Renderer}, " +
-            $"RaysPerPixel = {RaysPerPixel}"
+            $"NumOfRays = {NumOfRays}"
         );
 
         RunDemoScene();
@@ -315,7 +315,7 @@ public class DemoCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), RaysPerPixel, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(), NumOfRays, 3, 1);
             tracer.FireAllRays(render.Render);
         }
         

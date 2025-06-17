@@ -16,9 +16,10 @@ material blue(
 )
 
 material red(
-    diffuse(uniform(<.7,.2,.2)),
+    diffuse(uniform(<.7,.2,.2>)),
     uniform(<0,0,0>)
 )
+
 
 material green(
     diffuse(uniform(<.5,1,.5>)),

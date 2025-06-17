@@ -293,6 +293,12 @@ public class DemoCommand : ICommand
             material:       mirrorRed)
         );
         
+        /*
+        scene.AddShape(new Torus(
+            transformation: Transformation.Translation(new Vec(2,1,3))
+                            * Transformation.RotationZ(60),
+            material: blue)
+        );*/
 
         scene.AddShape(new Plane(
             transformation: Transformation.Scaling(new Vec(200,200,200)) * Transformation.Translation(new Vec(0f, 0, 0.4f)),

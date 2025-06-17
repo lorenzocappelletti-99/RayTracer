@@ -618,6 +618,265 @@ public class Box : Shape
 
 /***********************************************************
  *                                                         *
+ *                        TORUS                            *
+ *                                                         *
+ ***********************************************************/
+
+public class Torus : Shape
+{
+    /// <summary>
+    /// Major radius (distance from center to the middle of the tube).
+    /// Minor radius (radius of the tube itself).
+    /// </summary>
+    public float MajorRadius { get; }
+    public float MinorRadius { get; }
+
+    public Torus(
+        float majorRadius = 1.0f,
+        float minorRadius = 0.5f,
+        Transformation? transformation = null,
+        Material? material = null)
+        : base(material, transformation)
+    {
+        MajorRadius = majorRadius;
+        MinorRadius = minorRadius;
+    }
+
+    public override Vec2d ShapePointToUV(Point p)
+    {
+        // Convert point to cylindrical coordinates around the Y axis
+        var theta = MathF.Atan2(p.Z, p.X); // angle around Y axis
+        var r = MathF.Sqrt(p.X * p.X + p.Z * p.Z);
+        var phi = MathF.Atan2(p.Y, r - MajorRadius); // angle around the tube
+
+        float u = (theta + MathF.PI) / (2 * MathF.PI);
+        float v = (phi + MathF.PI) / (2 * MathF.PI);
+
+        return new Vec2d(u, v);
+    }
+
+    public override bool QuickRayIntersection(Ray ray)
+    {
+        return RayIntersection(ray) != null;
+    }
+
+    public override HitRecord? RayIntersection(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+        var o = localRay.Origin.to_vec();
+        var d = localRay.Direction;
+
+        // Solving torus equation by substituting ray into implicit form of torus:
+        // Torus: (|p|^2 + R^2 - r^2)^2 - 4R^2(x^2 + z^2) = 0
+        // Ray: p(t) = o + td → substitute and expand into quartic
+        var ox = o.X; var oy = o.Y; var oz = o.Z;
+        var dx = d.X; var dy = d.Y; var dz = d.Z;
+        var R = MajorRadius;
+        var r = MinorRadius;
+
+        var sumDSq = dx * dx + dy * dy + dz * dz;
+        var e = ox * ox + oy * oy + oz * oz - R * R - r * r;
+        var f = ox * dx + oy * dy + oz * dz;
+
+        var fourR2 = 4 * R * R;
+
+        // Coefficients of the quartic equation At^4 + Bt^3 + Ct^2 + Dt + E = 0
+        var A = sumDSq * sumDSq;
+        var B = 4 * sumDSq * f;
+        var C = 2 * sumDSq * e + 4 * f * f + fourR2 * dy * dy;
+        var D = 4 * f * e + 2 * fourR2 * oy * dy;
+        var E = e * e - fourR2 * (r * r - oy * oy);
+
+        var roots = SolveQuartic(A, B, C, D, E); 
+
+        float tHit = float.PositiveInfinity;
+        foreach (var t in roots)
+        {
+            if (t > localRay.Tmin && t < localRay.Tmax && t < tHit)
+                tHit = t;
+        }
+
+        if (float.IsInfinity(tHit)) return null;
+
+        var localHit = localRay.PointAt(tHit);
+        var localNormal = OrientedNormal(localHit, localRay.Direction);
+        var surfaceUV = ShapePointToUV(localHit);
+
+        var worldPoint = Transformation * localHit;
+        var worldNormal = Transformation * localNormal;
+
+        return new HitRecord
+        {
+            WorldPoint = worldPoint,
+            Normal = worldNormal,
+            SurfacePoint = surfaceUV,
+            T = tHit,
+            Ray = ray,
+            Material = Material
+        };
+    }
+
+    public override bool IsPointInternal(Point p)
+    {
+        var localP = Transformation.Inverse() * p;
+        var xzLen = MathF.Sqrt(localP.X * localP.X + localP.Z * localP.Z);
+        var distFromTubeCenter = MathF.Sqrt((xzLen - MajorRadius) * (xzLen - MajorRadius) + localP.Y * localP.Y);
+        return distFromTubeCenter < MinorRadius;
+    }
+    
+    public static List<float> SolveQuartic(float A, float B, float C, float D, float E)
+    {
+        const float EPSILON = 1e-6f;
+
+        // Normalize if A != 1
+        if (MathF.Abs(A) < EPSILON)
+        {
+            // Reduce to cubic
+            return SolveCubic(B, C, D, E);
+        }
+
+        float a = B / A;
+        float b = C / A;
+        float c = D / A;
+        float d = E / A;
+
+        // Depressed quartic: x⁴ + px² + qx + r = 0
+        float a2 = a * a;
+        float p = -0.375f * a2 + b;
+        float q = 0.125f * a2 * a - 0.5f * a * b + c;
+        float r = -0.01171875f * a2 * a2 + 0.0625f * a2 * b - 0.25f * a * c + d;
+
+        List<float> roots = new();
+
+        if (MathF.Abs(q) < EPSILON)
+        {
+            // Biquadratic: y² + p y + r = 0, let y = x²
+            var yRoots = SolveQuadratic(1, p, r);
+            foreach (var y in yRoots)
+            {
+                if (y < -EPSILON) continue;
+                var sqrtY = MathF.Sqrt(y);
+                roots.Add(sqrtY - 0.25f * a);
+                roots.Add(-sqrtY - 0.25f * a);
+            }
+        }
+        else
+        {
+            // Solve resolvent cubic: z³ - 0.5p z² - r z + (0.125 r p - 0.5 q²) = 0
+            float cubicA = 1;
+            float cubicB = -0.5f * p;
+            float cubicC = -r;
+            float cubicD = 0.125f * r * p - 0.5f * q * q;
+
+            var zRoots = SolveCubic(cubicA, cubicB, cubicC, cubicD);
+            float z = zRoots[0]; // one real root
+
+            float u = MathF.Sqrt(2 * z - p);
+            if (MathF.Abs(u) < EPSILON)
+                return new(); // avoid division by zero
+
+            float v = q / (2 * u);
+
+            var quad1 = SolveQuadratic(1, u, z - v);
+            var quad2 = SolveQuadratic(1, -u, z + v);
+
+            foreach (var root in quad1.Concat(quad2))
+            {
+                roots.Add(root - 0.25f * a);
+            }
+        }
+
+        roots.Sort();
+        return roots.Where(r => !float.IsNaN(r) && !float.IsInfinity(r)).ToList();
+    }
+    
+    public static List<float> SolveQuadratic(float a, float b, float c)
+    {
+        const float EPSILON = 1e-6f;
+        List<float> roots = new();
+
+        if (MathF.Abs(a) < EPSILON)
+        {
+            if (MathF.Abs(b) < EPSILON) return roots;
+            roots.Add(-c / b);
+            return roots;
+        }
+
+        float disc = b * b - 4 * a * c;
+        if (disc < -EPSILON) return roots;
+
+        if (disc < EPSILON)
+        {
+            roots.Add(-b / (2 * a));
+        }
+        else
+        {
+            float sqrtD = MathF.Sqrt(disc);
+            float q = -0.5f * (b + MathF.CopySign(sqrtD, b));
+            roots.Add(q / a);
+            roots.Add(c / q);
+        }
+
+        return roots.Where(r => !float.IsNaN(r) && !float.IsInfinity(r)).ToList();
+    }
+
+    public static List<float> SolveCubic(float a, float b, float c, float d)
+    {
+        const float EPSILON = 1e-6f;
+        List<float> roots = new();
+
+        if (MathF.Abs(a) < EPSILON)
+            return SolveQuadratic(b, c, d);
+
+        float A = b / a;
+        float B = c / a;
+        float C = d / a;
+
+        float sqA = A * A;
+        float p = (1f / 3f) * (-1f / 3f * sqA + B);
+        float q = (1f / 2f) * ((2f / 27f) * A * sqA - (1f / 3f) * A * B + C);
+
+        float disc = q * q + p * p * p;
+
+        if (MathF.Abs(disc) < EPSILON) disc = 0;
+
+        float offset = -1f / 3f * A;
+
+        if (disc > 0)
+        {
+            float sqrtDisc = MathF.Sqrt(disc);
+            float u = MathF.Cbrt(-q + sqrtDisc);
+            float v = MathF.Cbrt(-q - sqrtDisc);
+            roots.Add(u + v + offset);
+        }
+        else if (disc == 0)
+        {
+            float u = MathF.Cbrt(-q);
+            roots.Add(2 * u + offset);
+            roots.Add(-u + offset);
+        }
+        else
+        {
+            float phi = MathF.Acos(-q / MathF.Sqrt(-p * p * p));
+            float t = 2 * MathF.Sqrt(-p);
+
+            roots.Add(t * MathF.Cos(phi / 3) + offset);
+            roots.Add(t * MathF.Cos((phi + 2 * MathF.PI) / 3) + offset);
+            roots.Add(t * MathF.Cos((phi + 4 * MathF.PI) / 3) + offset);
+        }
+
+        return roots.Where(r => !float.IsNaN(r) && !float.IsInfinity(r)).ToList();
+    }
+
+
+}
+
+
+
+
+
+/***********************************************************
+ *                                                         *
  *                        CONE                             *
  *                                                         *
  ***********************************************************/

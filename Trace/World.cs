@@ -30,7 +30,7 @@ public class World
     public HitRecord? ray_intersection(Ray ray)
     {
         HitRecord? closest = null;
-        float bestT = float.PositiveInfinity;
+        var bestT = float.PositiveInfinity;
 
         foreach (var shape in Shapes)
         {

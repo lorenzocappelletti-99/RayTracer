@@ -21,15 +21,6 @@ public static class Misc
         Console.Write($"\r[{bar}] {percent}%");
     }
     
-    public static void DrawProgressBarWithSpinner(int percent, int barSize = 50, char spinner = '/')
-    {
-        var progress = (int)((percent / 100.0) * barSize);
-        var bar = new string('➤', progress).PadRight(barSize, '-');
-        char[] spinners = ['|', '/', '-', '\\'];
-        var spin = spinners[percent % spinners.Length];
-        Console.Write($"\r[{bar}] {percent}% {spin}");
-    }
-    
     public static void PrintTime(TimeSpan elapsedWallClockTime)
     {
         switch (elapsedWallClockTime.TotalSeconds)

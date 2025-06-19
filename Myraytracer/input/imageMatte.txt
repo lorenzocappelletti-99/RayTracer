@@ -1,0 +1,20 @@
+camera (perspective, translation([-1,0,1]), 1.7778, 1)
+
+material sky(
+    diffuse(uniform( <0.05, 0.05, 0.9>)),
+    uniform(<0.3,0.3,0.3>)
+)
+material ground(
+    diffuse(checkered(<.8,.1,.1>,<.1, .8,.8>,10)),
+    uniform(<0,0,0>)
+)
+
+material this(
+    diffuse(image("galaxy.pfm")),
+    uniform(<0,0,0>)
+)
+
+sphere(this, translation([2,0,1]))
+
+plane (sky, scaling([200,200,200])*translation([0, 0, .4]))
+plane (ground, identity)

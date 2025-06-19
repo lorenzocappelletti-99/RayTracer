@@ -43,7 +43,8 @@ public class RenderCommand : ICommand
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
     public string Renderer { get; init; } = "PathTracer";
     
-    
+    [CommandOption("factor", 'f', Description = "Tone mapping scale factor")]
+    public float Factor { get; init; } = 0.6f;
     
 
     public ValueTask ExecuteAsync(IConsole console)
@@ -126,7 +127,8 @@ public class RenderCommand : ICommand
         pfmStream.Seek(0, SeekOrigin.Begin);
         HdrImage.write_ldr_image(
             pfmStream,
-            "output/"+OutputLdrFileName
+            "output/"+OutputLdrFileName,
+            factor: Factor
         );
         console.Output.WriteLine($"Generated LDR: {OutputLdrFileName}");
 

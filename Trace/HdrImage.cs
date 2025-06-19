@@ -111,7 +111,7 @@ public class HdrImage
 
     public void SetAllPixels(Color newColor)
     {
-        for (int i = 0; i < Pixels.Length; i++)
+        for (var i = 0; i < Pixels.Length; i++)
             Pixels[i] = newColor;
     }
     

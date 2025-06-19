@@ -995,6 +995,8 @@ public class Scene
             else
                 throw new GrammarError(what.Location, $" unexpected token {what}");
         }
+        if(scene.Camera == null) 
+            throw new GrammarError(inputFile.Location, $"camera has not been specified");
         return scene;
     }
 }

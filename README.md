@@ -6,7 +6,7 @@ Raytracer 1.0.0 is a program that allows you to generate simple images and conve
 
 ## Requirements
 
-- [.NET](https://dotnet.microsoft.com/en-us/) (Version 9.0)
+- [.NET](https://dotnet.microsoft.com/en-us/) (Version 9.0) (if you want to build the solution)
 - Git (if cloning the repository)
 
 ---
@@ -19,7 +19,7 @@ git clone [https://github.com/lorenzocappelletti-99/RayTracer](https://github.co
 
 If Git is not available, download the zipped directory directly from the repository page.
 
-The project is compiled using .NET. If .NET is not available, download the precompiled executable from the repository.
+The project is compiled using .NET. If .NET is not available, download the precompiled executable from the repository and use the one compatible with your OS.
 
 ---
 
@@ -28,8 +28,14 @@ The project is compiled using .NET. If .NET is not available, download the preco
 If you want to build the project from source, navigate to the project directory and run:
 
 ```bash
-dotnet build
+dotnet build Myraytracer/Myraytracer.csproj
 ````
+
+If you want to build the entire solution run:
+```bash
+dotnet build Myraytracer.sln
+````
+
 ## Usage
 
 ### Render Command

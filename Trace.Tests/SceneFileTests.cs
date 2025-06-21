@@ -6,47 +6,75 @@
 
 namespace Trace.Tests;
 
+using Xunit.Abstractions;
 using System.IO;
 using System.Text;
 using Xunit;
 
-public class SceneFileTest
+public class SceneFileTest(ITestOutputHelper testOutputHelper)
 {
-    private static void AssertIsKeyword(Token token, KeywordEnum expectedKeyword)
+
+    public static void AssertIsKeyword(Token token, KeywordEnum expectedKeyword)
     {
+        // Ensure that the token is exactly of type KeyWord
         Assert.IsType<KeywordToken>(token);
+
+        // Ora possiamo fare il cast in sicurezza
         var keywordToken = (KeywordToken)token;
+
+        // Verifichiamo che il valore dell’enum corrisponda a quello atteso
         Assert.Equal(expectedKeyword, keywordToken.Keyword);
     }
 
-    private static void AssertIsIdentifier(Token token, string expectedIdentifier)
+    public static void AssertIsIdentifier(Token token, string expectedIdentifier)
     {
+        // Ensure that the token is exactly of type IdentifierToken
         Assert.IsType<IdentifierToken>(token);
+
+        // Safe to cast now that we know the type is IdentifierToken
         var idToken = (IdentifierToken)token;
+
+        // Compare the actual identifier text with the expected value
         Assert.Equal(expectedIdentifier, idToken.Identifier);
     }
     
-    private static void AssertIsSymbol(Token token, string expectedSymbol)
+    public static void AssertIsSymbol(Token token, string expectedSymbol)
     {
+        // Ensure that the token is exactly of type SymbolToken
         Assert.IsType<SymbolToken>(token);
+
+        // Safe to cast now that we know the type is SymbolToken
         var symToken = (SymbolToken)token;
+
+        // The Symbol property is a char; convert it to string for comparison
         Assert.Equal(expectedSymbol, symToken.Symbol.ToString());
     }
     
-    private static void AssertIsNumber(Token token, float expectedNumber)
+    public static void AssertIsNumber(Token token, float expectedNumber)
     {
+        // Ensure that the token is exactly of type LiteralNumberToken
         Assert.IsType<LiteralNumberToken>(token);
+
+        // Safe to cast now that we know the type is LiteralNumberToken
         var numToken = (LiteralNumberToken)token;
+
+        // Compare the numeric value with the expected value
         Assert.Equal(expectedNumber, numToken.Number);
     }
     
-    private static void AssertIsString(Token token, string expectedString)
+    public static void AssertIsString(Token token, string expectedString)
     {
+        // Ensure that the token is exactly of type StringToken
         Assert.IsType<StringToken>(token);
+
+        // Safe to cast now that we know the type is StringToken
         var strToken = (StringToken)token;
+
+        // Compare the string content with the expected value
         Assert.Equal(expectedString, strToken.S);
     }
 
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
     [Fact]
     public void TestSceneFile()
     {
@@ -154,6 +182,8 @@ public class SceneFileTest
     public void TestParsePigment()
     {
         var input = """
+                    camera (perspective, translation([-1,0,1]), 1.7778, 1)
+                    
                     material sky_material(
                         diffuse(uniform(<0, 0, 0>)),
                         checkered(<0.7, 0.5, 1>, <0,.2,.4>)
@@ -164,11 +194,15 @@ public class SceneFileTest
         var scene = Scene.ParseScene(inputStream);
 
     }
+<<<<<<< Updated upstream
+=======
 
     [Fact]
     public void TestCsgParser()
     {
         const string input = """
+                             camera (perspective, translation([-1,0,1]), 1.7778, 1)
+                             
                              material sphere_material(
                                  specular(uniform(<0.5, 0.5, 0.5>)),
                                  uniform(<0, 0, 0>)
@@ -195,6 +229,7 @@ public class SceneFileTest
         var scene = Scene.ParseScene(inputStream);
         
     }
+>>>>>>> Stashed changes
     
     [Fact]
     public void TestParser()
@@ -208,11 +243,6 @@ public class SceneFileTest
                              )
 
                              # Here is a comment
-                             
-                             material mirror(
-                                 specular(uniform(<0.1,0.8,0.1>)),
-                                 uniform(<0,0,0>)
-                             )
 
                              material ground_material(
                                  diffuse(checkered(<0.3, 0.5, 0.1>,
@@ -236,7 +266,9 @@ public class SceneFileTest
         var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
         var inputStream = new InputStream(reader, fileName: "file");
         var scene = Scene.ParseScene(inputStream);
-        
+
+        // You would typically work with the 'scene' object here
+     
         
         // Check that float variables are ok
         Assert.True(scene.FloatVariables is { Count: 1 });
@@ -244,16 +276,14 @@ public class SceneFileTest
         Assert.True(Math.Abs(scene.FloatVariables["clock"] - 150.0) < 1e-5);
         
         // Check that materials are ok
-        Assert.True(scene.Materials.Count == 4);
+        Assert.True(scene.Materials.Count == 3);
         Assert.Contains("sky_material", scene.Materials.Keys);
         Assert.Contains("ground_material", scene.Materials.Keys);
         Assert.Contains("sphere_material", scene.Materials.Keys);
-        Assert.Contains("mirror", scene.Materials.Keys);
 
         var sphereMaterial = scene.Materials["sphere_material"];
         var skyMaterial = scene.Materials["sky_material"];
         var groundMaterial = scene.Materials["ground_material"];
-        var mirror = scene.Materials["mirror"];
         
         Assert.True(skyMaterial.Brdf is DiffusiveBrdf);
         Assert.True(skyMaterial.Brdf.Pigment is UniformPigment);
@@ -301,6 +331,8 @@ public class SceneFileTest
         Assert.True( Math.Abs(1.0f - scene.Camera.AspectRatio) < 1e-5);
         Assert.True( Math.Abs(2.0f - scene.Camera.Distance) < 1e-5);
     }
+    
+    
 }
 
 

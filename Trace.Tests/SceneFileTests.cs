@@ -182,6 +182,8 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
     public void TestParsePigment()
     {
         var input = """
+                    camera (perspective, translation([-1,0,1]), 1.7778, 1)
+                    
                     material sky_material(
                         diffuse(uniform(<0, 0, 0>)),
                         checkered(<0.7, 0.5, 1>, <0,.2,.4>)
@@ -192,6 +194,42 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         var scene = Scene.ParseScene(inputStream);
 
     }
+<<<<<<< Updated upstream
+=======
+
+    [Fact]
+    public void TestCsgParser()
+    {
+        const string input = """
+                             camera (perspective, translation([-1,0,1]), 1.7778, 1)
+                             
+                             material sphere_material(
+                                 specular(uniform(<0.5, 0.5, 0.5>)),
+                                 uniform(<0, 0, 0>)
+                             )
+                             
+                             material sphere_material1(
+                                 specular(uniform(<0.5, 0.5, 0.5>)),
+                                 uniform(<0, 0, 0>)
+                             )
+                             
+                             CSG(
+                             sphere2 sphere(sphere_material, translation([0, 0, 1])),
+                             sphere3 sphere(sphere_material1, translation([0, 0, 1])),
+                             union1 union (sphere2, sphere3),
+                             intersection2 intersection(union1, sphere3)
+                             )
+                             perform union( intersection2, sphere2 )
+                             
+         
+                             """;
+        
+        var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(input)));
+        var inputStream = new InputStream(reader, fileName: "file");
+        var scene = Scene.ParseScene(inputStream);
+        
+    }
+>>>>>>> Stashed changes
     
     [Fact]
     public void TestParser()
@@ -293,6 +331,8 @@ public class SceneFileTest(ITestOutputHelper testOutputHelper)
         Assert.True( Math.Abs(1.0f - scene.Camera.AspectRatio) < 1e-5);
         Assert.True( Math.Abs(2.0f - scene.Camera.Distance) < 1e-5);
     }
+    
+    
 }
 
 

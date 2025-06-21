@@ -57,9 +57,8 @@ public class FlatRenderer : Renderer{
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
         var material = hit.Material!;
-        var pigmentColor = material.EmittedRadiance.GetColor(hit.SurfacePoint); 
+        var pigmentColor = material.EmittedRadiance.GetColor(hit.SurfacePoint);
         return pigmentColor;
-
     }
 }
 

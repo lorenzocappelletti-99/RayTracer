@@ -1,16 +1,12 @@
 # Raytracer
 
-<<<<<<< Updated upstream
-Raytracer 0.2.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
-=======
 Raytracer 1.0.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
 
 ---
->>>>>>> Stashed changes
 
 ## Requirements
 
-- [.NET](https://dotnet.microsoft.com/en-us/) (Version 9.0)
+- [.NET](https://dotnet.microsoft.com/en-us/) (Version 9.0) (if you want to build the solution)
 - Git (if cloning the repository)
 
 ---
@@ -23,7 +19,7 @@ git clone [https://github.com/lorenzocappelletti-99/RayTracer](https://github.co
 
 If Git is not available, download the zipped directory directly from the repository page.
 
-The project is compiled using .NET. If .NET is not available, download the precompiled executable from the repository.
+The project is compiled using .NET. If .NET is not available, download the precompiled executable from the repository and use the one compatible with your OS.
 
 ---
 
@@ -31,14 +27,15 @@ The project is compiled using .NET. If .NET is not available, download the preco
 
 If you want to build the project from source, navigate to the project directory and run:
 
-<<<<<<< Updated upstream
-```dotnet build```
-
-=======
 ```bash
-dotnet build
+dotnet build Myraytracer/Myraytracer.csproj
 ````
->>>>>>> Stashed changes
+
+If you want to build the entire solution run:
+```bash
+dotnet build Myraytracer.sln
+````
+
 ## Usage
 
 ### Render Command
@@ -76,11 +73,6 @@ The file `example.txt` included in this release demonstrates the full range of c
 
 To generate a simple image, use the following command:
 
-<<<<<<< Updated upstream
-```dotnet run demo```
-
-For different options and help with the demo command, run:
-=======
 ```bash
 dotnet run demo
 ````
@@ -97,23 +89,13 @@ List of all functionalities:
 | `-A`, `--AntiAliasing` | **Anti-aliasing enabled** | `--AntiAliasing true` | false |
 | `-R`, `--RaysPerPixel` | **Rays per pixel** | `--RaysPerPixel 5` | 1 |
 | `-r`, `--Renderer` | **Renderer type** | `--Renderer PointLight` | PathTracer |
->>>>>>> Stashed changes
 
-```dotnet run demo help```
 
 ## Converting PFM to JPG
 
 To convert a PFM image to JPG, use the following command:
 
 ```dotnet run -- <inputfile>.pfm <a-factor> <gamma-factor> <outputfile>.jpg```
-
-Example
-
-## Animation
-
-You can also create a simple animation by running the following script:
-
-```./make_animation.sh```
 
 ## Contributing
 

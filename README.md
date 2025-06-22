@@ -36,6 +36,8 @@ If you want to build the entire solution run:
 dotnet build Myraytracer.sln
 ````
 
+If you do not want to build it in [release 1.1.0](https://github.com/lorenzocappelletti-99/RayTracer/releases/tag/v1.1.0) there is a zipped file with widows and linux compatible prebuilt executables.
+
 ## Usage
 
 ### Render Command
@@ -60,7 +62,21 @@ Run the renderer using the following command:
 #### Example Output
 
 ![demo](https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/trying.png)  
-*The image above was rendered using -A true, -R 10, `example.txt`.*
+*The image above was rendered using -A true, -R 10, scene description in `example.txt`.*
+
+<table>
+  <tr>
+    <td>
+      <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/PT-R6-D3-x1.png" width="600"/><br/>
+      <sub><b>Figure 1:</b> The image above was rendered using -A false, -R 6, -D 3, -x 1, scene description in cornell.txt </sub>
+    </td>
+    <td>
+      <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/PT-R6-D3-x2-Atrue.png" width="600"/><br/>
+      <sub><b>Figure 1:</b> The image above was rendered using -A true, -R 6, -D 3, -x 2, scene description in cornell.txt </sub>
+    </td>
+  </tr>
+</table>
+
 
 ####  Scene Definition
 
@@ -96,6 +112,11 @@ List of all functionalities:
 To convert a PFM image to JPG, use the following command:
 
 ```dotnet run -- <inputfile>.pfm <a-factor> <gamma-factor> <outputfile>.jpg```
+
+| Option | Description | Example | Default |
+| :---------- | :---------------------------------------- | :---------------------- | :--------- |
+| `-f`, `--factor` | **Tone mapping scale factor** | `--camera Perspective` | .6 |
+| `-g`, `--gamma` | **Gamma correction value to screen nonlinearity** | `--gamma 2.2` | 1 |
 
 ## Contributing
 

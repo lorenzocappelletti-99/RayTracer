@@ -284,6 +284,8 @@ public class HdrImage
         img.NormalizeImage(factor);
         img.ClampImage();
         using var image = new Image<Rgb24>(img.Width, img.Height);
+        //struct of ImageSharp - three 8-bit unsigned numbers from [0,0,0,1] to [1,1,1,1]
+        
 
         // Create output directory if needed
         var directory = Path.GetDirectoryName(filePath);

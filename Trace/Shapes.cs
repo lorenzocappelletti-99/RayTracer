@@ -300,7 +300,6 @@ public class Rectangle : Shape
         Transformation? transformation = null)
         : base(material, transformation)
     {
-        // Basic validation for dimensions
         if (width <= 0 || height <= 0)
         {
             throw new ArgumentException("Width and Height must be positive values for a finite rectangle.");
@@ -332,29 +331,20 @@ public class Rectangle : Shape
     {
         var localRay = ray.Transform(Transformation.Inverse());
 
-        // Check if ray is parallel to the rectangle's plane (or nearly so)
         if (Math.Abs(localRay.Direction.Z) < 1E-5) return false;
 
         // Calculate 't' for intersection with the infinite plane (Z=0)
         var t = -localRay.Origin.Z / localRay.Direction.Z;
 
-        // Check if 't' is within the ray's valid range
         if (t <= localRay.Tmin || t >= localRay.Tmax) return false;
 
-        // Calculate the local hit point on the infinite plane
         var localHit = localRay.PointAt(t);
 
-        // --- Check if the local hit point falls within the rectangle's bounds ---
         var halfWidth = Width / 2.0f;
         var halfHeight = Height / 2.0f;
 
-        if (localHit.X < -halfWidth || localHit.X > halfWidth ||
-            localHit.Y < -halfHeight || localHit.Y > halfHeight)
-        {
-            return false; // Intersection point is outside the rectangle's bounds
-        }
-
-        return true; // Intersection found within bounds and ray limits
+        return !(localHit.X < -halfWidth) && !(localHit.X > halfWidth) &&
+               !(localHit.Y < -halfHeight) && !(localHit.Y > halfHeight);
     }
 
     /// <summary>
@@ -367,49 +357,36 @@ public class Rectangle : Shape
     {
         var localRay = ray.Transform(Transformation.Inverse());
 
-        // Check if ray is parallel to the rectangle's plane (or nearly so)
         if (Math.Abs(localRay.Direction.Z) < 1E-5) return null;
 
-        // Calculate 't' for intersection with the infinite plane (Z=0)
         var t = -localRay.Origin.Z / localRay.Direction.Z;
 
-        // Check if 't' is within the ray's valid range
-        if (t <= ray.Tmin || t >= ray.Tmax) return null; // Use original ray's Tmin/Tmax
+        if (t <= ray.Tmin || t >= ray.Tmax) return null; 
 
-        // Calculate the local hit point on the infinite plane
         var localHit = localRay.PointAt(t);
 
-        // --- Check if the local hit point falls within the rectangle's bounds ---
         var halfWidth = Width / 2.0f;
         var halfHeight = Height / 2.0f;
 
         if (localHit.X < -halfWidth || localHit.X > halfWidth ||
             localHit.Y < -halfHeight || localHit.Y > halfHeight)
         {
-            return null; // Intersection point is outside the rectangle's bounds
+            return null;
         }
-
-        // The normal of a plane at Z=0 in local space is (0,0,1).
-        // Use OrientedNormal to ensure the normal points towards the ray origin if needed.
+        
         var localNormal = OrientedNormal(new Point(0.0f, 0.0f, 1.0f), localRay.Direction);
 
         return new HitRecord
         {
-            WorldPoint   = Transformation * localHit, // Transform local hit point back to world space
-            Normal       = Transformation * localNormal,   // Transform local normal to world space
-            SurfacePoint = ShapePointToUV(localHit), // Get UV coordinates for material mapping
-            T            = t,                                   // The 't' value for the intersection
-            Ray          = ray,                               // The original ray
-            Material     = Material                      // The material of this rectangle
+            WorldPoint   = Transformation * localHit,
+            Normal       = Transformation * localNormal,
+            SurfacePoint = ShapePointToUV(localHit), 
+            T            = t,                           
+            Ray          = ray,                         
+            Material     = Material                     
         };
     }
-
-    /// <summary>
-    /// Determines if a world point is internal to the rectangle.
-    /// For a finite, non-solid surface like a rectangle, this typically returns false.
-    /// </summary>
-    /// <param name="p">The point to check.</param>
-    /// <returns>False, as a rectangle is not a solid volume.</returns>
+    
     public override bool IsPointInternal(Point p)
     {
         return false;
@@ -449,7 +426,6 @@ public class Box : Shape
         Material? material   = null)
         : base(material, transformation)
     {
-        // Se non passo nulla, uso i valori di default
         Min = min ?? new Vec(-1f, -1f, -1f);
         Max = max ?? new Vec( 1f,  1f,  1f);
     }
@@ -547,13 +523,13 @@ public class Box : Shape
         var origin = localRay.Origin.to_vec();
         var dir = localRay.Direction;
 
-        float tMin = (Min.X - origin.X) / dir.X;
-        float tMax = (Max.X - origin.X) / dir.X;
+        var tMin = (Min.X - origin.X) / dir.X;
+        var tMax = (Max.X - origin.X) / dir.X;
         if (tMin > tMax)
             (tMin, tMax) = (tMax, tMin);
 
-        float tyMin = (Min.Y - origin.Y) / dir.Y;
-        float tyMax = (Max.Y - origin.Y) / dir.Y;
+        var tyMin = (Min.Y - origin.Y) / dir.Y;
+        var tyMax = (Max.Y - origin.Y) / dir.Y;
         if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
 
         if (tMin > tyMax || tyMin > tMax)
@@ -561,8 +537,8 @@ public class Box : Shape
         tMin = MathF.Max(tMin, tyMin);
         tMax = MathF.Min(tMax, tyMax);
 
-        float tzMin = (Min.Z - origin.Z) / dir.Z;
-        float tzMax = (Max.Z - origin.Z) / dir.Z;
+        var tzMin = (Min.Z - origin.Z) / dir.Z;
+        var tzMax = (Max.Z - origin.Z) / dir.Z;
         if (tzMin > tzMax) (tzMin, tzMax) = (tzMax, tzMin);
 
         if (tMin > tzMax || tzMin > tMax)
@@ -570,7 +546,7 @@ public class Box : Shape
         tMin = MathF.Max(tMin, tzMin);
         tMax = MathF.Min(tMax, tzMax);
 
-        float tHit = tMin > localRay.Tmin && tMin < localRay.Tmax ? tMin :
+        var tHit = tMin > localRay.Tmin && tMin < localRay.Tmax ? tMin :
                      (tMax > localRay.Tmin && tMax < localRay.Tmax ? tMax : float.NaN);
         if (float.IsNaN(tHit))
             return null;
@@ -584,10 +560,8 @@ public class Box : Shape
         );
         var localNormal = new Normal(n.X,n.Y,n.Z);
 
-        // UV coords
         var uv = ShapePointToUV(localHit);
         
-        // Transform back
         Point worldPoint = Transformation * localHit;
         Normal worldNormal = Transformation * localNormal;
 
@@ -668,7 +642,7 @@ public class Torus : Shape
 
         // Solving torus equation by substituting ray into implicit form of torus:
         // Torus: (|p|^2 + R^2 - r^2)^2 - 4R^2(x^2 + z^2) = 0
-        // Ray: p(t) = o + td → substitute and expand into quartic
+        // Ray: p(t) = o + td -> substitute and expand into quartic
         var ox = o.X; var oy = o.Y; var oz = o.Z;
         var dx = d.X; var dy = d.Y; var dz = d.Z;
         var R = MajorRadius;
@@ -728,29 +702,25 @@ public class Torus : Shape
     {
         const float EPSILON = 1e-6f;
 
-        // Normalize if A != 1
         if (MathF.Abs(A) < EPSILON)
         {
-            // Reduce to cubic
             return SolveCubic(B, C, D, E);
         }
 
-        float a = B / A;
-        float b = C / A;
-        float c = D / A;
-        float d = E / A;
-
-        // Depressed quartic: x⁴ + px² + qx + r = 0
-        float a2 = a * a;
-        float p = -0.375f * a2 + b;
-        float q = 0.125f * a2 * a - 0.5f * a * b + c;
-        float r = -0.01171875f * a2 * a2 + 0.0625f * a2 * b - 0.25f * a * c + d;
+        var a = B / A;
+        var b = C / A;
+        var c = D / A;
+        var d = E / A;
+        
+        var a2 = a * a;
+        var p = -0.375f * a2 + b;
+        var q = 0.125f * a2 * a - 0.5f * a * b + c;
+        var r = -0.01171875f * a2 * a2 + 0.0625f * a2 * b - 0.25f * a * c + d;
 
         List<float> roots = new();
 
         if (MathF.Abs(q) < EPSILON)
         {
-            // Biquadratic: y² + p y + r = 0, let y = x²
             var yRoots = SolveQuadratic(1, p, r);
             foreach (var y in yRoots)
             {
@@ -763,19 +733,19 @@ public class Torus : Shape
         else
         {
             // Solve resolvent cubic: z³ - 0.5p z² - r z + (0.125 r p - 0.5 q²) = 0
-            float cubicA = 1;
-            float cubicB = -0.5f * p;
-            float cubicC = -r;
-            float cubicD = 0.125f * r * p - 0.5f * q * q;
+            var cubicA = 1;
+            var cubicB = -0.5f * p;
+            var cubicC = -r;
+            var cubicD = 0.125f * r * p - 0.5f * q * q;
 
             var zRoots = SolveCubic(cubicA, cubicB, cubicC, cubicD);
-            float z = zRoots[0]; // one real root
+            var z = zRoots[0]; // one real root
 
-            float u = MathF.Sqrt(2 * z - p);
+            var u = MathF.Sqrt(2 * z - p);
             if (MathF.Abs(u) < EPSILON)
                 return new(); // avoid division by zero
 
-            float v = q / (2 * u);
+            var v = q / (2 * u);
 
             var quad1 = SolveQuadratic(1, u, z - v);
             var quad2 = SolveQuadratic(1, -u, z + v);
@@ -811,8 +781,8 @@ public class Torus : Shape
         }
         else
         {
-            float sqrtD = MathF.Sqrt(disc);
-            float q = -0.5f * (b + MathF.CopySign(sqrtD, b));
+            var sqrtD = MathF.Sqrt(disc);
+            var q = -0.5f * (b + MathF.CopySign(sqrtD, b));
             roots.Add(q / a);
             roots.Add(c / q);
         }
@@ -828,37 +798,37 @@ public class Torus : Shape
         if (MathF.Abs(a) < EPSILON)
             return SolveQuadratic(b, c, d);
 
-        float A = b / a;
-        float B = c / a;
-        float C = d / a;
+        var A = b / a;
+        var B = c / a;
+        var C = d / a;
 
-        float sqA = A * A;
-        float p = (1f / 3f) * (-1f / 3f * sqA + B);
-        float q = (1f / 2f) * ((2f / 27f) * A * sqA - (1f / 3f) * A * B + C);
+        var sqA = A * A;
+        var p = (1f / 3f) * (-1f / 3f * sqA + B);
+        var q = (1f / 2f) * ((2f / 27f) * A * sqA - (1f / 3f) * A * B + C);
 
-        float disc = q * q + p * p * p;
+        var disc = q * q + p * p * p;
 
         if (MathF.Abs(disc) < EPSILON) disc = 0;
 
-        float offset = -1f / 3f * A;
+        var offset = -1f / 3f * A;
 
         if (disc > 0)
         {
-            float sqrtDisc = MathF.Sqrt(disc);
-            float u = MathF.Cbrt(-q + sqrtDisc);
-            float v = MathF.Cbrt(-q - sqrtDisc);
+            var sqrtDisc = MathF.Sqrt(disc);
+            var u = MathF.Cbrt(-q + sqrtDisc);
+            var v = MathF.Cbrt(-q - sqrtDisc);
             roots.Add(u + v + offset);
         }
         else if (disc == 0)
         {
-            float u = MathF.Cbrt(-q);
+            var u = MathF.Cbrt(-q);
             roots.Add(2 * u + offset);
             roots.Add(-u + offset);
         }
         else
         {
-            float phi = MathF.Acos(-q / MathF.Sqrt(-p * p * p));
-            float t = 2 * MathF.Sqrt(-p);
+            var phi = MathF.Acos(-q / MathF.Sqrt(-p * p * p));
+            var t = 2 * MathF.Sqrt(-p);
 
             roots.Add(t * MathF.Cos(phi / 3) + offset);
             roots.Add(t * MathF.Cos((phi + 2 * MathF.PI) / 3) + offset);
@@ -867,12 +837,7 @@ public class Torus : Shape
 
         return roots.Where(r => !float.IsNaN(r) && !float.IsInfinity(r)).ToList();
     }
-
-
 }
-
-
-
 
 
 /***********************************************************
@@ -882,7 +847,6 @@ public class Torus : Shape
  ***********************************************************/
 public class Cone : Shape
 {
-    
     public float Radius { get; }
     public float Height { get; }
 
@@ -1045,14 +1009,11 @@ public class Csg : Shape
 
     public override Vec2d ShapePointToUV(Point p)
     {
-        // UV is taken from whichever shape provided the hit;
-        // handled in RayIntersection
         return new Vec2d();
     }
 
     public override bool QuickRayIntersection(Ray ray)
     {
-        // If either child might intersect, we consider there might be a hit.
         return First.QuickRayIntersection(ray) || Second.QuickRayIntersection(ray);
     }
 
@@ -1061,32 +1022,30 @@ public class Csg : Shape
         if (!QuickRayIntersection(ray))
             return null;
 
-        // 1) Calcola solo una volta le due intersezioni
         var h1 = First.RayIntersection(ray);
         var h2 = Second.RayIntersection(ray);
-
-        // Se nessuna, esci subito
         if (h1 == null && h2 == null)
             return null;
-
-        // 2) Determina l’ordine dei due eventi
-        //   - Primo evento (tMin) e secondo evento (tMax)
+        
         var (hitMin, isFirstMin) = 
-            (h1 != null && (h2 == null || h1.T < h2.T)) ? (h1, true)
-                : (h2, false);
+            h1 != null && (h2 == null || h1.T < h2.T) ? (h1, true) //true vuol dire che l'intersezione è con ogg 1 (First)
+                : (h2, false);//false vuol dire che l'intersezione è con ogg 2 (Second)
 
         var (hitMax, isFirstMax) =
-            (hitMin == h1) ? (h2, false) : (h1, true);
-
-        // 3) Calcola stato “inside” all’inizio (just before tMin)
+            hitMin == h1 ? (h2, false) : (h1, true);
+        //Anche qui, false vuol dire che hit è con ogg 2 (Second) e viceversa, true è con ogg 1 (First)
+        
         Debug.Assert(hitMin != null, nameof(hitMin) + " != null");
-        float t0 = hitMin.T - 1e-4f;
+        var t0 = hitMin.T - 1e-4f;
         var p0 = ray.PointAt(t0);
-        bool inF = First.IsPointInternal(p0);
-        bool inS = Second.IsPointInternal(p0);
-
-        // 4) Processa il primo evento
+        var inF = First.IsPointInternal(p0);
+        var inS = Second.IsPointInternal(p0);
+        
+        //se la prima intersezione è con ogg 1 allora "entro" in ogg 1. Altrimenti "entro" in ogg 2.
         if (isFirstMin) inF = !inF; else inS = !inS;
+        
+        //qui ho "aggiornato" inF e inS. Quindi le uso per vedere se l'intersezione trovata è valida
+        //per l'operazione che sto considerando.
         if (Op switch {
                 CsgOperation.Union        => inF || inS,
                 CsgOperation.Intersection => inF && inS,
@@ -1095,7 +1054,6 @@ public class Csg : Shape
             })
             return hitMin;
 
-        // 5) Processa il secondo evento
         if (isFirstMax) inF = !inF; else inS = !inS;
         if (Op switch {
                 CsgOperation.Union        => inF || inS,
@@ -1139,64 +1097,3 @@ public class Csg : Shape
         return result;
     }
 }
-
-
-
-
-
-
-/*
-public class Composition
-{
-    public List<Shape> ShapesAdd { get; } = [];
-    public List<Shape> ShapesDif { get; } = [];
-
-    public void AddShapeAdd(Shape shape)
-    {
-        ShapesAdd.Add(shape);
-    }
-    public void AddShapeDif(Shape shape)
-    {
-        ShapesDif.Add(shape);
-    }
-
-    public HitRecord Union(Ray ray)
-    {
-        var closest = new HitRecord();
-        foreach (var intersection in ShapesAdd.Select(shape => shape.RayIntersection(ray))
-                     .OfType<HitRecord>()
-                     .Where(intersection => closest == null || intersection.T < closest.T))
-        {
-            closest = intersection;
-        }
-        return closest;
-    }
-    
-    
-    public HitRecord Difference(Ray ray)
-    {
-        var intersectionsAdd = (from t in ShapesAdd where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
-        var intersectionsDif = (from t in ShapesDif where t.QuickRayIntersection(ray) select t.RayIntersection(ray)).ToList();
-
-        var myHits = new List<HitRecord>();
-        
-        foreach (var interDif in intersectionsDif)
-        {
-            foreach (var shapeAdd in ShapesAdd)
-            {
-                if (shapeAdd.IsPointInternal(interDif.WorldPoint)) myHits.Add(interDif);
-            }
-        }
-
-        foreach (var interAdd in intersectionsAdd)
-        {
-            foreach (var shapeAdd in ShapesDif)
-            {
-                if (!shapeAdd.IsPointInternal(interAdd.WorldPoint)) myHits.Add(interAdd);
-            }
-        }
-        
-        return myHits.OrderBy(h => h.T).First();
-    }
-}
-*/

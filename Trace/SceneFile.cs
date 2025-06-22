@@ -55,36 +55,32 @@ public class StopToken(SourceLocation location) : Token(location);
 public enum KeywordEnum
 {
     New = 1,
-    Material = 2,
-    Plane = 3,
-    Sphere = 4,
-    Diffuse = 5,
-    Specular = 6,
-    Uniform = 7,
-    Checkered = 8,
-    Image = 9,
-    Identity = 10,
-    Translation = 11,
-    RotationX = 12,
-    RotationY = 13,
-    RotationZ = 14,
-    Scaling = 15,
-    Camera = 16,
-    Orthogonal = 17,
-    Perspective = 18,
-    Float = 19,
-<<<<<<< Updated upstream
-    PointLight = 20
-=======
-    PointLight = 20,
-    Union = 21,
-    Intersection = 22,
-    Difference = 23,
-    Csg = 24,
-    Perform = 25,
-    Box = 26,
-    Rectangle = 27
->>>>>>> Stashed changes
+    Material,
+    Plane,
+    Sphere,
+    Diffuse,
+    Specular,
+    Uniform,
+    Checkered,
+    Image,
+    Identity,
+    Translation,
+    RotationX,
+    RotationY,
+    RotationZ,
+    Scaling,
+    Camera,
+    Orthogonal,
+    Perspective,
+    Float,
+    PointLight,
+    Union,
+    Intersection,
+    Difference,
+    Csg,
+    Perform,
+    Box,
+    Rectangle
 }
 
 /// <summary>
@@ -113,9 +109,6 @@ public static class KeywordMap
         { "orthogonal", KeywordEnum.Orthogonal },
         { "perspective", KeywordEnum.Perspective },
         { "float", KeywordEnum.Float },
-<<<<<<< Updated upstream
-        { "point_light", KeywordEnum.PointLight }
-=======
         { "point_light", KeywordEnum.PointLight },
         { "union", KeywordEnum.Union},
         { "intersection", KeywordEnum.Intersection },
@@ -124,7 +117,6 @@ public static class KeywordMap
         { "perform", KeywordEnum.Perform},
         { "box", KeywordEnum.Box },
         {"rectangle", KeywordEnum.Rectangle}
->>>>>>> Stashed changes
     };
 }
 
@@ -197,7 +189,7 @@ public class InputStream
 {
     private const string Whitespace = " \t\n\r";
     private const string Symbols = "()<>[],*,=";
-    
+
     public StreamReader Stream;
     public SourceLocation Location;
 
@@ -205,21 +197,21 @@ public class InputStream
     public SourceLocation SavedLocation;
     public Token? SavedToken;
     public char SavedChar;
-    
+
 
     public InputStream(StreamReader stream, string fileName, int tabulations = 8)
     {
         Stream = stream;
-        
+
         Location = new SourceLocation(fileName: fileName, lineNum: 1, colNum: 1);
 
         SavedChar = '\0';
         SavedLocation = Location;
         Tabulations = tabulations;
-        
+
         SavedToken = null;
     }
-    
+
     /// <summary>
     /// Update `location` after having read `ch` from the stream
     /// </summary>
@@ -283,22 +275,61 @@ public class InputStream
     public void SkipWhitespacesAndComments()
     {
         var ch = ReadChar();
-        
+
         while (Whitespace.Contains(ch) || ch == '#')
         {
             if (ch == '#')
             {
                 char next;
-                while ((next = ReadChar()) != '\0' && next != '\n' && next != '\r') { }
+                while ((next = ReadChar()) != '\0' && next != '\n' && next != '\r')
+                {
+                }
             }
 
             ch = ReadChar();
-            
+
             if (ch == '\0')
                 return;
         }
-        
+
         UnreadChar(ch);
+    }
+
+    /// <summary>
+    /// checks if the next char is the given char. Does not affect position.
+    /// </summary>
+    /// <param name="ch"></param>
+    /// <returns></returns>
+    public bool NextCharIsChar(char ch)
+    {
+        var chRead = ReadChar();
+        if (chRead != ch)
+        {
+            UnreadChar(ch);
+            return false;
+        }
+
+        UnreadChar(ch);
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if next token is the token given as an argument.
+    /// Does not affect position.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public bool NextTokenIsToken(Type token)
+    {
+        var tkRead = ReadToken();
+        if (tkRead.GetType() != token)
+        {
+            UnreadToken(tkRead);
+            return false;
+        }
+
+        UnreadToken(tkRead);
+        return true;
     }
 
 
@@ -308,13 +339,14 @@ public class InputStream
         while (true)
         {
             var ch = ReadChar();
-            
+
             if (ch == '"') break;
             if (ch == '\0')
                 throw new GrammarError(tokenLocation, "unterminated string");
-            
+
             token += ch;
         }
+
         return new StringToken(tokenLocation, token);
     }
 
@@ -351,7 +383,7 @@ public class InputStream
 
         return new LiteralNumberToken(tokenLocation, value);
     }
-    
+
     public Token ParseKeywordOrIdentifierToken(char firstChar, SourceLocation tokenLocation)
     {
         // Accumuliamo il lexeme a partire dal primo carattere
@@ -380,8 +412,8 @@ public class InputStream
         {
             return new IdentifierToken(tokenLocation, token);
         }
-    } 
-    
+    }
+
     public Token ReadToken()
     {
         if (SavedToken != null)
@@ -397,7 +429,7 @@ public class InputStream
 
         if (ch == '\0')
             return new StopToken(Location);
-        
+
         var tokenLocation = Location;
 
         if (Symbols.Contains(ch))
@@ -419,540 +451,526 @@ public class InputStream
         );
 
     }
+
     public void UnreadToken(Token token)
     {
         Assert.True(SavedToken == null);
         SavedToken = token;
     }
-<<<<<<< Updated upstream
 
-
-=======
-    
->>>>>>> Stashed changes
-}
-
-
-public class Scene
-{
-    public World World = new();
-    public Camera? Camera;
-    public Dictionary<string, float>? FloatVariables;
-    public HashSet<string> OverriddenVariables;
-    public Dictionary<string, Material> Materials = new();
-    
-    private Scene(Dictionary<string, float>? floatVariables, HashSet<string> overriddenVariables)
+    public class Scene
     {
-        FloatVariables = floatVariables;
-        OverriddenVariables = overriddenVariables;
-    }
+        public World World = new();
+        public Camera? Camera;
+        public Dictionary<string, float>? FloatVariables;
+        public HashSet<string> OverriddenVariables;
+        public Dictionary<string, Material> Materials = new();
 
-    public static void ExpectSymbol(char symbol, InputStream inputFile)
-    {
-        var token = inputFile.ReadToken();
-        if (token is not SymbolToken || token.GetType() != typeof(SymbolToken))
+        private Scene(Dictionary<string, float>? floatVariables, HashSet<string> overriddenVariables)
         {
-            throw new GrammarError(token.Location, $"{nameof(ExpectSymbol)}: got '{token}' instead of '{symbol}'");
+            FloatVariables = floatVariables;
+            OverriddenVariables = overriddenVariables;
         }
-    }
 
-    public static KeywordEnum ExpectKeywords(List<KeywordEnum> keywords, InputStream inputFile)
-    {
-        var token = inputFile.ReadToken();
-
-        if (token is not KeywordToken key)
-            throw new GrammarError(token.Location, $"expected a keyword instead of '{token}'");
-        if (!keywords.Contains(key.Keyword))
-            throw new GrammarError(token.Location,
-                $"expected one of the keywords {string.Join(",", Enum.GetNames(typeof(KeywordEnum)))} instead of '{token}'"
-            );
-        return key.Keyword;
-    }
-    
-    public static float ExpectNumber(InputStream inputFile, Scene scene)
-    {   
-        var token = inputFile.ReadToken();
-        switch (token)
+        public static void ExpectSymbol(char symbol, InputStream inputFile)
         {
-            case LiteralNumberToken number:
-                return number.Number;
-            case IdentifierToken identifier:
+            var token = inputFile.ReadToken();
+            if (token is not SymbolToken || token.GetType() != typeof(SymbolToken))
             {
-                var variableName = identifier.Identifier;
-                if(scene.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
-                    throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
-                return scene.FloatVariables[variableName];
+                throw new GrammarError(token.Location, $"{nameof(ExpectSymbol)}: got '{token}' instead of '{symbol}'");
             }
-            default:
-                throw new GrammarError(token.Location, $"expected a number instead of '{token}'");
         }
-    }
 
-    public static string ExpectString(InputStream inputFile)
-    {
-        var token = inputFile.ReadToken();
-        if(token is not StringToken) 
-            throw new GrammarError(token.Location, $"expected a string in {token}");
-        return ((StringToken)token).S;
-    }
-    
-    public static string ExpectIdentifier(InputStream inputFile)
-    {
-        var token = inputFile.ReadToken();
-        if(token is not IdentifierToken)
-            throw new GrammarError(token.Location, $"expected a identifier in {token}");
-        return ((IdentifierToken)token).Identifier;
-    }
-
-    public static Vec ParseVector(InputStream inputFile, Scene scene)
-    {
-        ExpectSymbol('[', inputFile);
-        var x = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var y = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var z = ExpectNumber(inputFile, scene);
-        ExpectSymbol(']', inputFile);
-        return new Vec(x, y, z);
-    }
-
-    public static Color ParseColor(InputStream inputFile, Scene scene)
-    {
-        ExpectSymbol('<', inputFile);
-        var r = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var g = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var b = ExpectNumber(inputFile, scene);
-        ExpectSymbol('>', inputFile);
-        return new Color(r, g, b);
-    }
-
-    public static Pigment ParsePigment(InputStream inputFile, Scene scene)
-    {
-        var keyword = ExpectKeywords([KeywordEnum.Checkered, KeywordEnum.Uniform, KeywordEnum.Image], inputFile);
-        
-        ExpectSymbol('(', inputFile);
- 
-        switch (keyword)
+        public static KeywordEnum ExpectKeywords(List<KeywordEnum> keywords, InputStream inputFile)
         {
-            case KeywordEnum.Uniform:
-            {
-                var color = ParseColor(inputFile, scene);
-                ExpectSymbol(')', inputFile);
-                return new UniformPigment(color);
-            }
-            case KeywordEnum.Checkered:
-            {
-                var color1 = ParseColor(inputFile, scene);
-                ExpectSymbol(',', inputFile);
-                var color2 = ParseColor(inputFile, scene);
+            var token = inputFile.ReadToken();
 
-                var nextToken = inputFile.ReadToken();
-                if (nextToken is SymbolToken commaToken && commaToken.Symbol == ',')
+            if (token is not KeywordToken key)
+                throw new GrammarError(token.Location, $"expected a keyword instead of '{token}'");
+            if (!keywords.Contains(key.Keyword))
+                throw new GrammarError(token.Location,
+                    $"expected one of the keywords {string.Join(",", Enum.GetNames(typeof(KeywordEnum)))} instead of '{token}'"
+                );
+            return key.Keyword;
+        }
+
+        public static float ExpectNumber(InputStream inputFile, Scene scene)
+        {
+            var token = inputFile.ReadToken();
+            switch (token)
+            {
+                case LiteralNumberToken number:
+                    return number.Number;
+                case IdentifierToken identifier:
                 {
-                    var numOfSteps = (int)ExpectNumber(inputFile, scene);
-                    ExpectSymbol(')', inputFile);
-                    return new CheckeredPigment(color1, color2, numOfSteps);
+                    var variableName = identifier.Identifier;
+                    if (scene.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
+                        throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
+                    return scene.FloatVariables[variableName];
                 }
-                inputFile.UnreadToken(nextToken); // Put the token back, it's not a comma
-                ExpectSymbol(')', inputFile); // Closing parenthesis after two colors
-                return new CheckeredPigment(color1, color2);
-            }
-            case KeywordEnum.Image:
-            {
-                var fileName = ExpectString(inputFile);
-                using var stream = new FileStream(fileName, FileMode.Open);
-                var image = HdrImage.ReadPfm(stream);
-                ExpectSymbol(')', inputFile);
-                return new ImagePigment(image);
+                default:
+                    throw new GrammarError(token.Location, $"expected a number instead of '{token}'");
             }
         }
 
-        Assert.True(false, "this line should be unreachable");
-        return null;
-    }
-    
-    public static Brdf ParseBrdf(InputStream inputFile, Scene scene)
-    {
-        var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
-        ExpectSymbol('(', inputFile);
-        var pigment = ParsePigment(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-        return brdfKeyword switch
+        public static string ExpectString(InputStream inputFile)
         {
-            KeywordEnum.Diffuse => new DiffusiveBrdf(pigment),
-            KeywordEnum.Specular => new SpecularBrdf(pigment),
-            _ => throw new GrammarError(inputFile.Location, $"Unexpected BRDF keyword: {brdfKeyword}")
-        };
-    }
+            var token = inputFile.ReadToken();
+            if (token is not StringToken)
+                throw new GrammarError(token.Location, $"expected a string in {token}");
+            return ((StringToken)token).S;
+        }
 
-    public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
-    {
-        var name = ExpectIdentifier(inputFile);
-        ExpectSymbol('(', inputFile);
-        var brdf = ParseBrdf(inputFile, scene);
-<<<<<<< Updated upstream
-        ExpectSymbol(',', inputFile);
-        var emittedRadiance = ParsePigment(inputFile, scene);
-=======
-        
-        
-        if (inputFile.NextCharIsChar(','))
+        public static string ExpectIdentifier(InputStream inputFile)
         {
+            var token = inputFile.ReadToken();
+            if (token is not IdentifierToken)
+                throw new GrammarError(token.Location, $"expected a identifier in {token}");
+            return ((IdentifierToken)token).Identifier;
+        }
+
+        public static Vec ParseVector(InputStream inputFile, Scene scene)
+        {
+            ExpectSymbol('[', inputFile);
+            var x = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var y = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var z = ExpectNumber(inputFile, scene);
+            ExpectSymbol(']', inputFile);
+            return new Vec(x, y, z);
+        }
+
+        public static Color ParseColor(InputStream inputFile, Scene scene)
+        {
+            ExpectSymbol('<', inputFile);
+            var r = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var g = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var b = ExpectNumber(inputFile, scene);
+            ExpectSymbol('>', inputFile);
+            return new Color(r, g, b);
+        }
+
+        public static Pigment ParsePigment(InputStream inputFile, Scene scene)
+        {
+            var keyword = ExpectKeywords([KeywordEnum.Checkered, KeywordEnum.Uniform, KeywordEnum.Image], inputFile);
+
+            ExpectSymbol('(', inputFile);
+
+            switch (keyword)
+            {
+                case KeywordEnum.Uniform:
+                {
+                    var color = ParseColor(inputFile, scene);
+                    ExpectSymbol(')', inputFile);
+                    return new UniformPigment(color);
+                }
+                case KeywordEnum.Checkered:
+                {
+                    var color1 = ParseColor(inputFile, scene);
+                    ExpectSymbol(',', inputFile);
+                    var color2 = ParseColor(inputFile, scene);
+
+                    var nextToken = inputFile.ReadToken();
+                    if (nextToken is SymbolToken commaToken && commaToken.Symbol == ',')
+                    {
+                        var numOfSteps = (int)ExpectNumber(inputFile, scene);
+                        ExpectSymbol(')', inputFile);
+                        return new CheckeredPigment(color1, color2, numOfSteps);
+                    }
+
+                    inputFile.UnreadToken(nextToken); // Put the token back, it's not a comma
+                    ExpectSymbol(')', inputFile); // Closing parenthesis after two colors
+                    return new CheckeredPigment(color1, color2);
+                }
+                case KeywordEnum.Image:
+                {
+                    var fileName = ExpectString(inputFile);
+                    using var stream = new FileStream(fileName, FileMode.Open);
+                    var image = HdrImage.ReadPfm(stream);
+                    ExpectSymbol(')', inputFile);
+                    return new ImagePigment(image);
+                }
+            }
+
+            Assert.True(false, "this line should be unreachable");
+            return null;
+        }
+
+        public static Brdf ParseBrdf(InputStream inputFile, Scene scene)
+        {
+            var brdfKeyword = ExpectKeywords([KeywordEnum.Diffuse, KeywordEnum.Specular], inputFile);
+            ExpectSymbol('(', inputFile);
+            var pigment = ParsePigment(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+            return brdfKeyword switch
+            {
+                KeywordEnum.Diffuse => new DiffusiveBrdf(pigment),
+                KeywordEnum.Specular => new SpecularBrdf(pigment),
+                _ => throw new GrammarError(inputFile.Location, $"Unexpected BRDF keyword: {brdfKeyword}")
+            };
+        }
+
+        public static Tuple<string, Material> ParseMaterial(InputStream inputFile, Scene scene)
+        {
+            var name = ExpectIdentifier(inputFile);
+            ExpectSymbol('(', inputFile);
+            var brdf = ParseBrdf(inputFile, scene);
+            
             ExpectSymbol(',', inputFile);
             var emittedRadiance = ParsePigment(inputFile, scene);
             ExpectSymbol(')', inputFile);
-
             return new Tuple<string, Material>(name, new Material { Brdf = brdf, EmittedRadiance = emittedRadiance });
         }
->>>>>>> Stashed changes
-        ExpectSymbol(')', inputFile);
-        
-        return new Tuple<string, Material>(name, new Material{Brdf = brdf, EmittedRadiance = emittedRadiance});
-    }
 
-    public static Transformation ParseTransformation(InputStream inputFile, Scene scene)
-    {
-        var result = new Transformation();
-        while (true)
+        public static Transformation ParseTransformation(InputStream inputFile, Scene scene)
         {
-            var transformationKw = ExpectKeywords(
-            [   KeywordEnum.Identity,
-                KeywordEnum.Translation,
-                KeywordEnum.RotationX,
-                KeywordEnum.RotationY,
-                KeywordEnum.RotationZ,
-                KeywordEnum.Scaling], inputFile);
-
-            switch (transformationKw)
+            var result = new Transformation();
+            while (true)
             {
-                case KeywordEnum.Identity:
-                    break;
-                case KeywordEnum.Translation:
-                    ExpectSymbol('(', inputFile);
-                    result *= Transformation.Translation(ParseVector(inputFile, scene));
-                    ExpectSymbol(')', inputFile);
-                    break;
-                case KeywordEnum.RotationX:
-                    ExpectSymbol('(', inputFile);
-                    result *= Transformation.RotationX(ExpectNumber(inputFile, scene));
-                    ExpectSymbol(')', inputFile);
-                    break;
-                case KeywordEnum.RotationY:
-                    ExpectSymbol('(', inputFile);
-                    result *= Transformation.RotationY(ExpectNumber(inputFile, scene));
-                    ExpectSymbol(')', inputFile);
-                    break;
-                case KeywordEnum.RotationZ:
-                    ExpectSymbol('(', inputFile);
-                    result *= Transformation.RotationZ(ExpectNumber(inputFile, scene));
-                    ExpectSymbol(')', inputFile);
-                    break;
-                case KeywordEnum.Scaling:
-                    ExpectSymbol('(', inputFile);
-                    result *= Transformation.Scaling(ParseVector(inputFile, scene));
-                    ExpectSymbol(')', inputFile);
-                    break;
-            }
+                var transformationKw = ExpectKeywords(
+                [
+                    KeywordEnum.Identity,
+                    KeywordEnum.Translation,
+                    KeywordEnum.RotationX,
+                    KeywordEnum.RotationY,
+                    KeywordEnum.RotationZ,
+                    KeywordEnum.Scaling
+                ], inputFile);
 
-            var nextKw = inputFile.ReadToken();
-            if (nextKw is not SymbolToken token)
-            {
-                inputFile.UnreadToken(nextKw);
+                switch (transformationKw)
+                {
+                    case KeywordEnum.Identity:
+                        break;
+                    case KeywordEnum.Translation:
+                        ExpectSymbol('(', inputFile);
+                        result *= Transformation.Translation(ParseVector(inputFile, scene));
+                        ExpectSymbol(')', inputFile);
+                        break;
+                    case KeywordEnum.RotationX:
+                        ExpectSymbol('(', inputFile);
+                        result *= Transformation.RotationX(ExpectNumber(inputFile, scene));
+                        ExpectSymbol(')', inputFile);
+                        break;
+                    case KeywordEnum.RotationY:
+                        ExpectSymbol('(', inputFile);
+                        result *= Transformation.RotationY(ExpectNumber(inputFile, scene));
+                        ExpectSymbol(')', inputFile);
+                        break;
+                    case KeywordEnum.RotationZ:
+                        ExpectSymbol('(', inputFile);
+                        result *= Transformation.RotationZ(ExpectNumber(inputFile, scene));
+                        ExpectSymbol(')', inputFile);
+                        break;
+                    case KeywordEnum.Scaling:
+                        ExpectSymbol('(', inputFile);
+                        result *= Transformation.Scaling(ParseVector(inputFile, scene));
+                        ExpectSymbol(')', inputFile);
+                        break;
+                }
+
+                var nextKw = inputFile.ReadToken();
+                if (nextKw is not SymbolToken token)
+                {
+                    inputFile.UnreadToken(nextKw);
+                    break;
+                }
+
+                if (token.Symbol == '*') continue;
+                inputFile.UnreadToken(token);
                 break;
             }
-            if (token.Symbol == '*') continue;
-            inputFile.UnreadToken(token);
-            break;
+
+            return result;
         }
-        return result;
-    }
 
-<<<<<<< Updated upstream
-    public static Sphere ParseSphere(InputStream inputFile, Scene scene)
-=======
-    public static Rectangle ParseRectangle(InputStream inputFile, Scene? scene)
-    {
-        ExpectSymbol('(', inputFile);
-        
-        var materialName = ExpectIdentifier(inputFile);
-        if(scene != null && !scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-        
-        ExpectSymbol(',', inputFile);
-        var width = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var height = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var transformation = ParseTransformation(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-        return new Rectangle(width, height, transformation: transformation, material: scene?.Materials[materialName]);
-    }
 
-    public static Sphere ParseSphere(InputStream inputFile, Scene? scene)
->>>>>>> Stashed changes
-    {
-        ExpectSymbol('(', inputFile);
-        
-        var materialName = ExpectIdentifier(inputFile);
-        if(!scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-        
-        ExpectSymbol(',', inputFile);
-        var transformation = ParseTransformation(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-        
-        return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
-    }
-
-    public static Plane ParsePlane(InputStream inputFile, Scene scene)
-    {
-        ExpectSymbol('(', inputFile);
-        
-        var materialName = ExpectIdentifier(inputFile);
-        if(!scene.Materials.ContainsKey(materialName)) throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-
-        ExpectSymbol(',', inputFile);
-        var transformation = ParseTransformation(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-        
-<<<<<<< Updated upstream
-        return new Plane(transformation: transformation, material: scene.Materials[materialName]);
-    }
-
-    public static Camera ParseCamera(InputStream inputFile, Scene scene)
-=======
-        return new Plane(transformation: transformation, material: scene?.Materials[materialName]);
-    }
-    
-    public static Box ParseBox(InputStream inputFile, Scene? scene)
-    {
-        ExpectSymbol('(', inputFile);
-        
-        var materialName = ExpectIdentifier(inputFile);
-        if (scene != null && !scene.Materials.ContainsKey(materialName))
-            throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-        var material = scene?.Materials[materialName];
-        ExpectSymbol(',', inputFile);
-        
-        var transformation = ParseTransformation(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-
-        return new Box(
-            transformation: transformation,
-            material:       material
-        );
-    }
-
-    public static Csg ParseCompoundShape(InputStream inputFile, Scene? scene)
-    {
-        ExpectSymbol('(', inputFile);
-        
-        Dictionary<string, Shape> shapes = new();
-        
-        while (true)
+        public static Rectangle ParseRectangle(InputStream inputFile, Scene? scene)
         {
-            string shapeName;
+            ExpectSymbol('(', inputFile);
 
-            if (inputFile.NextTokenIsToken(typeof(IdentifierToken))) shapeName = ExpectIdentifier(inputFile);
-            else break;
-            
-            var nextKw = inputFile.ReadToken();
-            if (nextKw is not KeywordToken token)
+            var materialName = ExpectIdentifier(inputFile);
+            if (scene != null && !scene.Materials.ContainsKey(materialName))
+                throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+
+            ExpectSymbol(',', inputFile);
+            var width = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var height = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+            return new Rectangle(width, height, transformation: transformation,
+                material: scene?.Materials[materialName]);
+        }
+
+        public static Sphere ParseSphere(InputStream inputFile, Scene? scene)
+        {
+            ExpectSymbol('(', inputFile);
+
+            var materialName = ExpectIdentifier(inputFile);
+            if (!scene.Materials.ContainsKey(materialName))
+                throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+
+            ExpectSymbol(',', inputFile);
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
+        }
+
+        public static Plane ParsePlane(InputStream inputFile, Scene scene)
+        {
+            ExpectSymbol('(', inputFile);
+
+            var materialName = ExpectIdentifier(inputFile);
+            if (!scene.Materials.ContainsKey(materialName))
+                throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+
+            ExpectSymbol(',', inputFile);
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new Plane(transformation: transformation, material: scene.Materials[materialName]);
+        }
+
+
+        public static Box ParseBox(InputStream inputFile, Scene? scene)
+        {
+            ExpectSymbol('(', inputFile);
+
+            var materialName = ExpectIdentifier(inputFile);
+            if (scene != null && !scene.Materials.ContainsKey(materialName))
+                throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+            var material = scene?.Materials[materialName];
+            ExpectSymbol(',', inputFile);
+
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new Box(
+                transformation: transformation,
+                material: material
+            );
+        }
+
+        public static Csg ParseCompoundShape(InputStream inputFile, Scene? scene)
+        {
+            ExpectSymbol('(', inputFile);
+
+            Dictionary<string, Shape> shapes = new();
+
+            while (true)
             {
-                inputFile.UnreadToken(nextKw);
-                break;
+                string shapeName;
+
+                if (inputFile.NextTokenIsToken(typeof(IdentifierToken))) shapeName = ExpectIdentifier(inputFile);
+                else break;
+
+                var nextKw = inputFile.ReadToken();
+                if (nextKw is not KeywordToken token)
+                {
+                    inputFile.UnreadToken(nextKw);
+                    break;
+                }
+
+                switch (token.Keyword)
+                {
+                    case KeywordEnum.Sphere:
+                        var thisSphere = ParseSphere(inputFile, scene);
+                        shapes.Add(shapeName, thisSphere);
+                        break;
+
+                    case KeywordEnum.Plane:
+                        shapes.Add(shapeName, ParsePlane(inputFile, scene));
+                        break;
+
+                    case KeywordEnum.Box:
+                        shapes.Add(shapeName, ParseBox(inputFile, scene));
+                        break;
+
+                    case KeywordEnum.Rectangle:
+                        shapes.Add(shapeName, ParseRectangle(inputFile, scene));
+                        break;
+
+                    case KeywordEnum.Union:
+                        ExpectSymbol('(', inputFile);
+                        var shape1 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(',', inputFile);
+                        var shape2 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(')', inputFile);
+                        if (shapes.TryGetValue(shape1, out var shapeOne) &&
+                            shapes.TryGetValue(shape2, out var shapeTwo))
+                        {
+                            shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Union));
+                        }
+                        else throw new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
+
+                        break;
+
+                    case KeywordEnum.Intersection:
+                        ExpectSymbol('(', inputFile);
+                        shape1 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(',', inputFile);
+                        shape2 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(')', inputFile);
+                        if (shapes.TryGetValue(shape1, out shapeOne) && shapes.TryGetValue(shape2, out shapeTwo))
+                        {
+                            shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Intersection));
+                        }
+                        else throw new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
+
+                        break;
+
+                    case KeywordEnum.Difference:
+                        ExpectSymbol('(', inputFile);
+                        shape1 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(',', inputFile);
+                        shape2 = ExpectIdentifier(inputFile);
+                        ExpectSymbol(')', inputFile);
+                        if (shapes.TryGetValue(shape1, out shapeOne) && shapes.TryGetValue(shape2, out shapeTwo))
+                        {
+                            shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Difference));
+                        }
+                        else throw new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
+
+                        break;
+                }
+
+                try
+                {
+                    ExpectSymbol(',', inputFile);
+                }
+                catch
+                {
+                    ExpectSymbol(')', inputFile);
+                    break;
+                }
             }
-            
-            switch(token.Keyword){
-                case KeywordEnum.Sphere:
-                    var thisSphere = ParseSphere(inputFile, scene);
-                    shapes.Add(shapeName, thisSphere);
-                    break;
-            
-                case KeywordEnum.Plane:
-                    shapes.Add(shapeName, ParsePlane(inputFile, scene));
-                    break;
-                
-                case KeywordEnum.Box:
-                    shapes.Add(shapeName, ParseBox(inputFile, scene));
-                    break;
-                
-                case KeywordEnum.Rectangle:
-                    shapes.Add(shapeName, ParseRectangle(inputFile, scene));
-                    break;
-                
+
+            if (shapes.Count == 0) throw new GrammarError(inputFile.Location, "no shapes");
+            ExpectKeywords([KeywordEnum.Perform], inputFile);
+            var operation = ExpectKeywords([KeywordEnum.Union, KeywordEnum.Intersection, KeywordEnum.Difference],
+                inputFile);
+            ExpectSymbol('(', inputFile);
+            var firstShape = ExpectIdentifier(inputFile);
+            ExpectSymbol(',', inputFile);
+            var secondShape = ExpectIdentifier(inputFile);
+            ExpectSymbol(')', inputFile);
+            switch (operation)
+            {
                 case KeywordEnum.Union:
-                    ExpectSymbol('(', inputFile);
-                    var shape1 = ExpectIdentifier(inputFile);
-                    ExpectSymbol(',', inputFile);
-                    var shape2 = ExpectIdentifier(inputFile);
-                    ExpectSymbol(')', inputFile);
-                    if (shapes.TryGetValue(shape1, out var shapeOne) && shapes.TryGetValue(shape2, out var shapeTwo) )
-                    {
-                        shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Union));
-                    }
-                    else throw  new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
-                    break;
-                    
-                case KeywordEnum.Intersection:
-                    ExpectSymbol('(', inputFile);
-                    shape1 = ExpectIdentifier(inputFile);
-                    ExpectSymbol(',', inputFile);
-                    shape2 = ExpectIdentifier(inputFile);
-                    ExpectSymbol(')', inputFile);
-                    if (shapes.TryGetValue(shape1, out shapeOne) && shapes.TryGetValue(shape2, out shapeTwo) )
-                    {
-                        shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Intersection));
-                    }
-                    else throw  new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
-                    break;
-                    
+                    return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Union);
                 case KeywordEnum.Difference:
+                    return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Difference);
+                case KeywordEnum.Intersection:
+                    return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Intersection);
+                default:
+                    Assert.True(false, "Tried to parse unknown CSG operation");
+                    return null;
+            }
+        }
+
+
+        public static Camera ParseCamera(InputStream inputFile, Scene? scene)
+        {
+            ExpectSymbol('(', inputFile);
+            var typeKw = ExpectKeywords([KeywordEnum.Perspective, KeywordEnum.Orthogonal], inputFile);
+            ExpectSymbol(',', inputFile);
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var aspectRatio = ExpectNumber(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var distance = ExpectNumber(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            switch (typeKw)
+            {
+                case KeywordEnum.Perspective:
+                    return new PerspectiveProjection(aspectRatio, distance, transformation);
+                case KeywordEnum.Orthogonal:
+                    return new OrthogonalProjection(aspectRatio, transformation);
+                // Are we sure?? must type in distance even if Orthogonal doesn't use it??
+                default:
+                    Assert.True(false, "this line should be unreachable");
+                    return null;
+            }
+        }
+
+        public static PointLight ParsePointLight(InputStream inputFile, Scene scene)
+        {
+            ExpectSymbol('(', inputFile);
+            var position = ParseVector(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var color = ParseColor(inputFile, scene);
+            ExpectSymbol(',', inputFile);
+            var radius = ExpectNumber(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new PointLight(new Point(position.X, position.Y, position.Z), color, radius);
+
+        }
+
+        public static Scene ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
+        {
+            variables ??= new Dictionary<string, float>();
+            var scene = new Scene(variables, [..variables.Keys]);
+
+            while (true)
+            {
+                var what = inputFile.ReadToken();
+                if (what is StopToken) break;
+                if (what is not KeywordToken whatToken)
+                    throw new GrammarError(inputFile.Location, $"expected a keyword instead of {what}");
+                if (whatToken.Keyword == KeywordEnum.Float)
+                {
+                    var variableName = ExpectIdentifier(inputFile);
+                    var variableLoc = inputFile.Location;
+
                     ExpectSymbol('(', inputFile);
-                    shape1 = ExpectIdentifier(inputFile);
-                    ExpectSymbol(',', inputFile);
-                    shape2 = ExpectIdentifier(inputFile);
+                    var variableValue = ExpectNumber(inputFile, scene);
                     ExpectSymbol(')', inputFile);
-                    if (shapes.TryGetValue(shape1, out shapeOne) && shapes.TryGetValue(shape2, out shapeTwo) )
-                    {
-                        shapes.Add(shapeName, new Csg(shapeOne, shapeTwo, CsgOperation.Difference));
-                    }
-                    else throw  new GrammarError(inputFile.Location, $"unknown shape {shape1},{shape2}");
-                    break;
+                    if (scene.FloatVariables != null &&
+                        scene.FloatVariables.ContainsKey(variableName) &&
+                        scene.OverriddenVariables.Contains(variableName))
+                        throw new GrammarError(variableLoc, $"variable {variableName} cannot be redefined");
+                    if (!scene.OverriddenVariables.Contains(variableName))
+                        if (scene.FloatVariables != null)
+                            scene.FloatVariables[variableName] = variableValue;
+                }
+                else if (whatToken.Keyword == KeywordEnum.Sphere)
+                    scene.World.AddShape(ParseSphere(inputFile, scene));
+                else if (whatToken.Keyword == KeywordEnum.Plane)
+                    scene.World.AddShape(ParsePlane(inputFile, scene));
+                else if (whatToken.Keyword == KeywordEnum.Box)
+                    scene.World.AddShape(ParseBox(inputFile, scene));
+                else if (whatToken.Keyword == KeywordEnum.Csg)
+                    scene.World.AddShape(ParseCompoundShape(inputFile, scene));
+                else if (whatToken.Keyword == KeywordEnum.Rectangle)
+                    scene.World.AddShape(ParseRectangle(inputFile, scene));
+
+                else if (whatToken.Keyword == KeywordEnum.Camera && scene.Camera != null)
+                    throw new GrammarError(inputFile.Location, $"camera has already been specified");
+                else if (whatToken.Keyword == KeywordEnum.Camera)
+                    scene.Camera = ParseCamera(inputFile, scene);
+                else if (whatToken.Keyword == KeywordEnum.Material)
+                {
+                    var materialName = ParseMaterial(inputFile, scene);
+                    scene.Materials[materialName.Item1] = materialName.Item2;
+                }
+
+                else if (whatToken.Keyword == KeywordEnum.PointLight)
+                {
+                    var pointLight = ParsePointLight(inputFile, scene);
+                    scene.World.AddLight(pointLight);
+                }
+                else
+                    throw new GrammarError(what.Location, $"unexpected token {what}");
             }
 
-            try
-            {
-                ExpectSymbol(',', inputFile);
-            }
-            catch
-            {
-                ExpectSymbol(')', inputFile);
-                break;
-            }
+            return scene;
         }
-        if(shapes.Count == 0) throw new GrammarError(inputFile.Location, "no shapes");
-        ExpectKeywords([KeywordEnum.Perform], inputFile);
-        var operation = ExpectKeywords([KeywordEnum.Union, KeywordEnum.Intersection, KeywordEnum.Difference], inputFile);
-        ExpectSymbol('(', inputFile);
-        var firstShape = ExpectIdentifier(inputFile);
-        ExpectSymbol(',', inputFile);
-        var secondShape = ExpectIdentifier(inputFile);
-        ExpectSymbol(')', inputFile);
-        switch (operation)
-        {
-            case KeywordEnum.Union:
-                return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Union);
-            case KeywordEnum.Difference:
-                return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Difference);
-            case KeywordEnum.Intersection:
-                return new Csg(shapes[firstShape], shapes[secondShape], CsgOperation.Intersection);
-            default:
-                Assert.True(false, "Tried to parse unknown CSG operation");
-                return null;
-        }
-    }
-    
-
-    public static Camera ParseCamera(InputStream inputFile, Scene? scene)
->>>>>>> Stashed changes
-    {
-        ExpectSymbol('(', inputFile);
-        var typeKw = ExpectKeywords([KeywordEnum.Perspective, KeywordEnum.Orthogonal], inputFile);
-        ExpectSymbol(',', inputFile);
-        var transformation = ParseTransformation(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var aspectRatio = ExpectNumber(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var distance = ExpectNumber(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-
-        switch (typeKw)
-        {
-            case KeywordEnum.Perspective:
-                return new PerspectiveProjection(aspectRatio, distance, transformation);
-            case KeywordEnum.Orthogonal:
-                return new OrthogonalProjection(aspectRatio, transformation);
-            // Are we sure?? must type in distance even if Orthogonal doesn't use it??
-            default:
-                Assert.True(false, "this line should be unreachable");
-                return null;
-        }
-    }
-
-    public static PointLight ParsePointLight(InputStream inputFile, Scene scene)
-    {
-        ExpectSymbol('(', inputFile);
-        var position = ParseVector(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var color = ParseColor(inputFile, scene);
-        ExpectSymbol(',', inputFile);
-        var radius = ExpectNumber(inputFile, scene);
-        ExpectSymbol(')', inputFile);
-            
-        return new PointLight(new Point(position.X, position.Y, position.Z), color, radius);
-            
-    }
-
-    public static Scene ParseScene(InputStream inputFile, Dictionary<string, float>? variables = null)
-    {
-        variables ??= new Dictionary<string, float>();
-        var scene = new Scene(variables, [..variables.Keys]);
-        
-        while (true)
-        {
-            var what = inputFile.ReadToken();
-            if(what is StopToken) break;
-            if(what is not KeywordToken whatToken) throw new GrammarError(inputFile.Location, $"expected a keyword instead of {what}");
-            if(whatToken.Keyword == KeywordEnum.Float)
-            {
-                var variableName = ExpectIdentifier(inputFile);
-                var variableLoc = inputFile.Location;
-            
-                ExpectSymbol('(', inputFile);
-                var variableValue = ExpectNumber(inputFile, scene);
-                ExpectSymbol(')', inputFile);
-                if(scene.FloatVariables != null &&
-                   scene.FloatVariables.ContainsKey(variableName) && 
-                   scene.OverriddenVariables.Contains(variableName)) 
-                    throw new GrammarError(variableLoc, $"variable {variableName} cannot be redefined");
-                if(!scene.OverriddenVariables.Contains(variableName))
-                    if (scene.FloatVariables != null)
-                        scene.FloatVariables[variableName] = variableValue;
-            }
-            else if(whatToken.Keyword == KeywordEnum.Sphere)
-                scene.World.AddShape(ParseSphere(inputFile, scene));
-            else if(whatToken.Keyword == KeywordEnum.Plane)
-                scene.World.AddShape(ParsePlane(inputFile, scene));
-<<<<<<< Updated upstream
-=======
-            else if(whatToken.Keyword == KeywordEnum.Box)
-                scene.World.AddShape(ParseBox(inputFile, scene));
-            else if (whatToken.Keyword == KeywordEnum.Csg)
-                scene.World.AddShape(ParseCompoundShape(inputFile, scene));
-            else if (whatToken.Keyword == KeywordEnum.Rectangle)
-                scene.World.AddShape(ParseRectangle(inputFile, scene));
-            
-            
->>>>>>> Stashed changes
-            else if(whatToken.Keyword ==  KeywordEnum.Camera && scene.Camera != null)
-                throw new GrammarError(inputFile.Location, $"camera has already been specified");
-            else if(whatToken.Keyword ==  KeywordEnum.Camera)
-                scene.Camera = ParseCamera(inputFile, scene);
-            else if(whatToken.Keyword ==  KeywordEnum.Material)
-            {
-                var materialName = ParseMaterial(inputFile, scene);
-                scene.Materials[materialName.Item1] = materialName.Item2;
-            }
-            
-            else if(whatToken.Keyword ==  KeywordEnum.PointLight)
-            {
-                var pointLight = ParsePointLight(inputFile, scene);
-                scene.World.AddLight(pointLight);
-            }
-            else
-                throw new GrammarError(what.Location, $"unexpected token {what}");
-        }
-        return scene;
     }
 }

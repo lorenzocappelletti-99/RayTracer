@@ -1,0 +1,51 @@
+camera (perspective, translation([-1,0,1]), 1.7778, 1)
+
+#first field is pigment, the 2nd is emitted radiance
+
+material sphereMat(
+	specular(uniform(<.6,.2,.2>)),
+    	uniform(<0,0,0>)
+)
+
+
+material RoofAndFloor(
+    diffuse(uniform(<.8,.8,.8>)),
+    uniform(<0,0,0>)
+)
+
+material left(
+    diffuse(uniform(<.8,.1,.1>)),
+    uniform(<0,0,0>)
+)
+material right(
+    diffuse(uniform(<.1,.8,.1>)),
+    uniform(<0,0,0>)
+)
+
+material windowSky(
+    diffuse(uniform(<1,1,1>)),
+    uniform(<1,1,1>)
+)
+
+
+sphere(sphereMat, translation([-1,.5,.4])*scaling([.2,.2,.2]))
+
+box(RoofAndFloor, translation([-.3,-.5,0])*scaling([.3,.3,1]))
+
+CSG(
+windowHole rectangle(sphereMat, 1, 1, translation([-.3,0,2])),
+rooffie rectangle(RoofAndFloor, 1, 1, scaling([4,4,1])*translation([0,0,2]))
+)
+perform difference(rooffie,windowHole)
+
+
+rectangle(windowSky, 1, 1, translation([-.3,0,2]))
+
+rectangle(right, 1, 1, translation([0,-1,1])*scaling([4,1,4])*rotation_x(-90))
+
+rectangle(left, 1, 1, translation([0,1,1])*scaling([4,1,4])*rotation_x(90))
+
+rectangle(RoofAndFloor, 1, 1, translation([1,0,0])*scaling([1,4,4])*rotation_y(-90))
+
+rectangle(RoofAndFloor, 1, 1, scaling([4,4,1])*translation([0,0,0]))
+

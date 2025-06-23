@@ -1,6 +1,6 @@
 # Raytracer
 
-Raytracer 1.0.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
+Raytracer 1.1.0 is a program that allows you to generate simple images and convert PFM-RGB image files to JPG or PNG format.
 
 ---
 
@@ -58,21 +58,34 @@ Run the renderer using the following command:
 | `-x`, `--RussianRoulette` | Russian roulette path limit                  | `--RussianRoulette 5`   | 1          |
 | `-D`, `--MaxDepth`        | Maximum depth for ray reflection             | `--MaxDepth 4`          | 2          |
 | `-r`, `--renderer`        | Rendering mode (`PathTracer`, `PointLight`)  | `--renderer PathTracer` | PathTracer |
+| `-f`, `--factor`          | Tone mapping scale factor Default: "0.6"     | `--factor 0.18`         | 0.6        |
+| `-s`, `--statePCG`        | PCG initial state ulong                      | `--statePCG 34`         | 42         |
+| `-S`, `--sequencePCG`     | PCG sequence identifier ulong                | `--sequencePCG 23`      | 52         |
 
 #### Example Output
 
-![demo](https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/trying.png)  
-*The image above was rendered using -A true, -R 10, scene description in `example.txt`.*
+<table>
+  <tr>
+    <td>
+      <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/trying.png" width="600"/><br/>
+      <sub><b>Figure 1:</b> The image above was rendered using -A true, -R 10 </sub>
+    </td>
+    <td>
+      <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/PT-R6-D5-x2-Atrue_exemple.png" width="600"/><br/>
+      <sub><b>Figure 2:</b> The image above was rendered using -A true, -R 6, -D 5, -x 2 scene description in `example.txt`. </sub>
+    </td>
+  </tr>
+</table>
 
 <table>
   <tr>
     <td>
       <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/PT-R6-D3-x1.png" width="600"/><br/>
-      <sub><b>Figure 1:</b> The image above was rendered using -A false, -R 6, -D 3, -x 1, scene description in cornell.txt </sub>
+      <sub><b>Figure 3:</b> The image above was rendered using -A false, -R 6, -D 3, -x 1, scene description in cornell.txt </sub>
     </td>
     <td>
       <img src="https://github.com/lorenzocappelletti-99/RayTracer/blob/master/Myraytracer/output/PT-R6-D3-x2-Atrue.png" width="600"/><br/>
-      <sub><b>Figure 1:</b> The image above was rendered using -A true, -R 6, -D 3, -x 2, scene description in cornell.txt </sub>
+      <sub><b>Figure 4:</b> The image above was rendered using -A true, -R 6, -D 3, -x 2, scene description in cornell.txt </sub>
     </td>
   </tr>
 </table>
@@ -105,6 +118,8 @@ List of all functionalities:
 | `-A`, `--AntiAliasing` | **Anti-aliasing enabled** | `--AntiAliasing true` | false |
 | `-R`, `--RaysPerPixel` | **Rays per pixel** | `--RaysPerPixel 5` | 1 |
 | `-r`, `--Renderer` | **Renderer type** | `--Renderer PointLight` | PathTracer |
+| `-s`, `--statePCG`        | PCG initial state ulong                      | `--statePCG 34`         | 42         |
+| `-S`, `--sequencePCG`     | PCG sequence identifier ulong                | `--sequencePCG 23`      | 52         |
 
 
 ## Converting PFM to JPG

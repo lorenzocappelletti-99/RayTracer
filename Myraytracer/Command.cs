@@ -45,6 +45,13 @@ public class RenderCommand : ICommand
     
     [CommandOption("factor", 'f', Description = "Tone mapping scale factor")]
     public float Factor { get; init; } = 0.6f;
+
+    [CommandOption("statePCG", 's', Description = "PCG initial state ulong")]
+    public ulong StatePcg { get; init; } = 42;
+    
+    [CommandOption("sequencePCG", 'S', Description = "PCG sequence identifier ulong")]
+    public ulong SequencePcg { get; init; } = 54;
+    
     
 
     public ValueTask ExecuteAsync(IConsole console)
@@ -106,7 +113,7 @@ public class RenderCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene.World, Color.Black, new Pcg(), NumOfRays, MaxDepth, RussianRoulette);
+            var render = new PathTracer(scene.World, Color.Black, new Pcg(StatePcg, SequencePcg), NumOfRays, MaxDepth, RussianRoulette);
             
             stopwatch.Start();
 
@@ -189,6 +196,11 @@ public class DemoCommand : ICommand
     
     [CommandOption("Renderer", 'r', Description = "Renderer type")]
     public string Renderer { get; init; } = "PathTracer";
+    [CommandOption("statePCG", 's', Description = "PCG initial state ulong")]
+    public ulong StatePcg { get; init; } = 42;
+    
+    [CommandOption("sequencePCG", 'S', Description = "PCG sequence identifier ulong")]
+    public ulong SequencePcg { get; init; } = 54;
     
 
     public Camera? Camera { get; private set; }
@@ -375,7 +387,7 @@ public class DemoCommand : ICommand
         if (Renderer.Equals("PathTracer", StringComparison.OrdinalIgnoreCase))
         {
             if (AntiAliasing) tracer.SamplesPerSide = 4;
-            var render = new PathTracer(scene, Color.Black, new Pcg(), NumOfRays, 3, 1);
+            var render = new PathTracer(scene, Color.Black, new Pcg(StatePcg, SequencePcg), NumOfRays, 3, 1);
             
             stopwatch.Start();
 

@@ -62,7 +62,6 @@ public class RenderCommand : ICommand
             scene = InputStream.Scene.ParseScene(inputStream);
             console.WriteLine("Scene parsed successfully!");
         }
-        
         catch (GrammarError ex)
         {
             console.Error.WriteLine("\n--- PARSING ERROR ---");

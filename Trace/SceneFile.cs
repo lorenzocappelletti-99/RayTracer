@@ -80,7 +80,8 @@ public enum KeywordEnum
     Csg,
     Perform,
     Box,
-    Rectangle
+    Rectangle,
+    Cone
 }
 
 /// <summary>
@@ -116,7 +117,8 @@ public static class KeywordMap
         { "CSG", KeywordEnum.Csg},
         { "perform", KeywordEnum.Perform},
         { "box", KeywordEnum.Box },
-        {"rectangle", KeywordEnum.Rectangle}
+        {"rectangle", KeywordEnum.Rectangle},
+        {"cone", KeywordEnum.Cone}
     };
 }
 
@@ -146,7 +148,7 @@ public class LiteralNumberToken(SourceLocation location, float value) : Token(lo
 {
     public float Number = value;
     
-    public override string ToString() => Number.ToString();
+    public override string ToString() => Number.ToString(CultureInfo.InvariantCulture);
 }
 
 /// <summary>
@@ -171,10 +173,14 @@ public class SymbolToken(SourceLocation location, char symbol) : Token(location)
 /// `message`: a user-frendly error message
 /// 
 /// </summary>
-public class GrammarError(SourceLocation location, string message) : Exception
+public class GrammarError(SourceLocation location, string message) : Exception(message)
 {
-    public SourceLocation Location = location;
-    public string Message = message;
+    public SourceLocation Location { get; } = location;
+
+    public override string ToString()
+    {
+        return $"GrammarError at line : {Location.LineNum}, column {Location.ColNum}: {Message}";
+    }
 }
 
 
@@ -506,6 +512,8 @@ public class InputStream
                     var variableName = identifier.Identifier;
                     if (scene.FloatVariables != null && !scene.FloatVariables.ContainsKey(variableName))
                         throw new GrammarError(token.Location, $"variable '{variableName}' is unknown");
+                    if (scene.FloatVariables == null)
+                        throw new GrammarError(token.Location, "$No Float Variables");
                     return scene.FloatVariables[variableName];
                 }
                 default:
@@ -694,7 +702,9 @@ public class InputStream
             var materialName = ExpectIdentifier(inputFile);
             if (scene != null && !scene.Materials.ContainsKey(materialName))
                 throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-
+            if (scene == null)
+                throw new GrammarError(inputFile.Location, "$scene cannot be null here");
+            
             ExpectSymbol(',', inputFile);
             var width = ExpectNumber(inputFile, scene);
             ExpectSymbol(',', inputFile);
@@ -703,7 +713,7 @@ public class InputStream
             var transformation = ParseTransformation(inputFile, scene);
             ExpectSymbol(')', inputFile);
             return new Rectangle(width, height, transformation: transformation,
-                material: scene?.Materials[materialName]);
+                material: scene.Materials[materialName]);
         }
 
         public static Sphere ParseSphere(InputStream inputFile, Scene? scene)
@@ -711,14 +721,16 @@ public class InputStream
             ExpectSymbol('(', inputFile);
 
             var materialName = ExpectIdentifier(inputFile);
-            if (!scene.Materials.ContainsKey(materialName))
+            if (scene == null)
+                throw new GrammarError(inputFile.Location, "$scene cannot be null here");
+            if (!scene.Materials.TryGetValue(materialName, out var value))
                 throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
 
             ExpectSymbol(',', inputFile);
             var transformation = ParseTransformation(inputFile, scene);
             ExpectSymbol(')', inputFile);
 
-            return new Sphere(transformation: transformation, material: scene.Materials[materialName]);
+            return new Sphere(transformation: transformation, material: value);
         }
 
         public static Plane ParsePlane(InputStream inputFile, Scene scene)
@@ -744,13 +756,36 @@ public class InputStream
             var materialName = ExpectIdentifier(inputFile);
             if (scene != null && !scene.Materials.ContainsKey(materialName))
                 throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
-            var material = scene?.Materials[materialName];
+            if (scene == null)
+                throw new GrammarError(inputFile.Location, "$scene cannot be null here");
+            var material = scene.Materials[materialName];
             ExpectSymbol(',', inputFile);
 
             var transformation = ParseTransformation(inputFile, scene);
             ExpectSymbol(')', inputFile);
 
             return new Box(
+                transformation: transformation,
+                material: material
+            );
+        }
+        
+        public static Cone ParseCone(InputStream inputFile, Scene? scene)
+        {
+            ExpectSymbol('(', inputFile);
+
+            var materialName = ExpectIdentifier(inputFile);
+            if (scene != null && !scene.Materials.ContainsKey(materialName))
+                throw new GrammarError(inputFile.Location, $"unknown material {materialName}");
+            if (scene == null)
+                throw new GrammarError(inputFile.Location, "$scene cannot be null here");
+            var material = scene.Materials[materialName];
+            ExpectSymbol(',', inputFile);
+
+            var transformation = ParseTransformation(inputFile, scene);
+            ExpectSymbol(')', inputFile);
+
+            return new Cone(1,1,
                 transformation: transformation,
                 material: material
             );
@@ -775,9 +810,12 @@ public class InputStream
                     inputFile.UnreadToken(nextKw);
                     break;
                 }
+                if (scene == null)
+                    throw new GrammarError(inputFile.Location, "$scene cannot be null here");
 
                 switch (token.Keyword)
                 {
+                    
                     case KeywordEnum.Sphere:
                         var thisSphere = ParseSphere(inputFile, scene);
                         shapes.Add(shapeName, thisSphere);
@@ -793,6 +831,9 @@ public class InputStream
 
                     case KeywordEnum.Rectangle:
                         shapes.Add(shapeName, ParseRectangle(inputFile, scene));
+                        break;
+                    case KeywordEnum.Cone:
+                        shapes.Add(shapeName, ParseCone(inputFile, scene));
                         break;
 
                     case KeywordEnum.Union:
@@ -876,6 +917,8 @@ public class InputStream
 
         public static Camera ParseCamera(InputStream inputFile, Scene? scene)
         {
+            if (scene == null)
+                throw new GrammarError(inputFile.Location, "$scene cannot be null here");
             ExpectSymbol('(', inputFile);
             var typeKw = ExpectKeywords([KeywordEnum.Perspective, KeywordEnum.Orthogonal], inputFile);
             ExpectSymbol(',', inputFile);
@@ -950,6 +993,8 @@ public class InputStream
                     scene.World.AddShape(ParseCompoundShape(inputFile, scene));
                 else if (whatToken.Keyword == KeywordEnum.Rectangle)
                     scene.World.AddShape(ParseRectangle(inputFile, scene));
+                else if (whatToken.Keyword == KeywordEnum.Cone)
+                    scene.World.AddShape(ParseCone(inputFile, scene));
 
                 else if (whatToken.Keyword == KeywordEnum.Camera && scene.Camera != null)
                     throw new GrammarError(inputFile.Location, $"camera has already been specified");

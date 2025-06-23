@@ -10,7 +10,7 @@ material ground(
 )
 
 material galaxy(
-    diffuse(image("galaxy.pfm")),
+    diffuse(image("input\galaxy.pfm")),
     uniform(<0,0,0>)
 )
 

@@ -351,10 +351,10 @@ namespace Trace
             float[] row3 = [t.M[3, 0], t.M[3, 1], t.M[3, 2], t.M[3, 3]];
 
             // Multiply the matrix by the point
-            float newX = p.X * row0[0] + p.Y * row0[1] + p.Z * row0[2] + row0[3];
-            float newY = p.X * row1[0] + p.Y * row1[1] + p.Z * row1[2] + row1[3];
-            float newZ = p.X * row2[0] + p.Y * row2[1] + p.Z * row2[2] + row2[3];
-            float w = p.X * row3[0] + p.Y * row3[1] + p.Z * row3[2] + row3[3];
+            var newX = p.X * row0[0] + p.Y * row0[1] + p.Z * row0[2] + row0[3];
+            var newY = p.X * row1[0] + p.Y * row1[1] + p.Z * row1[2] + row1[3];
+            var newZ = p.X * row2[0] + p.Y * row2[1] + p.Z * row2[2] + row2[3];
+            var w = p.X * row3[0] + p.Y * row3[1] + p.Z * row3[2] + row3[3];
 
             // If w is close to 1, return the transformed point directly
             if (Math.Abs(w - 1f) < 1e-5f)
@@ -390,8 +390,8 @@ namespace Trace
         /// the inverse-transpose of the transformation matrix, this method uses the inverse (Invm)
         /// and only the first three rows to transform the Normal.
         /// </summary>
-        /// <param name="t"></param>
-        /// <param name="n">The normal to transform.</param>
+        /// <param name="t"> transformation </param>
+        /// <param name="n"> normal to be transformed.</param>
         /// <returns>The transformed normal.</returns>
         public static Normal operator *(Transformation t, Normal n)
         {
@@ -400,10 +400,10 @@ namespace Trace
             float[] row1 = [t.Invm[1, 0], t.Invm[1, 1], t.Invm[1, 2]];
             float[] row2 = [t.Invm[2, 0], t.Invm[2, 1], t.Invm[2, 2]];
 
-            // Multiply the inverse matrix by the normal
-            float newX = n.X * row0[0] + n.Y * row1[0] + n.Z * row2[0];
-            float newY = n.X * row0[1] + n.Y * row1[1] + n.Z * row2[1];
-            float newZ = n.X * row0[2] + n.Y * row1[2] + n.Z * row2[2];
+            // Multiply the inverse matrix TRANSPOSED by the normal
+            var newX = n.X * row0[0] + n.Y * row1[0] + n.Z * row2[0];
+            var newY = n.X * row0[1] + n.Y * row1[1] + n.Z * row2[1];
+            var newZ = n.X * row0[2] + n.Y * row1[2] + n.Z * row2[2];
 
             return new Normal(newX, newY, newZ);
         }
@@ -411,6 +411,7 @@ namespace Trace
         /// <summary>
         /// Applies (composes) another transformation with this one.
         /// The result is equivalent to applying this transformation followed by the given one.
+        /// ---UNUSED METHOD - Replaced by different handling of composition - see operator * overloading---
         /// </summary>
         /// <param name="other">The transformation to apply after this one.</param>
         /// <returns>The resulting composed transformation.</returns>

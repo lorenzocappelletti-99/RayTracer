@@ -48,6 +48,25 @@ public abstract class Shape
     public abstract bool QuickRayIntersection(Ray ray);
     public abstract HitRecord? RayIntersection(Ray ray);
     public abstract bool IsPointInternal(Point p);
+
+    /// <summary>
+    /// Computes all intersections between the given ray and the sphere,
+    /// returning zero, one, or two intersection points depending on the result.
+    /// </summary>
+    /// <param name="ray">The incoming ray, specified in world coordinates.</param>
+    /// <returns>
+    /// An enumerable sequence of <see cref="HitRecord"/> instances, one for each valid
+    /// intersection point between the ray and the shape. The list may be empty if there is no hit.
+    /// </returns>
+    /// <remarks>
+    /// This is an iterator method and is intended to be used in a <c>foreach</c> loop or
+    /// any LINQ-style iteration that consumes <c>IEnumerable&lt;HitRecord&gt;</c>.
+    /// The computation is performed "lazily" as the sequence is iterated.
+    /// i.e. nothing is computed until an iteration over the result is performed.
+    /// This method is intended for CSG Composition.
+    /// </remarks>
+    public abstract IEnumerable<HitRecord> AllRayIntersections(Ray ray);
+
 }
 
 /***********************************************************
@@ -203,6 +222,54 @@ public class Sphere : Shape
                ray.PointAt(tMin).Y <= p.Y && ray.PointAt(tMax).Y >= p.Y &&
                ray.PointAt(tMin).Z <= p.Z && ray.PointAt(tMax).Z >= p.Z;
     }
+
+    
+    
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+
+        var origin = localRay.Origin.to_vec();
+        var direction = localRay.Direction;
+
+        var a = direction.SqNorm();
+        var b = 2 * origin * direction;
+        var c = origin.SqNorm() - Radius * Radius;
+
+        var delta = b * b - 4 * a * c;
+        if (delta < 0)
+            yield break;
+
+        var sqrtDelta = MathF.Sqrt(delta);
+        var t1 = (-b - sqrtDelta) / (2 * a);
+        var t2 = (-b + sqrtDelta) / (2 * a);
+
+        foreach (var t in new[] { t1, t2 })
+        {
+            if (t < localRay.Tmin || t > localRay.Tmax)
+                continue;
+
+            var localHit = localRay.PointAt(t);
+            
+            var localNormal = OrientedNormal(localHit, localRay.Direction);
+
+            var surfaceUV = ShapePointToUV(localHit);
+
+            var worldPoint = Transformation * localHit;
+            var worldNormal = Transformation * localNormal;
+
+            yield return new HitRecord
+            {
+                WorldPoint = worldPoint,
+                Normal = worldNormal,
+                SurfacePoint = surfaceUV,
+                T = t,
+                Ray = ray,
+                Material = Material
+            };
+        }
+    }
+
 }
 
 /***********************************************************
@@ -269,6 +336,11 @@ public class Plane : Shape
     public override bool IsPointInternal(Point p)
     {
         return false;
+    }
+
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -391,6 +463,11 @@ public class Rectangle : Shape
     {
         return false;
     }
+
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 
@@ -486,13 +563,13 @@ public class Box : Shape
         var origin = localRay.Origin.to_vec();
         var dir = localRay.Direction;
 
-        // Slab method
-        float tMin = (Min.X - origin.X) / dir.X;
-        float tMax = (Max.X - origin.X) / dir.X;
+        
+        var tMin = (Min.X - origin.X) / dir.X;
+        var tMax = (Max.X - origin.X) / dir.X;
         if (tMin > tMax) (tMin, tMax) = (tMax, tMin);
 
-        float tyMin = (Min.Y - origin.Y) / dir.Y;
-        float tyMax = (Max.Y - origin.Y) / dir.Y;
+        var tyMin = (Min.Y - origin.Y) / dir.Y;
+        var tyMax = (Max.Y - origin.Y) / dir.Y;
         if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
 
         if (tMin > tyMax || tyMin > tMax)
@@ -500,8 +577,8 @@ public class Box : Shape
         tMin = MathF.Max(tMin, tyMin);
         tMax = MathF.Min(tMax, tyMax);
 
-        float tzMin = (Min.Z - origin.Z) / dir.Z;
-        float tzMax = (Max.Z - origin.Z) / dir.Z;
+        var tzMin = (Min.Z - origin.Z) / dir.Z;
+        var tzMax = (Max.Z - origin.Z) / dir.Z;
         if (tzMin > tzMax) (tzMin, tzMax) = (tzMax, tzMin);
 
         if (tMin > tzMax || tzMin > tMax)
@@ -519,6 +596,7 @@ public class Box : Shape
     /// </summary>
     public override HitRecord? RayIntersection(Ray ray)
     {
+        //slab method. AABB as intersection of three "slabs"
         var localRay = ray.Transform(Transformation.Inverse());
         var origin = localRay.Origin.to_vec();
         var dir = localRay.Direction;
@@ -533,9 +611,10 @@ public class Box : Shape
         if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
 
         if (tMin > tyMax || tyMin > tMax)
-            return null;
+            return null; //the two intervals need to intersect otherwise there is no intersection
         tMin = MathF.Max(tMin, tyMin);
         tMax = MathF.Min(tMax, tyMax);
+        //it can be all understood easily with a simple drawing
 
         var tzMin = (Min.Z - origin.Z) / dir.Z;
         var tzMax = (Max.Z - origin.Z) / dir.Z;
@@ -586,6 +665,71 @@ public class Box : Shape
                local.Y >= Min.Y && local.Y <= Max.Y &&
                local.Z >= Min.Z && local.Z <= Max.Z;
     }
+
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        var localRay = ray.Transform(Transformation.Inverse());
+        var origin = localRay.Origin.to_vec();
+        var dir = localRay.Direction;
+
+        var tMin = (Min.X - origin.X) / dir.X;
+        var tMax = (Max.X - origin.X) / dir.X;
+        if (tMin > tMax) (tMin, tMax) = (tMax, tMin);
+
+        var tyMin = (Min.Y - origin.Y) / dir.Y;
+        var tyMax = (Max.Y - origin.Y) / dir.Y;
+        if (tyMin > tyMax) (tyMin, tyMax) = (tyMax, tyMin);
+
+        if (tMin > tyMax || tyMin > tMax)
+            yield break;
+
+        tMin = MathF.Max(tMin, tyMin);
+        tMax = MathF.Min(tMax, tyMax);
+
+        var tzMin = (Min.Z - origin.Z) / dir.Z;
+        var tzMax = (Max.Z - origin.Z) / dir.Z;
+        if (tzMin > tzMax) (tzMin, tzMax) = (tzMax, tzMin);
+
+        if (tMin > tzMax || tzMin > tMax)
+            yield break;
+
+        tMin = MathF.Max(tMin, tzMin);
+        tMax = MathF.Min(tMax, tzMax);
+
+        var tHits = new[] { tMin, tMax };
+
+        foreach (var t in tHits)
+        {
+            if (t < localRay.Tmin || t > localRay.Tmax)
+                continue;
+
+            var localHit = localRay.PointAt(t);
+
+            // Calcolo della normale
+            Vec n = new Vec(
+                Math.Abs(localHit.X - Min.X) < 1e-5 ? -1 : (Math.Abs(localHit.X - Max.X) < 1e-6 ? 1 : 0),
+                Math.Abs(localHit.Y - Min.Y) < 1e-5 ? -1 : (Math.Abs(localHit.Y - Max.Y) < 1e-6 ? 1 : 0),
+                Math.Abs(localHit.Z - Min.Z) < 1e-5 ? -1 : (Math.Abs(localHit.Z - Max.Z) < 1e-6 ? 1 : 0)
+            );
+            var localNormal = new Normal(n.X, n.Y, n.Z);
+
+            var uv = ShapePointToUV(localHit);
+
+            var worldPoint = Transformation * localHit;
+            var worldNormal = Transformation * localNormal;
+
+            yield return new HitRecord
+            {
+                WorldPoint = worldPoint,
+                Normal = worldNormal,
+                SurfacePoint = uv,
+                T = t,
+                Ray = ray,
+                Material = Material
+            };
+        }
+    }
+
 }
 
 
@@ -595,7 +739,7 @@ public class Box : Shape
  *                        TORUS                            *
  *                                                         *
  ***********************************************************/
-
+// not finished
 public class Torus : Shape
 {
     /// <summary>
@@ -697,7 +841,12 @@ public class Torus : Shape
         var distFromTubeCenter = MathF.Sqrt((xzLen - MajorRadius) * (xzLen - MajorRadius) + localP.Y * localP.Y);
         return distFromTubeCenter < MinorRadius;
     }
-    
+
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        throw new NotImplementedException();
+    }
+
     public static List<float> SolveQuartic(float A, float B, float C, float D, float E)
     {
         const float EPSILON = 1e-6f;
@@ -884,21 +1033,20 @@ public class Cone : Shape
 
     public override HitRecord? RayIntersection(Ray ray)
     {
+        //eq cono: x^2 + y^2 = k^2 (z-height)^2
         var localRay = ray.Transform(Transformation.Inverse());
 
         var o = localRay.Origin.to_vec();
         var d = localRay.Direction;
 
-        // Tip at origin, base at (0,0,h)
+        // Tip at (0,0,h), base at z = 0
         var k = Radius / Height;
         var k2 = k * k;
         
         var a = d.X * d.X + d.Y * d.Y - k2 * d.Z * d.Z;
         var b = 2 * (d.X * o.X + d.Y * o.Y - k2 * d.Z * (o.Z - Height));
         var c = o.X * o.X + o.Y * o.Y - k2 * (o.Z - Height) * (o.Z - Height);
-
-
-
+        
         var delta = b * b - 4 * a * c;
         if (delta < 0) return null;
 
@@ -921,9 +1069,10 @@ public class Cone : Shape
             }
         }
 
+        // Try intersection with the base disk if no intersection
         if (Math.Abs(t - float.MaxValue) < 1e-5)
         {
-            // Try intersection with the base disk
+            
             var denom = Vec.VEC_Z * d;
             if (MathF.Abs(denom) > 1e-6)
             {
@@ -980,6 +1129,11 @@ public class Cone : Shape
         var rAtZ = (Radius / Height) * localPoint.Z;
         return localPoint.Z >= 0 && localPoint.Z <= Height &&
                localPoint.X * localPoint.X + localPoint.Y * localPoint.Y <= rAtZ * rAtZ;
+    }
+
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -1065,8 +1219,7 @@ public class Csg : Shape
 
         return null; 
     }
-
-
+    
     public override bool IsPointInternal(Point p)
     {
         var insideFirst  = First.IsPointInternal(p);
@@ -1088,12 +1241,8 @@ public class Csg : Shape
         return a.T < b.T ? a : b;
     }
     
-    public static Shape IntersectAll(params Shape[] shapes)
+    public override IEnumerable<HitRecord> AllRayIntersections(Ray ray)
     {
-        if (shapes.Length == 0) throw new ArgumentException(nameof(shapes));
-        Shape result = shapes[0];
-        for (int i = 1; i < shapes.Length; i++)
-            result = new Csg(result, shapes[i], CsgOperation.Intersection);
-        return result;
+        throw new NotImplementedException();
     }
 }

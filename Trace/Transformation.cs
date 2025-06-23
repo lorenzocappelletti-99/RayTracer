@@ -319,11 +319,11 @@ namespace Trace
         /// <returns></returns>
         public static Transformation RotationZ(float angleDeg)
         {
-            float radians = angleDeg * (float)Math.PI / 180f;
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            var radians = angleDeg * (float)Math.PI / 180f;
+            var cos = (float)Math.Cos(radians);
+            var sin = (float)Math.Sin(radians);
 
-            float[,] m = new[,]
+            var m = new[,]
             {
                 { cos,  -sin, 0f,  0f },
                 { sin,  cos,  0f,  0f },
@@ -331,7 +331,7 @@ namespace Trace
                 { 0f,   0f,   0f,  1f }
             };
 
-            float[,] invm = new[,]
+            var invm = new[,]
             {
                 { cos,  sin, 0f,  0f },
                 { -sin, cos, 0f,  0f },
@@ -344,28 +344,20 @@ namespace Trace
 
         public static Point operator *(Transformation t, Point p)
         {
-            // Decompose the matrix t.M into rows
-            float[] row0 = [t.M[0, 0], t.M[0, 1], t.M[0, 2], t.M[0, 3]];
-            float[] row1 = [t.M[1, 0], t.M[1, 1], t.M[1, 2], t.M[1, 3]];
-            float[] row2 = [t.M[2, 0], t.M[2, 1], t.M[2, 2], t.M[2, 3]];
-            float[] row3 = [t.M[3, 0], t.M[3, 1], t.M[3, 2], t.M[3, 3]];
+            var newX = t.M[0, 0] * p.X + t.M[0, 1] * p.Y + t.M[0, 2] * p.Z + t.M[0, 3];
+            var newY = t.M[1, 0] * p.X + t.M[1, 1] * p.Y + t.M[1, 2] * p.Z + t.M[1, 3];
+            var newZ = t.M[2, 0] * p.X + t.M[2, 1] * p.Y + t.M[2, 2] * p.Z + t.M[2, 3];
+            var w    = t.M[3, 0] * p.X + t.M[3, 1] * p.Y + t.M[3, 2] * p.Z + t.M[3, 3];
 
-            // Multiply the matrix by the point
-            var newX = p.X * row0[0] + p.Y * row0[1] + p.Z * row0[2] + row0[3];
-            var newY = p.X * row1[0] + p.Y * row1[1] + p.Z * row1[2] + row1[3];
-            var newZ = p.X * row2[0] + p.Y * row2[1] + p.Z * row2[2] + row2[3];
-            var w = p.X * row3[0] + p.Y * row3[1] + p.Z * row3[2] + row3[3];
 
             // If w is close to 1, return the transformed point directly
             if (Math.Abs(w - 1f) < 1e-5f)
             {
                 return new Point(newX, newY, newZ);
             }
-            else
-            {
-                // Otherwise, normalize the point by dividing by w
-                return new Point(newX / w, newY / w, newZ / w);
-            }
+            // Otherwise, normalize the point by dividing by w
+            return new Point(newX / w, newY / w, newZ / w);
+            
         }
 
         /// <summary>
@@ -376,13 +368,9 @@ namespace Trace
         /// <returns></returns>
         public static Vec operator *(Transformation t, Vec v)
         {
-            // Decompose the matrix t.M (only the first 3 elements of the 3x3 matrix)
-            float newX = v.X * t.M[0, 0] + v.Y * t.M[0, 1] + v.Z * t.M[0, 2];
-            float newY = v.X * t.M[1, 0] + v.Y * t.M[1, 1] + v.Z * t.M[1, 2];
-            float newZ = v.X * t.M[2, 0] + v.Y * t.M[2, 1] + v.Z * t.M[2, 2];
-
-            // Return the new transformed vector
-            return new Vec(newX, newY, newZ);
+            return new Vec(v.X * t.M[0, 0] + v.Y * t.M[0, 1] + v.Z * t.M[0, 2],
+                v.X * t.M[1, 0] + v.Y * t.M[1, 1] + v.Z * t.M[1, 2], 
+                v.X * t.M[2, 0] + v.Y * t.M[2, 1] + v.Z * t.M[2, 2]);
         }
 
         /// <summary>
@@ -395,17 +383,9 @@ namespace Trace
         /// <returns>The transformed normal.</returns>
         public static Normal operator *(Transformation t, Normal n)
         {
-            // Decompose the inverse matrix t.Invm into rows
-            float[] row0 = [t.Invm[0, 0], t.Invm[0, 1], t.Invm[0, 2]];
-            float[] row1 = [t.Invm[1, 0], t.Invm[1, 1], t.Invm[1, 2]];
-            float[] row2 = [t.Invm[2, 0], t.Invm[2, 1], t.Invm[2, 2]];
-
-            // Multiply the inverse matrix TRANSPOSED by the normal
-            var newX = n.X * row0[0] + n.Y * row1[0] + n.Z * row2[0];
-            var newY = n.X * row0[1] + n.Y * row1[1] + n.Z * row2[1];
-            var newZ = n.X * row0[2] + n.Y * row1[2] + n.Z * row2[2];
-
-            return new Normal(newX, newY, newZ);
+            return new Normal(t.Invm[0, 0] * n.X + t.Invm[1, 0] * n.Y + t.Invm[2, 0] * n.Z, 
+                t.Invm[0, 1] * n.X + t.Invm[1, 1] * n.Y + t.Invm[2, 1] * n.Z, 
+                t.Invm[0, 2] * n.X + t.Invm[1, 2] * n.Y + t.Invm[2, 2] * n.Z);
         }
 
         /// <summary>

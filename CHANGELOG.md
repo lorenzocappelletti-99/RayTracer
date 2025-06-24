@@ -29,3 +29,10 @@
     - Optional antialiasing toggle
 -   CLI expanded with user-friendly options for resolution, renderer type, output file, and rendering configuration
 -   Included an example scene file and rendering instructions
+
+
+# Version 1.1.0
+
+- Added Render Timer: A clock now tracks and displays the time taken by the core rendering process ( the `FireAllRays` function).
+- Added Progress Bar: A real-time progress indicator provides visual feedback during rendering (increments percent at each rendered row of pixel). 
+- Added command-Line Option for Luminosity Factor: You can now specify a custom tone mapping scale factor to enhance the luminosity of your images via the CLI (e.g.,` --factor 4`, default at 0.6).

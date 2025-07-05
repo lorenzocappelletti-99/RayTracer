@@ -35,7 +35,7 @@
 
 # Version 0.1.0
 
--   First release of the code [#6]
+-   First release of the code [#6](https://github.com/lorenzocappelletti-99/RayTracer/pull/6)
 
 # HEAD
 

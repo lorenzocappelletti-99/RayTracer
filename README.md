@@ -44,7 +44,7 @@ If you do not want to build it in [release 1.1.0](https://github.com/lorenzocapp
 
 Run the renderer using the following command:
 
-```dotnet run render [sceneFile] [options]```
+```dotnet run -- render [sceneFile] [options]```
 
 ### Options
 
@@ -103,7 +103,7 @@ The file `example.txt` included in this release demonstrates the full range of c
 To generate a simple image, use the following command:
 
 ```bash
-dotnet run demo
+dotnet run -- demo
 ````
 
 List of all functionalities:

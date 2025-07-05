@@ -35,7 +35,7 @@
 
 # Version 0.1.0
 
--   First release of the code
+-   First release of the code [#6]
 
 # HEAD
 

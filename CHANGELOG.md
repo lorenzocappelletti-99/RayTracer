@@ -12,7 +12,7 @@
 # Version 1.0.0
 
 -   Introduced support for scene description via external text files (e.g., `example.txt`). [#15](https://github.com/lorenzocappelletti-99/RayTracer/pull/15)
--   Implemented Constructive Solid Geometry (CSG) operations for advanced shape composition. [#7](https://github.com/lorenzocappelletti-99/RayTracer/pull/7)
+-   Implemented Constructive Solid Geometry (CSG) operations for advanced shape composition. [#7](https://github.com/lorenzocappelletti-99/RayTracer/pull/7) [#line](https://github.com/lorenzocappelletti-99/RayTracer/blob/8768616a491c358f634b72223ea151d62ab7c9a5/Trace/Shapes.cs#L1150)
 -   Improved renderer interface with support for:
     - Path tracing with Russian Roulette and variable max depth.
     - Point light rendering. [#14](https://github.com/lorenzocappelletti-99/RayTracer/pull/14)
@@ -31,7 +31,7 @@
 # Version 0.2.0
 
 - Second release of the code. Now it actually generates PFM files.
-- Functionalities of 0.1.0 are available.
+- Functionalities of 0.1.0 are available. 
 
 # Version 0.1.0
 

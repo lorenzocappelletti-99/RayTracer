@@ -44,7 +44,7 @@ If you do not want to build it in [release 1.1.0](https://github.com/lorenzocapp
 
 Run the renderer using the following command:
 
-```dotnet run render [sceneFile] [options]```
+```dotnet run -- render [sceneFile] [options]```
 
 ### Options
 
@@ -54,7 +54,7 @@ Run the renderer using the following command:
 | `-h`, `--height`          | Image height (in pixels)                     | `--height 600`          | 768        |
 | `-o`, `--output`          | Output filename (PNG or JPG)                 | `--output demo.png`     | demo.png   |
 | `-A`, `--AntiAliasing`    | Enable/disable antialiasing (`true`/`false`) | `--AntiAliasing true`   | false      |
-| `-R`, `--NumOfRays`       | Rays per pixel                               | `--NumOfRays 10`        | 3          |
+| `-R`, `--NumOfRays`       | Monte Carlo samples (rays) per hit point     | `--NumOfRays 10`        | 3          |
 | `-x`, `--RussianRoulette` | Russian roulette path limit                  | `--RussianRoulette 5`   | 1          |
 | `-D`, `--MaxDepth`        | Maximum depth for ray reflection             | `--MaxDepth 4`          | 2          |
 | `-r`, `--renderer`        | Rendering mode (`PathTracer`, `PointLight`)  | `--renderer PathTracer` | PathTracer |
@@ -103,7 +103,7 @@ The file `example.txt` included in this release demonstrates the full range of c
 To generate a simple image, use the following command:
 
 ```bash
-dotnet run demo
+dotnet run -- demo
 ````
 
 List of all functionalities:

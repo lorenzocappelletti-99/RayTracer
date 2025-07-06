@@ -55,6 +55,7 @@ public class HdrImage
         this.Pixels = tempImage.Pixels;
     }
     
+    
     /***********************************************************
      *                                                         *
      *                      PIXEL HANDLING                     *

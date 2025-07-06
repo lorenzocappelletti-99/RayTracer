@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Trace;
 
 /// <summary>
@@ -62,7 +64,8 @@ public class FlatRenderer : Renderer{
     public override Color Render(Ray ray){
         var hit = World.ray_intersection(ray);
         if(hit == null) return BackgroundColor;
-        var material = hit.Material!;
+        Debug.Assert(hit.Material != null);
+        var material = hit.Material;
         var pigmentColor = material.EmittedRadiance.GetColor(hit.SurfacePoint);
         return pigmentColor;
     }
@@ -92,20 +95,6 @@ public class PathTracer : Renderer
         MaxDepth = maxDepth;
         RussianRouletteLimit = russianRouletteLimit;
     }
-    
-    public PathTracer(World world, Pcg? pgc, int numOfRays,
-        int maxDepth, int russianRouletteLimit) : base(world)
-    {
-        Pgc = pgc;
-        NumOfRays = numOfRays;
-        MaxDepth = maxDepth;
-        RussianRouletteLimit = russianRouletteLimit;
-        
-    }
-
-    public PathTracer(World world) : base(world)
-    {
-    }
 
     public override Color Render(Ray ray)
     {
@@ -113,8 +102,9 @@ public class PathTracer : Renderer
         
         var hitRecord = World.ray_intersection(ray);
         if(hitRecord == null) return BackgroundColor;
-        
-        var hitMaterial = hitRecord.Material!;
+
+        Debug.Assert(hitRecord.Material != null);
+        var hitMaterial = hitRecord.Material;
         var hitColor = hitMaterial.Brdf.Pigment.GetColor(hitRecord.SurfacePoint);
         var emittedRadiance = hitMaterial.EmittedRadiance.GetColor(hitRecord.SurfacePoint);
         
@@ -168,8 +158,9 @@ public class PointLightRenderer : Renderer
        {
            var hitRecord = World.ray_intersection(ray);
            if(hitRecord == null) return BackgroundColor;
-           
-           var hitMaterial = hitRecord.Material!;
+
+           Debug.Assert(hitRecord.Material != null);
+           var hitMaterial = hitRecord.Material;
            
            var resultColor = AmbientColor;
            foreach (var curLight in World.PointLights)
